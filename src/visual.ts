@@ -57,6 +57,7 @@ export class Visual implements IVisual {
 
   private isPro: boolean = false;
   private freeLimitHit: boolean = false;
+  private _lastOptions: VisualUpdateOptions | null = null;
   private dataPoints: CellDataPoint[] = [];
   private grid: CountryGrid | null = null;
 
@@ -93,14 +94,28 @@ export class Visual implements IVisual {
     this.container.appendChild(this.svg);
 
     this.svg.addEventListener("contextmenu", (e: MouseEvent) => {
+      if (!this.host.hostCapabilities.allowInteractions) return;
       e.preventDefault();
       this.selectionManager.showContextMenu({} as ISelectionId, { x: e.clientX, y: e.clientY });
+    });
+
+    // Clear selection on background click
+    this.svg.addEventListener("click", () => {
+      if (!this.host.hostCapabilities.allowInteractions) return;
+      this.selectionManager.clear();
+      this.updateSelectionOpacity(false);
+    });
+
+    // Respond to external filter/selection changes
+    this.selectionManager.registerOnSelectCallback(() => {
+      this.update({ ...this._lastOptions } as VisualUpdateOptions);
     });
   }
 
   // ── Update ──────────────────────────────────────────────────────────────────
   public update(options: VisualUpdateOptions): void {
     this.events.renderingStarted(options);
+    this._lastOptions = options;
     try {
       const dataView = options?.dataViews?.[0];
 
@@ -331,6 +346,9 @@ export class Visual implements IVisual {
     rect.setAttribute("fill", color);
     rect.setAttribute("rx", String(Math.max(1, w * 0.08)));
     if (isHC) { rect.setAttribute("stroke", this.hcFg); rect.setAttribute("stroke-width", "0.5"); }
+    const isSelected = dp && this.selectionManager.hasSelection();
+    rect.setAttribute("data-selected", dp ? "true" : "false");
+    if (isSelected) rect.style.opacity = "1";
     rect.style.cursor = dp ? "pointer" : "default";
 
     if (dp) {
@@ -387,13 +405,23 @@ export class Visual implements IVisual {
   }
 
   // ── Events + Tooltips ────────────────────────────────────────────────────────
+  private updateSelectionOpacity(hasSelection: boolean): void {
+    const opacity = hasSelection ? "0.4" : "1";
+    const rects = this.svg.querySelectorAll("rect[data-selected='false']");
+    rects.forEach(r => (r as SVGElement).style.opacity = opacity);
+  }
+
   private attachEvents(el: SVGElement, dp: CellDataPoint, col: number, row: number): void {
     el.addEventListener("click", (e: MouseEvent) => {
+      if (!this.host.hostCapabilities.allowInteractions) return;
       e.stopPropagation();
       this.selectionManager.select(dp.selectionIds[0], e.ctrlKey || e.metaKey);
+      const hasSelection = this.selectionManager.hasSelection();
+      this.updateSelectionOpacity(hasSelection);
     });
 
     el.addEventListener("contextmenu", (e: MouseEvent) => {
+      if (!this.host.hostCapabilities.allowInteractions) return;
       e.preventDefault();
       this.selectionManager.showContextMenu(
         dp.selectionIds[0] ?? ({} as ISelectionId),

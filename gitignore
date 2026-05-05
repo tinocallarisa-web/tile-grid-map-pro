@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.pbiviz
+webpack.statistics.prod.html
+webpack.statistics.dev.html
+
+# Duplicate files (real versions are in src/)
+/countryGrids.ts
+/visual.ts
+
+# Test/sample data
+*.csv
+
+# Temp icons (real icon is in assets/)
+icon_300x300.png
+
+# Power BI report files
+*.pbix
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+*.suo
+*.user
+
+# Certificates
+*.pem
+*.crt
+*.key
