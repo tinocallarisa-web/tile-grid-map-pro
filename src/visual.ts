@@ -106,9 +106,10 @@ export class Visual implements IVisual {
       this.updateSelectionOpacity(false);
     });
 
-    // Respond to external filter/selection changes
+    // Respond to external selection changes - just update visual state
     this.selectionManager.registerOnSelectCallback(() => {
-      this.update({ ...this._lastOptions } as VisualUpdateOptions);
+      const hasSelection = this.selectionManager.hasSelection();
+      this.updateSelectionOpacity(hasSelection);
     });
   }
 
