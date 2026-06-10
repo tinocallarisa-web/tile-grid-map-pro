@@ -99,17 +99,19 @@ export class Visual implements IVisual {
       this.selectionManager.showContextMenu({} as ISelectionId, { x: e.clientX, y: e.clientY });
     });
 
-    // Clear selection on background click
     this.svg.addEventListener("click", () => {
       if (!this.host.hostCapabilities.allowInteractions) return;
-      this.selectionManager.clear();
-      this.updateSelectionOpacity(false);
+      this.selectionManager.clear().then(() => {
+        const allRects = this.svg.querySelectorAll("rect[data-has-data='true']");
+        allRects.forEach(r => {
+          r.setAttribute("data-selected", "false");
+          (r as SVGElement).style.opacity = "1";
+        });
+      });
     });
 
-    // Respond to external selection changes - just update visual state
     this.selectionManager.registerOnSelectCallback(() => {
-      const hasSelection = this.selectionManager.hasSelection();
-      this.updateSelectionOpacity(hasSelection);
+      this.updateOpacity();
     });
   }
 
@@ -347,10 +349,14 @@ export class Visual implements IVisual {
     rect.setAttribute("fill", color);
     rect.setAttribute("rx", String(Math.max(1, w * 0.08)));
     if (isHC) { rect.setAttribute("stroke", this.hcFg); rect.setAttribute("stroke-width", "0.5"); }
-    const isSelected = dp && this.selectionManager.hasSelection();
-    rect.setAttribute("data-selected", dp ? "true" : "false");
-    if (isSelected) rect.style.opacity = "1";
     rect.style.cursor = dp ? "pointer" : "default";
+    if (!dp) {
+      rect.addEventListener("contextmenu", (e: MouseEvent) => {
+        if (!this.host.hostCapabilities.allowInteractions) return;
+        e.preventDefault();
+        this.selectionManager.showContextMenu({} as ISelectionId, { x: e.clientX, y: e.clientY });
+      });
+    }
 
     if (dp) {
       this.attachEvents(rect, dp, col, row);
@@ -406,19 +412,33 @@ export class Visual implements IVisual {
   }
 
   // ── Events + Tooltips ────────────────────────────────────────────────────────
-  private updateSelectionOpacity(hasSelection: boolean): void {
-    const opacity = hasSelection ? "0.4" : "1";
-    const rects = this.svg.querySelectorAll("rect[data-selected='false']");
-    rects.forEach(r => (r as SVGElement).style.opacity = opacity);
+  private updateOpacity(): void {
+    const hasSelection = this.selectionManager.hasSelection();
+    const allRects = this.svg.querySelectorAll("rect[data-has-data='true']");
+    allRects.forEach(r => {
+      const el = r as SVGElement;
+      const isSelected = el.getAttribute("data-selected") === "true";
+      el.style.opacity = hasSelection && !isSelected ? "0.3" : "1";
+    });
   }
 
   private attachEvents(el: SVGElement, dp: CellDataPoint, col: number, row: number): void {
+    el.setAttribute("data-has-data", "true");
+    el.setAttribute("data-selected", "false");
+
     el.addEventListener("click", (e: MouseEvent) => {
       if (!this.host.hostCapabilities.allowInteractions) return;
       e.stopPropagation();
-      this.selectionManager.select(dp.selectionIds[0], e.ctrlKey || e.metaKey);
-      const hasSelection = this.selectionManager.hasSelection();
-      this.updateSelectionOpacity(hasSelection);
+      const isMulti = e.ctrlKey || e.metaKey;
+      this.selectionManager.select(dp.selectionIds[0], isMulti).then(() => {
+        // Mark selected state
+        const allRects = this.svg.querySelectorAll("rect[data-has-data='true']");
+        allRects.forEach(r => r.setAttribute("data-selected", "false"));
+        if (this.selectionManager.hasSelection()) {
+          el.setAttribute("data-selected", "true");
+        }
+        this.updateOpacity();
+      });
     });
 
     el.addEventListener("contextmenu", (e: MouseEvent) => {
