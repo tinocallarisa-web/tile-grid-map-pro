@@ -1,0 +1,128 @@
+================================================================
+DESCRIPCIÓN PARA YOUTUBE — Tile Grid Map Pro
+================================================================
+Copia desde la línea de abajo. Ajusta los timestamps a tu vídeo
+antes de publicar.
+================================================================
+
+
+Tile Grid Map Pro — Regional maps in Power BI without the GIS headache
+
+On a real map, area lies. Madrid is a dot, Castilla is a continent — and
+your data disappears behind the geography. Tile Grid Map Pro gives every
+region the same visual weight, so small dense areas are just as readable
+as large empty ones.
+
+Drop in latitude and longitude, add a measure, pick your country. That's
+the whole setup. 27 countries and regions are built in, and with Pro you
+can load any TopoJSON boundary file by dragging it straight onto the
+visual — provinces, sales territories, districts, whatever your business
+actually runs on.
+
+⬇️ Get it on Microsoft AppSource:
+https://appsource.microsoft.com/
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏱️ CHAPTERS
+
+0:00  Why tile grids beat choropleth maps
+0:00  Adding the visual and binding lat/long
+0:00  Choosing your country or region
+0:00  Value aggregation — Sum, Average, Count, Min, Max
+0:00  Colour scales: sequential, diverging, categorical
+0:00  Conditional formatting rules
+0:00  Tooltips and decimal places
+0:00  Cross-filtering and multi-select
+0:00  PRO — Loading a custom TopoJSON by drag & drop
+0:00  PRO — Boundaries saved inside the .pbix
+0:00  Accessibility and high contrast
+0:00  Wrap-up
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ WHAT'S IN THE FREE VERSION
+
+• 27 built-in country and region grids — Spain, Canarias, Portugal,
+  France, Germany, Italy, Sicily, Sardinia, UK, Netherlands, Belgium,
+  Poland, Sweden, Norway, Switzerland, Austria, US, Alaska, Hawaii,
+  Canada, Mexico, Brazil, Argentina, Colombia, Australia, India, Japan
+• Up to 500 data points
+• Five aggregations, auto-detected from your field metadata
+• Conditional formatting — three rules including between-range
+• Tooltips with up to 10 extra measures
+• Cross-filter, Ctrl multi-select, context menu
+• High contrast and accessibility options
+
+⭐ WHAT PRO ADDS
+
+• Unlimited data points, up to 30,000 rows
+• Custom TopoJSON — drag any boundary file onto the visual
+• Boundaries persist inside the .pbix, no re-upload after reopening
+• Load TopoJSON from a public HTTPS URL
+• Your own colour palettes: sequential, diverging (min/mid/max)
+  and categorical
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 GOOD FOR
+
+Retail coverage · Logistics and delivery times · Population density
+Sales by territory · Public health incidence · Election results
+Environmental metrics · Network coverage
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔗 LINKS
+
+Support ....... https://tinocallarisa-web.github.io/tile-grid-map-pro/support.html
+Privacy ....... https://tinocallarisa-web.github.io/tile-grid-map-pro/privacy.html
+Terms ......... https://tinocallarisa-web.github.io/tile-grid-map-pro/terms.html
+GitHub ........ https://github.com/tinocallarisa-web/tile-grid-map-pro
+More visuals .. https://tinocallarisa-web.github.io/
+
+Questions or feature requests: tino@tcviz.com
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔒 PRIVACY
+
+No telemetry, no analytics, no cookies. Your data never leaves the Power
+BI environment. The only optional network call is fetching a TopoJSON
+file from a URL you type in yourself.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+#PowerBI #DataVisualization #PowerBIVisuals #BusinessIntelligence
+#TileGridMap #DataAnalytics #Microsoft #TCViz #MapVisualization
+#TopoJSON #DataViz
+
+
+================================================================
+VERSIÓN CORTA  (para Shorts, LinkedIn o descripción reducida)
+================================================================
+
+On a real map, area lies — big empty regions shout, small dense ones
+vanish. Tile Grid Map Pro gives every region equal weight in Power BI.
+
+Drop in lat/long, add a measure, pick from 27 built-in countries. Or go
+Pro and drag your own TopoJSON straight onto the visual — sales
+territories, provinces, districts. It saves inside the .pbix, so it's
+still there when you reopen the report.
+
+No shapefiles. No GIS. No code.
+
+Get it on AppSource → https://appsource.microsoft.com/
+
+#PowerBI #DataVisualization #PowerBIVisuals #TCViz
+
+
+================================================================
+TÍTULOS SUGERIDOS  (elige uno)
+================================================================
+
+1.  Tile Grid Map Pro — Regional Maps in Power BI Without the GIS Headache
+2.  Stop Letting Map Area Hide Your Data | Tile Grid Map Pro for Power BI
+3.  Power BI Tile Grid Maps: 27 Countries + Your Own TopoJSON Boundaries
+4.  The Power BI Map Visual That Treats Every Region Equally
+5.  Custom Regional Maps in Power BI — Drag, Drop, Done

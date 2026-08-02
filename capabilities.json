@@ -203,8 +203,28 @@
               {
                 "value": "jp",
                 "displayName": "Japan"
+              },
+              {
+                "value": "custom",
+                "displayName": "Custom TopoJSON (Pro)"
               }
             ]
+          }
+        },
+        "aggregationType": {
+          "type": {
+            "enumeration": [
+              { "value": "sum",     "displayName": "Sum" },
+              { "value": "average", "displayName": "Average" },
+              { "value": "count",   "displayName": "Count" },
+              { "value": "min",     "displayName": "Min" },
+              { "value": "max",     "displayName": "Max" }
+            ]
+          }
+        },
+        "showEmptyCells": {
+          "type": {
+            "bool": true
           }
         },
         "showLabels": {
@@ -216,6 +236,12 @@
           "type": {
             "numeric": true
           }
+        },
+        "labelMinTileSize": {
+          "type": { "numeric": true }
+        },
+        "tooltipDecimals": {
+          "type": { "numeric": true }
         }
       }
     },
@@ -304,17 +330,62 @@
         }
       }
     },
+    "accessibility": {
+      "properties": {
+        "showBorders":      { "type": { "bool": true } },
+        "borderColor":      { "type": { "fill": { "solid": { "color": true } } } },
+        "borderWidth":      { "type": { "numeric": true } },
+        "selectedRingColor": { "type": { "fill": { "solid": { "color": true } } } },
+        "selectedRingWidth": { "type": { "numeric": true } }
+      }
+    },
+    "conditionalFormatting": {
+      "properties": {
+        "cfEnabled": { "type": { "bool": true } },
+        "cfRule1Operator": {
+          "type": {
+            "enumeration": [
+              { "value": "lt",  "displayName": "< Less than" },
+              { "value": "lte", "displayName": "≤ Less than or equal" },
+              { "value": "gt",  "displayName": "> Greater than" },
+              { "value": "gte", "displayName": "≥ Greater than or equal" },
+              { "value": "eq",  "displayName": "= Equal to" }
+            ]
+          }
+        },
+        "cfRule1Value": { "type": { "numeric": true } },
+        "cfRule1Color": { "type": { "fill": { "solid": { "color": true } } } },
+        "cfRule2MinValue": { "type": { "numeric": true } },
+        "cfRule2MaxValue": { "type": { "numeric": true } },
+        "cfRule2Color": { "type": { "fill": { "solid": { "color": true } } } },
+        "cfRule3Operator": {
+          "type": {
+            "enumeration": [
+              { "value": "lt",  "displayName": "< Less than" },
+              { "value": "lte", "displayName": "≤ Less than or equal" },
+              { "value": "gt",  "displayName": "> Greater than" },
+              { "value": "gte", "displayName": "≥ Greater than or equal" },
+              { "value": "eq",  "displayName": "= Equal to" }
+            ]
+          }
+        },
+        "cfRule3Value": { "type": { "numeric": true } },
+        "cfRule3Color": { "type": { "fill": { "solid": { "color": true } } } }
+      }
+    },
     "proSettings": {
       "properties": {
         "customTopoJsonUrl": {
-          "type": {
-            "text": true
-          }
+          "type": { "text": true }
         },
         "showPill": {
-          "type": {
-            "bool": true
-          }
+          "type": { "bool": true }
+        },
+        "topoJsonContent": {
+          "type": { "text": true }
+        },
+        "topoJsonFileName": {
+          "type": { "text": true }
         }
       }
     }

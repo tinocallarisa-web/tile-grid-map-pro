@@ -5,62 +5,222 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Support — Tile Grid Map Pro | TCViz</title>
   <style>
-    body { font-family: 'Segoe UI', system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 24px; color: #222; line-height: 1.7; }
-    h1 { font-size: 28px; color: #1a5276; } h2 { font-size: 18px; margin-top: 32px; color: #2471a3; }
-    a { color: #2471a3; } code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-size: 13px; }
-    footer { margin-top: 60px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 16px; }
-    .badge { display: inline-block; background: #2980b9; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; vertical-align: middle; }
+    :root{
+      --bg:#FAF9F5; --bg2:#EDE9DE; --bd:#F5F3ED; --line:#DAD9D4;
+      --t1:#3D3929; --t2:#535146; --t3:#83827D;
+      --acc:#C96442; --accd:#B05730; --acc2:#9C87F5;
+    }
+    *{box-sizing:border-box}
+    body{font-family:'Segoe UI',system-ui,sans-serif;max-width:860px;
+      margin:0 auto;padding:40px 24px 60px;color:var(--t1);line-height:1.65;
+      background:var(--bg)}
+    h1{font-size:30px;letter-spacing:-.5px;margin:0 0 6px}
+    h1 span{color:var(--acc)}
+    h2{font-size:19px;margin:38px 0 12px;padding-bottom:7px;
+      border-bottom:2px solid var(--line);color:var(--t1)}
+    h3{font-size:15px;margin:22px 0 6px;color:var(--t1)}
+    p,li{color:var(--t2)}
+    a{color:var(--acc)} a:hover{color:var(--accd)}
+    code{background:var(--bg2);padding:2px 7px;border-radius:4px;
+      font-size:13px;font-family:Consolas,monospace;color:var(--t1)}
+    .lead{font-size:15px;color:var(--t2);margin-bottom:4px}
+    .badge{display:inline-block;background:var(--acc2);color:#fff;
+      padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;
+      vertical-align:middle}
+    table{border-collapse:collapse;width:100%;font-size:14px;margin:12px 0}
+    th,td{border:1px solid var(--line);padding:8px 11px;text-align:left}
+    th{background:var(--bg2);color:var(--t1);font-weight:600}
+    td:nth-child(2),td:nth-child(3),
+    th:nth-child(2),th:nth-child(3){text-align:center;width:90px}
+    .video{position:relative;padding-bottom:56.25%;height:0;
+      border-radius:10px;overflow:hidden;margin:14px 0;
+      box-shadow:0 3px 14px rgba(61,57,41,.14)}
+    .video iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0}
+    .note{background:var(--bg2);border-left:3px solid var(--acc);
+      border-radius:0 7px 7px 0;padding:11px 16px;margin:14px 0;font-size:14px}
+    .faq{margin-bottom:16px}
+    .faq .q{font-weight:600;color:var(--t1)}
+    footer{margin-top:56px;font-size:12.5px;color:var(--t3);
+      border-top:1px solid var(--line);padding-top:16px}
+    footer a{color:var(--t2)}
   </style>
 </head>
 <body>
-  <h1>Support — Tile Grid Map Pro</h1>
-  <p>Published by <strong>TCViz</strong> &nbsp;|&nbsp; <a href="mailto:tino@tcviz.com">tino@tcviz.com</a></p>
 
-  <h2>Quick Start</h2>
+  <h1>Support — Tile Grid <span>Map Pro</span></h1>
+  <p class="lead">Published by <strong>TCViz</strong> &nbsp;·&nbsp;
+    <a href="mailto:tino@tcviz.com">tino@tcviz.com</a> &nbsp;·&nbsp; Version 1.0.0.4</p>
+
+  <h2>Video walkthrough</h2>
+  <div class="video">
+    <iframe src="https://www.youtube.com/embed/LnTb3qHsHdg"
+            title="Tile Grid Map Pro — Power BI custom visual walkthrough"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture"
+            allowfullscreen></iframe>
+  </div>
+  <p>Full setup, formatting options and the Pro custom TopoJSON workflow —
+     <a href="https://www.youtube.com/watch?v=LnTb3qHsHdg">watch on YouTube</a>.</p>
+
+  <h2>Quick start</h2>
   <ol>
-    <li>Add the visual to your Power BI report from Microsoft AppSource.</li>
-    <li>Drag a <strong>Location</strong> field (ISO country code, state abbreviation, or region name) into the Location role.</li>
-    <li>Drag a numeric <strong>Value</strong> measure into the Value role.</li>
-    <li>Select your <strong>Country / Region</strong> in the formatting pane → Map Settings.</li>
+    <li>Add the visual to your report from Microsoft AppSource.</li>
+    <li>Drag your <strong>Latitude</strong> column into the Latitude field well
+        — decimal degrees, e.g. <code>40.4168</code>.</li>
+    <li>Drag your <strong>Longitude</strong> column into the Longitude field well
+        — e.g. <code>-3.7038</code>.</li>
+    <li>Drop a numeric measure into <strong>Value</strong>. This is what colours each tile.</li>
+    <li>In the Format pane, open <strong>Map Settings</strong> and pick your
+        <strong>Country / Region</strong>.</li>
   </ol>
 
-  <h2>Free vs Pro Features</h2>
-  <table border="1" cellpadding="8" style="border-collapse:collapse;width:100%;font-size:14px;">
-    <tr style="background:#eaf4fb;"><th>Feature</th><th>Free</th><th><span class="badge">Pro</span></th></tr>
-    <tr><td>World map (country-level)</td><td>✅</td><td>✅</td></tr>
-    <tr><td>Square tiles</td><td>✅</td><td>✅</td></tr>
-    <tr><td>Sequential color scale (fixed)</td><td>✅</td><td>✅</td></tr>
-    <tr><td>Tooltips</td><td>✅</td><td>✅</td></tr>
-    <tr><td>Cross-filter &amp; context menu</td><td>✅</td><td>✅</td></tr>
-    <tr><td>Hexagon tiles</td><td>❌</td><td>✅</td></tr>
-    <tr><td>90+ country sub-region maps</td><td>❌</td><td>✅</td></tr>
-    <tr><td>Custom color scales (diverging, categorical)</td><td>❌</td><td>✅</td></tr>
-    <tr><td>Bubble overlay</td><td>❌</td><td>✅</td></tr>
-    <tr><td>Custom TopoJSON import</td><td>❌</td><td>✅</td></tr>
+  <div class="note">
+    The visual works from raw coordinates. There is no region-name or ISO-code
+    lookup — each latitude/longitude pair is snapped to the grid cell that
+    contains it. No shapefiles or GIS setup required.
+  </div>
+
+  <h2>Field wells</h2>
+  <table>
+    <tr><th>Field well</th><th>Required</th><th>Max</th><th>Description</th></tr>
+    <tr><td><strong>Latitude</strong></td><td>Yes</td><td>1</td><td>Decimal degrees</td></tr>
+    <tr><td><strong>Longitude</strong></td><td>Yes</td><td>1</td><td>Decimal degrees</td></tr>
+    <tr><td><strong>Value</strong></td><td>Recommended</td><td>1</td><td>Numeric measure used for colouring</td></tr>
+    <tr><td><strong>Label</strong></td><td>No</td><td>1</td><td>City or region name, shown on tiles and tooltips</td></tr>
+    <tr><td><strong>Tooltips</strong></td><td>No</td><td>10</td><td>Extra measures shown on hover, each aggregated independently</td></tr>
   </table>
 
-  <h2>Location Key Format</h2>
-  <p>The Location field accepts any of the following formats:</p>
+  <h2>Built-in regions</h2>
+  <p>27 country and region grids are included: Spain, Canarias, Portugal, France,
+     Germany, Italy, Sicily, Sardinia, United Kingdom, Netherlands, Belgium,
+     Poland, Sweden, Norway, Switzerland, Austria, United States, Alaska, Hawaii,
+     Canada, Mexico, Brazil, Argentina, Colombia, Australia, India and Japan.</p>
+  <p>Need a geography that isn't on the list? Pro supports any TopoJSON boundary
+     file — see below.</p>
+
+  <h2>Free vs Pro</h2>
+  <table>
+    <tr><th>Feature</th><th>Free</th><th><span class="badge">Pro</span></th></tr>
+    <tr><td>27 built-in country and region grids</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Aggregations — Sum, Average, Count, Min, Max</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Conditional formatting, 3 rules</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Tooltips, up to 10 extra fields</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Cell labels and legend</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Accessibility and high contrast</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Cross-filter, multi-select, context menu</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Data points</td><td>500</td><td><strong>30,000</strong></td></tr>
+    <tr><td>Sequential colour scale</td><td>Fixed palette</td><td><strong>Your colours</strong></td></tr>
+    <tr><td>Diverging scale — min / mid / max</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Categorical palette</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Custom TopoJSON boundaries</td><td>❌</td><td>✅</td></tr>
+    <tr><td>TopoJSON saved inside the .pbix</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Load TopoJSON from a public URL</td><td>❌</td><td>✅</td></tr>
+  </table>
+
+  <h2>Custom TopoJSON <span class="badge">Pro</span></h2>
+  <ol>
+    <li>Set <strong>Map Settings → Country / Region</strong> to
+        <em>Custom TopoJSON (Pro)</em>.</li>
+    <li>Drag a <code>.json</code> or <code>.topojson</code> file directly onto
+        the visual. The drop zone appears automatically.</li>
+    <li>Coordinates are assigned to polygons by point-in-polygon testing and
+        coloured by the aggregated value.</li>
+    <li>The file is stored inside the <code>.pbix</code>, so it survives closing
+        and reopening the report. Remember to save after dropping it.</li>
+  </ol>
+  <p>Alternatively, paste a public HTTPS link into
+     <strong>Pro Settings → Custom TopoJSON URL</strong>.</p>
+
+  <h3>Where to find boundary files</h3>
   <ul>
-    <li>ISO 3166-1 alpha-2: <code>us</code>, <code>de</code>, <code>es</code></li>
-    <li>ISO 3166-1 alpha-3: <code>usa</code>, <code>deu</code></li>
-    <li>Full country name: <code>United States</code>, <code>Germany</code></li>
-    <li>US States: <code>CA</code>, <code>TX</code>, <code>california</code></li>
+    <li><a href="https://www.geoboundaries.org/">geoBoundaries.org</a> — administrative divisions worldwide</li>
+    <li><a href="https://www.naturalearthdata.com/">Natural Earth</a> — country, state and province outlines</li>
+    <li>Your national statistics office — most publish TopoJSON or GeoJSON</li>
   </ul>
+  <p><strong>Tip:</strong> simplify large files at
+     <a href="https://mapshaper.org/">mapshaper.org</a> to 5–10% before loading.
+     The shape stays the same and rendering is much faster.</p>
+
+  <h2>Format pane reference</h2>
+  <table>
+    <tr><th>Section</th><th colspan="2">Options</th></tr>
+    <tr><td><strong>Map Settings</strong></td><td colspan="2">Country/Region · Value Aggregation · Show Empty Cells · Show Cell Labels · Label Font Size · Label Min Tile Size · Tooltip Decimal Places</td></tr>
+    <tr><td><strong>Color Scale</strong></td><td colspan="2">Scale Type · Color Min / Mid / Max · No Data Color</td></tr>
+    <tr><td><strong>Conditional Formatting</strong></td><td colspan="2">Enable Rules · Rule 1 (operator) · Rule 2 (between range) · Rule 3 (operator)</td></tr>
+    <tr><td><strong>Accessibility</strong></td><td colspan="2">Show Cell Borders · Border Color · Border Width · Selected Ring Color · Selected Ring Width</td></tr>
+    <tr><td><strong>Legend</strong></td><td colspan="2">Show Legend · Position (Bottom / Right / Top)</td></tr>
+    <tr><td><strong>Pro Settings</strong></td><td colspan="2">Custom TopoJSON URL · Show Pro Pill</td></tr>
+  </table>
 
   <h2>FAQ</h2>
-  <p><strong>My regions are not appearing on the map.</strong><br>Check that your Location field values match the expected key format for the selected map. Try using ISO codes.</p>
-  <p><strong>I upgraded to Pro but features are still locked.</strong><br>Sign out of Power BI Desktop and sign back in to refresh your license status.</p>
-  <p><strong>Can I use a custom TopoJSON file?</strong><br>Yes — Pro subscribers can provide a URL to any publicly accessible TopoJSON file in the Pro Settings card.</p>
 
-  <h2>Contact</h2>
-  <p>Email: <a href="mailto:tino@tcviz.com">tino@tcviz.com</a><br>
-  GitHub: <a href="https://github.com/tinocallarisa-web/tile-grid-map-pro">github.com/tinocallarisa-web/tile-grid-map-pro</a></p>
+  <div class="faq">
+    <p class="q">Nothing renders, or I get "No data points found".</p>
+    <p>Your coordinates fall outside the selected region. Check that
+       Country/Region matches your data, and that latitude and longitude
+       aren't swapped in the field wells.</p>
+  </div>
+
+  <div class="faq">
+    <p class="q">What coordinate format does it expect?</p>
+    <p>Decimal degrees in WGS84 — <code>40.4168</code>, not
+       <code>40°25'00"N</code>. Convert DMS values before loading.</p>
+  </div>
+
+  <div class="faq">
+    <p class="q">Some tiles are empty.</p>
+    <p>Those grid cells have no matching coordinates. Turn off
+       <em>Show Empty Cells</em> in Map Settings to hide them.</p>
+  </div>
+
+  <div class="faq">
+    <p class="q">I see "Free version limited to 500 data points".</p>
+    <p>Expected on the Free tier. Aggregate your data upstream, or upgrade to
+       Pro for the full dataset.</p>
+  </div>
+
+  <div class="faq">
+    <p class="q">Tooltip values don't match my card visual.</p>
+    <p>The visual aggregates per cell using each field's own aggregation, read
+       from its metadata. If a measure is defined differently in the card, set
+       <em>Value Aggregation</em> explicitly in Map Settings to match.</p>
+  </div>
+
+  <div class="faq">
+    <p class="q">I upgraded to Pro but the features are still locked.</p>
+    <p>Sign out of Power BI Desktop and sign back in to refresh your license
+       status. The visual resolves the license asynchronously after the first
+       render, so give it a moment.</p>
+  </div>
+
+  <div class="faq">
+    <p class="q">My dropped TopoJSON disappeared after reopening the report.</p>
+    <p>It shouldn't — the file is persisted into the .pbix. Make sure you saved
+       the report after dropping the file.</p>
+  </div>
+
+  <div class="faq">
+    <p class="q">Does the visual send my data anywhere?</p>
+    <p>No. There is no telemetry, no analytics and no cookies, and your data
+       never leaves the Power BI environment. The only optional outbound request
+       is fetching a TopoJSON file from a URL you type in yourself. See the
+       <a href="privacy.html">Privacy Policy</a>.</p>
+  </div>
+
+  <h2>Report a bug or request a feature</h2>
+  <p>Open an issue on GitHub:
+     <a href="https://github.com/tinocallarisa-web/tile-grid-map-pro/issues">github.com/tinocallarisa-web/tile-grid-map-pro/issues</a><br>
+     Or email <a href="mailto:tino@tcviz.com">tino@tcviz.com</a>. We aim to reply
+     within two business days.</p>
+  <p>Changelog:
+     <a href="https://github.com/tinocallarisa-web/tile-grid-map-pro/blob/main/CHANGELOG.md">CHANGELOG.md</a></p>
 
   <footer>
-    &copy; 2025 TCViz. &nbsp;|&nbsp;
-    <a href="privacy.html">Privacy Policy</a> &nbsp;|&nbsp;
-    <a href="terms.html">Terms of Use</a>
+    &copy; 2026 TCViz &nbsp;·&nbsp;
+    <a href="privacy.html">Privacy Policy</a> &nbsp;·&nbsp;
+    <a href="terms.html">Terms of Use</a> &nbsp;·&nbsp;
+    <a href="https://github.com/tinocallarisa-web/tile-grid-map-pro">GitHub</a> &nbsp;·&nbsp;
+    <a href="https://www.youtube.com/watch?v=LnTb3qHsHdg">Video</a>
   </footer>
+
 </body>
 </html>

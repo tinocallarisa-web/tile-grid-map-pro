@@ -1,0 +1,50 @@
+================================================================
+ETIQUETAS PARA YOUTUBE — Tile Grid Map Pro
+================================================================
+YouTube limita el campo de etiquetas a 500 caracteres en total.
+El bloque principal de abajo cabe dentro del límite.
+Copia la línea entera y pégala en el campo "Etiquetas".
+================================================================
+
+
+── BLOQUE PRINCIPAL  (~490 caracteres, listo para pegar) ──
+
+power bi, powerbi, power bi visuals, custom visual power bi, power bi map, tile grid map, tile map power bi, power bi tutorial, data visualization, dataviz, power bi custom visual, topojson, geospatial power bi, power bi maps tutorial, business intelligence, power bi desktop, microsoft power bi, appsource, power bi appsource, regional map power bi, choropleth alternative, hex map, power bi dashboard, data analytics, tcviz
+
+
+────────────────────────────────────────────────────────────────
+ALTERNATIVAS POR ENFOQUE
+────────────────────────────────────────────────────────────────
+
+Si el vídeo se centra en el TOPOJSON PERSONALIZADO:
+
+power bi, powerbi, topojson, topojson power bi, custom map power bi, power bi custom boundaries, geojson power bi, sales territory map, power bi visuals, custom visual power bi, tile grid map, power bi map visual, geospatial, mapshaper, power bi tutorial, data visualization, power bi desktop, business intelligence, regional analysis, territory mapping, tcviz
+
+
+Si el vídeo es un TUTORIAL PARA PRINCIPIANTES:
+
+power bi tutorial, power bi for beginners, power bi maps tutorial, how to create map power bi, power bi custom visual tutorial, latitude longitude power bi, power bi map visual, tile grid map, data visualization tutorial, learn power bi, power bi desktop tutorial, powerbi, business intelligence tutorial, power bi visuals, dataviz, tcviz
+
+
+Si el vídeo es una DEMO DE PRODUCTO / LANZAMIENTO:
+
+tile grid map pro, tcviz, power bi custom visual, power bi appsource, new power bi visual, power bi visuals 2026, appsource, power bi map, tile grid map, power bi, powerbi, data visualization, business intelligence, power bi dashboard, regional map, custom visual demo, dataviz
+
+
+────────────────────────────────────────────────────────────────
+NOTAS
+────────────────────────────────────────────────────────────────
+
+•  Pon las etiquetas más relevantes primero — YouTube da más peso a
+   las iniciales.
+
+•  Incluye siempre "power bi" y "powerbi" por separado: los usuarios
+   buscan de las dos formas.
+
+•  "tcviz" al final ayuda a que tus vídeos se recomienden entre sí.
+
+•  Las etiquetas pesan menos que el título, la miniatura y los primeros
+   segundos del vídeo. No dediques mucho tiempo a optimizarlas.
+
+•  Los hashtags de la descripción (#PowerBI etc.) son independientes de
+   este campo. Los tres primeros aparecen sobre el título del vídeo.

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tile Grid Map Pro — TCViz</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root{
+    --bg:#FAF9F5; --bg2:#EDE9DE; --bd:#F5F3ED; --line:#DAD9D4;
+    --t1:#3D3929; --t2:#535146; --t3:#83827D;
+    --acc:#C96442; --accd:#B05730; --acc2:#9C87F5; --acc2l:#DBD3F0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#888;font-family:'Segoe UI',system-ui,sans-serif}
+
+  #dlbtn{position:fixed;top:12px;left:12px;z-index:99999;
+    background:var(--acc);color:#fff;border:none;border-radius:6px;
+    padding:9px 16px;font:600 13px 'Segoe UI',sans-serif;cursor:pointer;
+    box-shadow:0 2px 8px rgba(0,0,0,.3)}
+  #dlbtn:hover{background:var(--accd)}
+
+  #infographic{width:1366px;background:var(--bg);color:var(--t1);
+    padding:22px 30px 16px;display:flex;flex-direction:column;gap:13px}
+
+  /* ── 1. HEADER ── */
+  .hdr{display:grid;grid-template-columns:auto 1fr auto;align-items:center;
+    gap:24px;padding-bottom:13px;border-bottom:2px solid var(--line)}
+  .hdr h1{font-size:41px;font-weight:700;letter-spacing:-1.1px;line-height:1.05}
+  .hdr h1 span{color:var(--acc)}
+  .hdr .sub{font-size:14.5px;color:var(--t2);margin-top:5px;line-height:1.4}
+  .hdr .sub b{color:var(--t1);font-weight:600}
+
+  /* ── 2. USE CASES ── */
+  .uc{background:var(--bg2);border:1px solid var(--bd);border-radius:11px;
+    padding:12px 18px;display:grid;grid-template-columns:auto 1fr auto;
+    align-items:center;gap:20px}
+  .uc-lbl{font:700 10.5px/1 'Segoe UI';letter-spacing:2.2px;color:var(--t3);
+    writing-mode:vertical-rl;transform:rotate(180deg)}
+  .uc-items{display:flex;justify-content:space-between;gap:8px}
+  .uc-i{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1}
+  .uc-i i{font-size:23px;color:var(--acc)}
+  .uc-i span{font-size:10.5px;color:var(--t2);text-align:center;line-height:1.25;font-weight:500}
+  .uc-call{background:var(--acc);color:#fff;border-radius:8px;padding:9px 15px;
+    max-width:255px;font-size:11.5px;line-height:1.4}
+  .uc-call b{display:block;font-size:12.5px;margin-bottom:2px}
+
+  /* ── 3. BODY: FREE | PRO | CUSTOM ── */
+  .body{display:grid;grid-template-columns:1fr 200px 1fr;gap:16px;align-items:stretch}
+  .tier{background:#fff;border-radius:11px;padding:14px 17px}
+  .tier.free{border:2px solid var(--acc)}
+  .tier.pro{border:2px solid var(--acc2)}
+  .tier h3{font-size:15px;font-weight:700;margin-bottom:3px;display:flex;
+    align-items:center;gap:7px}
+  .tier.free h3{color:var(--acc)} .tier.pro h3{color:var(--acc2)}
+  .tier .tag{font-size:10px;color:var(--t3);margin-bottom:9px;letter-spacing:.4px}
+  .tier ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+  .tier li{font-size:11.5px;color:var(--t2);line-height:1.35;padding-left:17px;
+    position:relative}
+  .tier li::before{position:absolute;left:0;top:1px;font-family:'tabler-icons';
+    font-size:12px}
+  .tier.free li::before{content:'\ea5e';color:var(--acc)}
+  .tier.pro  li::before{content:'\ea5e';color:var(--acc2)}
+  .tier li b{color:var(--t1);font-weight:600}
+
+  .mid{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px}
+  .circ{width:112px;height:112px;border-radius:50%;
+    background:linear-gradient(135deg,var(--accd),var(--acc) 55%,var(--acc2));
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    color:#fff;box-shadow:0 5px 18px rgba(201,100,66,.32)}
+  .circ .n{font-size:31px;font-weight:700;line-height:1}
+  .circ .l{font-size:9.5px;letter-spacing:1.4px;margin-top:3px;opacity:.95}
+  .pills{display:flex;flex-direction:column;gap:6px;width:100%}
+  .pill{background:var(--bg2);border:1px solid var(--bd);border-radius:7px;
+    padding:6px 9px;display:flex;justify-content:space-between;align-items:center}
+  .pill .k{font-size:10px;color:var(--t3)}
+  .pill .v{font-size:12.5px;font-weight:700;color:var(--acc)}
+
+  /* ── 4. WORKFLOW ── */
+  .wf{background:var(--bg2);border:1px solid var(--bd);border-radius:11px;padding:12px 18px}
+  .wf-row{display:flex;align-items:center;gap:6px}
+  .wf-s{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+  .wf-s .num{width:22px;height:22px;border-radius:50%;background:var(--acc);color:#fff;
+    font:700 11px/22px 'Segoe UI';text-align:center}
+  .wf-s .tt{font-size:11px;font-weight:600;color:var(--t1);line-height:1.2}
+  .wf-s .dd{font-size:9.5px;color:var(--t3);line-height:1.25}
+  .wf-a{color:var(--line);font-size:15px;margin-bottom:14px}
+  .wf-tag{text-align:center;font-style:italic;font-size:11px;color:var(--t2);
+    margin-top:9px;padding-top:8px;border-top:1px solid var(--line)}
+
+  /* ── 5. BOTTOM GRID ── */
+  .btm{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+  .card{background:#fff;border:1px solid var(--bd);border-radius:11px;padding:13px 16px}
+  .card h4{font-size:12px;font-weight:700;color:var(--t1);margin-bottom:9px;
+    display:flex;align-items:center;gap:6px;padding-bottom:6px;
+    border-bottom:1px solid var(--line)}
+  .card h4 i{color:var(--acc);font-size:14px}
+  .card ul{list-style:none;display:flex;flex-direction:column;gap:5px}
+  .card li{font-size:10.5px;color:var(--t2);line-height:1.35;padding-left:14px;position:relative}
+  .card li::before{content:'';position:absolute;left:0;top:5px;width:5px;height:5px;
+    border-radius:50%;background:var(--acc2)}
+  .card li b{color:var(--t1);font-weight:600}
+  .fp-row{display:flex;justify-content:space-between;gap:8px;font-size:10.5px;
+    padding:4px 0;border-bottom:1px dashed var(--line)}
+  .fp-row:last-child{border:none}
+  .fp-row .fk{color:var(--t1);font-weight:600}
+  .fp-row .fv{color:var(--t3);text-align:right}
+
+  /* ── 6. FOOTER ── */
+  .ftr{display:flex;align-items:center;justify-content:space-between;
+    padding-top:11px;border-top:2px solid var(--line)}
+  .ftr .lnks{display:flex;gap:15px;font-size:11px}
+  .ftr a{color:var(--t2);text-decoration:none}
+  .ftr a:hover{color:var(--acc)}
+  .ftr .cp{font-size:10px;color:var(--t3)}
+
+  @media print{
+    @page{size:A4 landscape;margin:0}
+    body{background:#fff}
+    #dlbtn{display:none}
+    #infographic{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+
+<button id="dlbtn" onclick="dl()"><i class="ti ti-download"></i> Download PNG</button>
+
+<div id="infographic">
+
+  <!-- ═══ 1. HEADER ═══ -->
+  <div class="hdr">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 828 362" width="160" height="70">
+      <defs><linearGradient id="g" x1="0" y1="1" x2="1" y2="0">
+        <stop offset="0" stop-color="#B05730"/>
+        <stop offset="0.55" stop-color="#C96442"/>
+        <stop offset="1" stop-color="#9C87F5"/>
+      </linearGradient></defs>
+      <g transform="translate(40,46)">
+        <rect x="22" y="20" width="150" height="150" rx="30" fill="none" stroke="url(#g)" stroke-width="11"/>
+        <g fill="url(#g)">
+          <rect x="42" y="110" width="20" height="58" rx="5"/>
+          <rect x="70" y="86" width="20" height="82" rx="5"/>
+          <rect x="98" y="62" width="20" height="106" rx="5"/>
+          <rect x="126" y="38" width="20" height="130" rx="5"/>
+        </g>
+      </g>
+      <text x="258" y="246" font-family="Poppins,sans-serif" font-weight="700" font-size="196" letter-spacing="-4">
+        <tspan fill="url(#g)">tc</tspan><tspan fill="#3D3929">viz</tspan>
+      </text>
+      <text x="264" y="306" font-family="Poppins,sans-serif" font-weight="500" font-size="31" letter-spacing="6.5" fill="#83827D">VISUALS TO POWER BI</text>
+    </svg>
+
+    <div>
+      <h1>Tile Grid <span>Map Pro</span></h1>
+      <div class="sub">
+        Turn latitude &amp; longitude into clean, comparable tile grids — <b>27 countries built in</b>,
+        or load <b>any TopoJSON boundary</b> you like. Every region gets equal visual weight,
+        so small areas stop disappearing behind large ones.
+      </div>
+    </div>
+
+    <svg width="190" height="100" viewBox="0 0 190 100">
+      <defs><linearGradient id="hm" x1="0" y1="1" x2="1" y2="0">
+        <stop offset="0" stop-color="#DBD3F0"/><stop offset="1" stop-color="#C96442"/>
+      </linearGradient></defs>
+      <g>
+        <rect x="8"  y="8"  width="20" height="20" rx="4" fill="#EDE9DE"/>
+        <rect x="32" y="8"  width="20" height="20" rx="4" fill="#DBD3F0"/>
+        <rect x="56" y="8"  width="20" height="20" rx="4" fill="#EDE9DE"/>
+        <rect x="8"  y="32" width="20" height="20" rx="4" fill="#9C87F5"/>
+        <rect x="32" y="32" width="20" height="20" rx="4" fill="url(#hm)"/>
+        <rect x="56" y="32" width="20" height="20" rx="4" fill="#C96442"/>
+        <rect x="80" y="32" width="20" height="20" rx="4" fill="#DBD3F0"/>
+        <rect x="8"  y="56" width="20" height="20" rx="4" fill="#EDE9DE"/>
+        <rect x="32" y="56" width="20" height="20" rx="4" fill="#C96442"/>
+        <rect x="56" y="56" width="20" height="20" rx="4" fill="#B05730"/>
+        <rect x="80" y="56" width="20" height="20" rx="4" fill="#9C87F5"/>
+        <rect x="32" y="80" width="20" height="16" rx="4" fill="#EDE9DE"/>
+        <rect x="56" y="80" width="20" height="16" rx="4" fill="#DBD3F0"/>
+      </g>
+      <path d="M112 52 L132 52 M126 46 L132 52 L126 58" stroke="#83827D" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M142 20 L178 14 L184 42 L170 62 L146 58 L140 38 Z" fill="none" stroke="#C96442" stroke-width="2.2"/>
+      <path d="M146 62 L168 66 L164 88 L144 84 Z" fill="none" stroke="#9C87F5" stroke-width="2.2"/>
+      <circle cx="160" cy="38" r="3" fill="#C96442"/>
+      <circle cx="155" cy="75" r="3" fill="#9C87F5"/>
+    </svg>
+  </div>
+
+  <!-- ═══ 2. USE CASES ═══ -->
+  <div class="uc">
+    <div class="uc-lbl">USE CASES</div>
+    <div class="uc-items">
+      <div class="uc-i"><i class="ti ti-building-store"></i><span>Retail<br>coverage</span></div>
+      <div class="uc-i"><i class="ti ti-truck-delivery"></i><span>Logistics<br>&amp; routes</span></div>
+      <div class="uc-i"><i class="ti ti-users-group"></i><span>Population<br>density</span></div>
+      <div class="uc-i"><i class="ti ti-report-money"></i><span>Sales by<br>territory</span></div>
+      <div class="uc-i"><i class="ti ti-heartbeat"></i><span>Public<br>health</span></div>
+      <div class="uc-i"><i class="ti ti-vote"></i><span>Election<br>results</span></div>
+      <div class="uc-i"><i class="ti ti-plant-2"></i><span>Environmental<br>metrics</span></div>
+      <div class="uc-i"><i class="ti ti-wifi"></i><span>Network<br>coverage</span></div>
+    </div>
+    <div class="uc-call">
+      <b>Why tile grids?</b>
+      On a real map, Madrid is a dot and Castilla is a continent — area hides the data.
+      Equal tiles make every region readable at a glance.
+    </div>
+  </div>
+
+  <!-- ═══ 3. FREE | PRO ═══ -->
+  <div class="body">
+
+    <div class="tier free">
+      <h3><i class="ti ti-grid-dots"></i> Free</h3>
+      <div class="tag">No license required</div>
+      <ul>
+        <li><b>27 built-in grids</b> — Spain, Canarias, Portugal, France, Germany, Italy, UK, US, Canada, Brazil, Japan…</li>
+        <li><b>Up to 500 data points</b> mapped from lat/long coordinates</li>
+        <li><b>5 aggregations</b> — Sum, Average, Count, Min, Max, auto-detected per field</li>
+        <li><b>Conditional formatting</b> — 3 rules incl. between-range</li>
+        <li><b>Rich tooltips</b> — up to 10 extra measures, configurable decimals</li>
+        <li><b>Accessibility</b> — high contrast, cell borders, selection rings</li>
+        <li><b>Full interactivity</b> — cross-filter, Ctrl multi-select, context menu</li>
+      </ul>
+    </div>
+
+    <div class="mid">
+      <div class="circ">
+        <div class="n">27</div>
+        <div class="l">COUNTRIES</div>
+      </div>
+      <div class="pills">
+        <div class="pill"><span class="k">Data points</span><span class="v">30K</span></div>
+        <div class="pill"><span class="k">Tooltip fields</span><span class="v">10</span></div>
+        <div class="pill"><span class="k">Colour scales</span><span class="v">3</span></div>
+        <div class="pill"><span class="k">CF rules</span><span class="v">3</span></div>
+      </div>
+    </div>
+
+    <div class="tier pro">
+      <h3><i class="ti ti-crown"></i> Pro</h3>
+      <div class="tag">Active AppSource license</div>
+      <ul>
+        <li><b>Unlimited data points</b> — no 500-row cap, up to 30K rows</li>
+        <li><b>Custom TopoJSON</b> — drag any boundary file onto the visual and render real polygons</li>
+        <li><b>Saved in the .pbix</b> — dropped boundaries survive close &amp; reopen, no re-upload</li>
+        <li><b>Load by URL</b> — point to a public HTTPS TopoJSON instead</li>
+        <li><b>Custom colour scales</b> — your own min/max, diverging min/mid/max, categorical</li>
+        <li><b>Point-in-polygon</b> — coordinates auto-assigned to the right region</li>
+        <li><b>Any geography</b> — provinces, sales zones, districts, custom territories</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ═══ 4. WORKFLOW ═══ -->
+  <div class="wf">
+    <div class="wf-row">
+      <div class="wf-s"><div class="num">1</div><div class="tt">Add the visual</div><div class="dd">From AppSource</div></div>
+      <i class="ti ti-chevron-right wf-a"></i>
+      <div class="wf-s"><div class="num">2</div><div class="tt">Bind lat / long</div><div class="dd">Decimal degrees</div></div>
+      <i class="ti ti-chevron-right wf-a"></i>
+      <div class="wf-s"><div class="num">3</div><div class="tt">Drop your measure</div><div class="dd">Into Value</div></div>
+      <i class="ti ti-chevron-right wf-a"></i>
+      <div class="wf-s"><div class="num">4</div><div class="tt">Pick a region</div><div class="dd">27 built-in grids</div></div>
+      <i class="ti ti-chevron-right wf-a"></i>
+      <div class="wf-s"><div class="num">5</div><div class="tt">Style the scale</div><div class="dd">Colours &amp; rules</div></div>
+      <i class="ti ti-chevron-right wf-a"></i>
+      <div class="wf-s"><div class="num">6</div><div class="tt">Go custom <i class="ti ti-crown" style="color:#9C87F5;font-size:11px"></i></div><div class="dd">Drag a TopoJSON</div></div>
+      <i class="ti ti-chevron-right wf-a"></i>
+      <div class="wf-s"><div class="num">7</div><div class="tt">Publish</div><div class="dd">Desktop &amp; Service</div></div>
+    </div>
+    <div class="wf-tag">From raw coordinates to a publishable regional map — no shapefiles, no GIS, no code.</div>
+  </div>
+
+  <!-- ═══ 5. BOTTOM GRID ═══ -->
+  <div class="btm">
+
+    <div class="card">
+      <h4><i class="ti ti-sparkles"></i> Key benefits</h4>
+      <ul>
+        <li><b>Fair comparison</b> — equal tiles remove the area bias that hides small, dense regions</li>
+        <li><b>No GIS skills needed</b> — feed it latitude and longitude, nothing else</li>
+        <li><b>Fast on big data</b> — bounding-box prefilter and cached scans keep 30K rows responsive</li>
+        <li><b>Truly yours</b> — any TopoJSON becomes a Power BI map, stored inside the report</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h4><i class="ti ti-bulb"></i> Tips &amp; best practices</h4>
+      <ul>
+        <li>Use <b>decimal degrees</b> (40.4168 / -3.7038), not DMS strings</li>
+        <li>Aggregation is <b>auto-detected</b> per field — override it in Map Settings if needed</li>
+        <li>Turn on <b>cell labels</b> only above ~20px tiles, or they clutter</li>
+        <li>Prefer <b>diverging</b> scales for variance vs. target, sequential for volume</li>
+        <li><b>Simplify TopoJSON</b> before loading — fewer vertices, faster render</li>
+        <li>Keep <b>conditional formatting</b> off while exploring, on for the final report</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h4><i class="ti ti-adjustments"></i> Format pane</h4>
+      <div class="fp-row"><span class="fk">Map Settings</span><span class="fv">Region, aggregation, labels, decimals</span></div>
+      <div class="fp-row"><span class="fk">Color Scale</span><span class="fv">Sequential · Diverging · Categorical</span></div>
+      <div class="fp-row"><span class="fk">Conditional Formatting</span><span class="fv">3 rules, incl. between-range</span></div>
+      <div class="fp-row"><span class="fk">Accessibility</span><span class="fv">Borders, width, selection ring</span></div>
+      <div class="fp-row"><span class="fk">Legend</span><span class="fv">Bottom · Right · Top</span></div>
+      <div class="fp-row"><span class="fk">Pro Settings</span><span class="fv">TopoJSON URL, Pro badge</span></div>
+    </div>
+  </div>
+
+  <!-- ═══ 6. FOOTER ═══ -->
+  <div class="ftr">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 828 362" width="70" height="30">
+      <defs><linearGradient id="gf" x1="0" y1="1" x2="1" y2="0">
+        <stop offset="0" stop-color="#B05730"/>
+        <stop offset="0.55" stop-color="#C96442"/>
+        <stop offset="1" stop-color="#9C87F5"/>
+      </linearGradient></defs>
+      <g transform="translate(40,46)">
+        <rect x="22" y="20" width="150" height="150" rx="30" fill="none" stroke="url(#gf)" stroke-width="11"/>
+        <g fill="url(#gf)">
+          <rect x="42" y="110" width="20" height="58" rx="5"/>
+          <rect x="70" y="86" width="20" height="82" rx="5"/>
+          <rect x="98" y="62" width="20" height="106" rx="5"/>
+          <rect x="126" y="38" width="20" height="130" rx="5"/>
+        </g>
+      </g>
+      <text x="258" y="246" font-family="Poppins,sans-serif" font-weight="700" font-size="196" letter-spacing="-4">
+        <tspan fill="url(#gf)">tc</tspan><tspan fill="#3D3929">viz</tspan>
+      </text>
+    </svg>
+
+    <div class="lnks">
+      <a href="https://www.youtube.com/watch?v=LnTb3qHsHdg" style="color:#C96442;font-weight:600"><i class="ti ti-brand-youtube"></i> Watch the demo</a>
+      <a href="https://tinocallarisa-web.github.io/tile-grid-map-pro/support.html">Support</a>
+      <a href="https://tinocallarisa-web.github.io/tile-grid-map-pro/privacy.html">Privacy</a>
+      <a href="https://tinocallarisa-web.github.io/tile-grid-map-pro/terms.html">Terms</a>
+      <a href="https://github.com/tinocallarisa-web/tile-grid-map-pro">GitHub</a>
+    </div>
+
+    <div class="cp">Tile Grid Map Pro v1.0.0.4 · © TCViz · tino@tcviz.com</div>
+  </div>
+
+</div>
+
+<script>
+function dl(){
+  const b=document.getElementById('dlbtn');
+  b.style.display='none';
+  html2canvas(document.getElementById('infographic'),{scale:2,backgroundColor:'#FAF9F5'})
+    .then(c=>{
+      const a=document.createElement('a');
+      a.download='tile-grid-map-pro-infographic.png';
+      a.href=c.toDataURL('image/png');
+      a.click();
+      b.style.display='';
+    });
+}
+</script>
+</body>
+</html>

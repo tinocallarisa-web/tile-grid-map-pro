@@ -1,10 +1,12 @@
 {
   "name": "tile-grid-map-pro",
-  "version": "1.0.0",
+  "version": "1.0.0.4",
   "description": "Tile Grid Map Pro — TCViz Power BI Custom Visual",
   "scripts": {
     "start": "pbiviz start",
     "build": "pbiviz package",
+    "build:test": "node build-test.js",
+    "build:pro": "node build-pro.js",
     "lint": "tsc --noEmit"
   },
   "dependencies": {

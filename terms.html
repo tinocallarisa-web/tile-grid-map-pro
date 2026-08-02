@@ -5,50 +5,136 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Terms of Use — Tile Grid Map Pro | TCViz</title>
   <style>
-    body { font-family: 'Segoe UI', system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 24px; color: #222; line-height: 1.7; }
-    h1 { font-size: 28px; color: #1a5276; } h2 { font-size: 18px; margin-top: 32px; color: #2471a3; }
-    a { color: #2471a3; } footer { margin-top: 60px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 16px; }
+    :root{
+      --bg:#FAF9F5; --bg2:#EDE9DE; --line:#DAD9D4;
+      --t1:#3D3929; --t2:#535146; --t3:#83827D;
+      --acc:#C96442; --accd:#B05730; --acc2:#9C87F5;
+    }
+    *{box-sizing:border-box}
+    body{font-family:'Segoe UI',system-ui,sans-serif;max-width:860px;
+      margin:0 auto;padding:40px 24px 60px;color:var(--t1);line-height:1.65;
+      background:var(--bg)}
+    h1{font-size:30px;letter-spacing:-.5px;margin:0 0 6px}
+    h1 span{color:var(--acc)}
+    h2{font-size:18px;margin:34px 0 10px;padding-bottom:6px;
+      border-bottom:2px solid var(--line);color:var(--t1)}
+    p,li{color:var(--t2)}
+    a{color:var(--acc)} a:hover{color:var(--accd)}
+    code{background:var(--bg2);padding:2px 7px;border-radius:4px;
+      font-size:13px;font-family:Consolas,monospace;color:var(--t1)}
+    .meta{font-size:14px;color:var(--t3);margin-bottom:6px}
+    .badge{display:inline-block;background:var(--acc2);color:#fff;
+      padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;
+      vertical-align:middle}
+    .tier{background:#fff;border:1px solid var(--line);border-radius:9px;
+      padding:14px 18px;margin:12px 0}
+    .tier h3{margin:0 0 8px;font-size:15px;color:var(--t1)}
+    .tier ul{margin:0;padding-left:20px}
+    .tier li{margin-bottom:4px;font-size:14.5px}
+    footer{margin-top:52px;font-size:12.5px;color:var(--t3);
+      border-top:1px solid var(--line);padding-top:16px}
+    footer a{color:var(--t2)}
   </style>
 </head>
 <body>
-  <h1>Terms of Use</h1>
-  <p><strong>Product:</strong> Tile Grid Map Pro &nbsp;|&nbsp; <strong>Publisher:</strong> TCViz &nbsp;|&nbsp; <strong>Last updated:</strong> 2025-05-01</p>
+
+  <h1>Terms of <span>Use</span></h1>
+  <p class="meta"><strong>Product:</strong> Tile Grid Map Pro &nbsp;·&nbsp;
+    <strong>Publisher:</strong> TCViz &nbsp;·&nbsp;
+    <strong>Last updated:</strong> 2 August 2026</p>
 
   <h2>1. Acceptance</h2>
-  <p>By installing or using Tile Grid Map Pro ("the Visual"), you agree to these Terms of Use. If you do not agree, do not use the Visual.</p>
+  <p>By installing or using Tile Grid Map Pro ("the Visual"), you agree to these
+     Terms of Use. If you do not agree, do not use the Visual.</p>
 
   <h2>2. License</h2>
-  <p>TCViz grants you a non-exclusive, non-transferable license to use the Visual within Microsoft Power BI in accordance with these terms and your AppSource subscription.</p>
-  <ul>
-    <li><strong>Free tier:</strong> Square tile grid with all 27 supported countries and regions, fixed sequential color scale, up to 500 data points. No license purchase required.</li>
-    <li><strong>Pro tier:</strong> Unlimited data points, custom color scales (sequential, diverging, categorical), custom min/mid/max colors, and priority support. Requires an active subscription purchased through Microsoft AppSource.</li>
-  </ul>
+  <p>TCViz grants you a non-exclusive, non-transferable license to use the Visual
+     within Microsoft Power BI in accordance with these terms and your AppSource
+     subscription.</p>
+
+  <div class="tier">
+    <h3>Free tier — no purchase required</h3>
+    <ul>
+      <li>Square tile grids for all 27 supported countries and regions</li>
+      <li>Up to 500 data points per visual</li>
+      <li>Fixed sequential colour scale</li>
+      <li>Value aggregation: Sum, Average, Count, Min, Max</li>
+      <li>Conditional formatting (3 rules), tooltips (up to 10 fields),
+          cell labels and legend</li>
+      <li>Accessibility options, high contrast, cross-filtering and
+          multi-selection</li>
+    </ul>
+  </div>
+
+  <div class="tier">
+    <h3>Pro tier <span class="badge">Subscription</span></h3>
+    <ul>
+      <li>Unlimited data points (up to the Power BI data reduction limit of
+          30,000 rows)</li>
+      <li><strong>Custom TopoJSON boundaries</strong> — load any TopoJSON file by
+          drag-and-drop or public HTTPS URL, and render real polygons instead of
+          tiles</li>
+      <li>Boundaries persisted inside the <code>.pbix</code> report file</li>
+      <li>Custom colour scales: user-defined sequential, diverging
+          (min/mid/max) and categorical palettes</li>
+      <li>Priority support</li>
+    </ul>
+    <p style="margin:10px 0 0;font-size:14px;color:var(--t3)">
+      Requires an active subscription purchased through Microsoft AppSource.
+      License status is validated via Microsoft's official
+      <code>IVisualLicenseManager</code> API.
+    </p>
+  </div>
 
   <h2>3. Restrictions</h2>
-  <p>You may not: (a) reverse engineer, decompile, or disassemble the Visual; (b) redistribute or resell the Visual; (c) use the Visual for any unlawful purpose; (d) attempt to circumvent license enforcement mechanisms.</p>
+  <p>You may not: (a) reverse engineer, decompile, or disassemble the Visual;
+     (b) redistribute or resell the Visual; (c) use the Visual for any unlawful
+     purpose; (d) attempt to circumvent license enforcement mechanisms.</p>
 
-  <h2>4. Intellectual Property</h2>
-  <p>The Visual, including all bundled map data, code, and design, is the intellectual property of TCViz. All rights reserved.</p>
+  <h2>4. Intellectual property</h2>
+  <p>The Visual, including all bundled map data, code, and design, is the
+     intellectual property of TCViz. All rights reserved.</p>
 
-  <h2>5. Disclaimer of Warranties</h2>
-  <p>The Visual is provided "as is" without warranty of any kind. TCViz does not warrant that the Visual will be error-free or uninterrupted.</p>
+  <h2>5. User-supplied boundary files</h2>
+  <p>The Pro tier allows you to load your own TopoJSON boundary files. You are
+     solely responsible for ensuring that you hold the necessary rights to use
+     any such file, and for complying with the licence terms of its source.
+     TCViz does not host, distribute, validate, or assume any responsibility for
+     user-supplied geographic data.</p>
 
-  <h2>6. Limitation of Liability</h2>
-  <p>To the maximum extent permitted by law, TCViz shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Visual.</p>
+  <h2>6. Disclaimer of warranties</h2>
+  <p>The Visual is provided "as is" without warranty of any kind, express or
+     implied. TCViz does not warrant that the Visual will be error-free or
+     uninterrupted.</p>
 
-  <h2>7. Map Data Accuracy</h2>
-  <p>Bundled administrative boundary data is provided for visualization purposes only. TCViz makes no representations regarding the accuracy, completeness, or fitness for any particular purpose of the geographic data.</p>
+  <h2>7. Limitation of liability</h2>
+  <p>To the maximum extent permitted by law, TCViz shall not be liable for any
+     indirect, incidental, special, or consequential damages arising from your
+     use of the Visual.</p>
 
-  <h2>8. Changes to Terms</h2>
-  <p>TCViz may update these terms at any time. Continued use of the Visual after changes constitutes acceptance of the updated terms.</p>
+  <h2>8. Map data accuracy</h2>
+  <p>Bundled tile grid layouts are stylised, schematic representations intended
+     for data visualisation only. They are deliberately not geographically
+     accurate: each region is drawn as an equally sized tile so that values can
+     be compared without area bias. They must not be used for navigation,
+     surveying, legal boundary determination, or any purpose requiring
+     cartographic accuracy. TCViz makes no representations regarding the
+     accuracy, completeness, or fitness for any particular purpose of any
+     geographic data, bundled or user-supplied.</p>
 
-  <h2>9. Contact</h2>
+  <h2>9. Changes to terms</h2>
+  <p>TCViz may update these terms at any time. Continued use of the Visual after
+     changes constitutes acceptance of the updated terms.</p>
+
+  <h2>10. Contact</h2>
   <p>For questions: <a href="mailto:tino@tcviz.com">tino@tcviz.com</a></p>
 
   <footer>
-    &copy; 2025 TCViz. All rights reserved. &nbsp;|&nbsp;
-    <a href="privacy.html">Privacy Policy</a> &nbsp;|&nbsp;
-    <a href="support.html">Support</a>
+    &copy; 2026 TCViz. All rights reserved. &nbsp;·&nbsp;
+    <a href="privacy.html">Privacy Policy</a> &nbsp;·&nbsp;
+    <a href="support.html">Support</a> &nbsp;·&nbsp;
+    <a href="https://github.com/tinocallarisa-web/tile-grid-map-pro">GitHub</a>
   </footer>
+
 </body>
 </html>

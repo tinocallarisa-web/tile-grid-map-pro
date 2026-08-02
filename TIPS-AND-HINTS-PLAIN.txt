@@ -1,0 +1,275 @@
+================================================================
+TIPS & HINTS — versión texto plano para text boxes de Power BI
+================================================================
+Los text boxes de Power BI no soportan tablas markdown. Este archivo
+usa solo texto plano y viñetas, así que se pega sin perder formato.
+
+Copia cada bloque (entre las líneas ─────) en un text box distinto.
+Sugerencia: fuente Segoe UI 10-11pt, títulos en 14pt negrita.
+================================================================
+
+
+────────────────────────────────────────────────────────────────
+TEXT BOX 1 — GETTING STARTED
+────────────────────────────────────────────────────────────────
+
+GETTING STARTED
+
+1.  Add Tile Grid Map Pro to your report from the Visualizations pane.
+
+2.  Drag your Latitude column into the Latitude field well.
+    Use decimal degrees, e.g. 40.4168
+
+3.  Drag your Longitude column into the Longitude field well.
+    e.g. -3.7038
+
+4.  Drop a numeric measure into Value — this is what colours each tile.
+
+5.  Open the Format pane, go to Map Settings, and pick your Country / Region.
+
+6.  Done. Each coordinate is snapped to its grid cell and coloured by the
+    aggregated value.
+
+No shapefiles, no GIS setup, no custom code required.
+
+WATCH THE FULL WALKTHROUGH
+   https://www.youtube.com/watch?v=LnTb3qHsHdg
+
+
+────────────────────────────────────────────────────────────────
+TEXT BOX 2 — FIELD WELLS
+────────────────────────────────────────────────────────────────
+
+FIELD WELLS
+
+LATITUDE  —  Required
+   Decimal degrees. One column, max 1 field.
+
+LONGITUDE  —  Required
+   Decimal degrees. One column, max 1 field.
+
+VALUE  —  Recommended
+   Numeric measure that colours each tile. Without it, all cells render
+   in the "no data" colour.
+
+LABEL  —  Optional
+   City or region name. Shown on small tiles and in tooltips.
+
+TOOLTIPS  —  Optional
+   Up to 10 extra measures shown on hover. Each is aggregated
+   independently — Sum stays Sum, Average stays Average.
+
+DATA LIMITS
+   Free tier renders the first 500 rows.
+   Pro removes the cap, up to 30,000 rows.
+
+
+────────────────────────────────────────────────────────────────
+TEXT BOX 3 — FORMAT PANE
+────────────────────────────────────────────────────────────────
+
+FORMAT PANE REFERENCE
+
+MAP SETTINGS
+   •  Country / Region — 27 built-in grids, plus Custom TopoJSON (Pro)
+   •  Value Aggregation — Sum, Average, Count, Min, Max
+   •  Show Empty Cells — draw grid cells that have no data
+   •  Show Cell Labels — print the value inside each tile
+   •  Label Font Size — 5 to 14 px
+   •  Label Min Tile Size — below this width, labels hide (default 20 px)
+   •  Tooltip Decimal Places — 0 to 6 (default 2)
+
+COLOR SCALE
+   •  Scale Type — Sequential, Diverging (Pro), Categorical (Pro)
+   •  Color Min / Mid / Max — your own palette (Pro)
+   •  No Data Color — fill for cells without values
+
+CONDITIONAL FORMATTING
+   •  Enable Rules — master toggle
+   •  Rule 1 — operator (<, ≤, >, ≥, =) + value + colour
+   •  Rule 2 — between range: From (≥) and To (≤) + colour
+   •  Rule 3 — operator + value + colour
+   Rules override the colour scale when they match.
+
+ACCESSIBILITY
+   •  Show Cell Borders, Border Color, Border Width
+   •  Selected Ring Color, Selected Ring Width
+
+LEGEND
+   •  Show Legend, Position — Bottom, Right or Top
+
+PRO SETTINGS
+   •  Custom TopoJSON URL, Show Pro Pill
+
+
+────────────────────────────────────────────────────────────────
+TEXT BOX 4 — FREE VS PRO
+────────────────────────────────────────────────────────────────
+
+FREE VS PRO
+
+INCLUDED IN BOTH TIERS
+   ✓  27 built-in country grids
+   ✓  Aggregations — Sum, Average, Count, Min, Max
+   ✓  Conditional formatting, 3 rules
+   ✓  Tooltips, up to 10 fields
+   ✓  Accessibility and high contrast
+   ✓  Cross-filter and multi-select
+
+FREE ONLY
+   •  Data points ................ 500 maximum
+   •  Sequential colour scale .... fixed palette
+
+PRO ADDS
+   ✓  Unlimited data points, up to 30,000
+   ✓  Your own sequential colours
+   ✓  Diverging scale — min / mid / max
+   ✓  Categorical palette
+   ✓  Custom TopoJSON boundaries
+   ✓  TopoJSON saved inside the .pbix
+   ✓  Load TopoJSON from a public URL
+
+
+────────────────────────────────────────────────────────────────
+TEXT BOX 5 — TIPS & BEST PRACTICES
+────────────────────────────────────────────────────────────────
+
+TIPS & BEST PRACTICES
+
+1.  USE DECIMAL DEGREES, NOT DMS
+    40.4168 works. 40°25'00"N does not. Convert before loading.
+
+2.  AGGREGATION IS AUTO-DETECTED
+    The visual reads the aggregation from your field's metadata, so a
+    measure defined as Average stays an Average. If a tooltip value looks
+    off, set Value Aggregation explicitly in Map Settings.
+
+3.  TURN LABELS OFF ON DENSE GRIDS
+    Below roughly 20px per tile, labels overlap. Use Label Min Tile Size
+    to control the cutoff rather than toggling labels on and off.
+
+4.  MATCH THE SCALE TO THE QUESTION
+    Sequential for volume — sales, population.
+    Diverging for variance against a target — set the mid colour at your
+    baseline.
+    Categorical when regions are groups, not magnitudes.
+
+5.  SIMPLIFY TOPOJSON BEFORE LOADING
+    Boundary files from Natural Earth or geoBoundaries often carry far
+    more vertices than a tile map needs. Run them through mapshaper.org
+    at 5–10% simplification: same shape, much faster render.
+
+6.  CONDITIONAL FORMATTING OVERRIDES THE COLOUR SCALE
+    Keep it off while exploring the data, then switch it on for the
+    final report to flag thresholds.
+
+7.  CLICK TO FILTER, CLICK AGAIN TO CLEAR
+    Ctrl+click adds to the selection. Right-click opens the standard
+    Power BI context menu.
+
+
+────────────────────────────────────────────────────────────────
+TEXT BOX 6 — CUSTOM TOPOJSON (PRO)
+────────────────────────────────────────────────────────────────
+
+USING YOUR OWN BOUNDARIES  (PRO)
+
+1.  Set Map Settings > Country / Region to "Custom TopoJSON (Pro)".
+
+2.  Drag a .json or .topojson file directly onto the visual.
+    The drop zone appears automatically.
+
+3.  The visual decodes the boundaries and assigns each lat/long point
+    to its polygon.
+
+4.  The file is stored inside the .pbix — close the report, reopen it,
+    and your map is still there. No re-upload.
+
+ALTERNATIVE
+    Paste a public HTTPS link into Pro Settings > Custom TopoJSON URL.
+
+WHERE TO GET BOUNDARIES
+    •  geoBoundaries.org — administrative divisions worldwide
+    •  Natural Earth — country, state and province outlines
+    •  Your national statistics office — most publish TopoJSON or GeoJSON
+
+REQUIREMENTS
+    A valid TopoJSON topology with Polygon or MultiPolygon geometries.
+    Coordinates must be in WGS84, standard lat/long — the same system
+    as your data.
+
+
+────────────────────────────────────────────────────────────────
+TEXT BOX 7 — EXAMPLE CONFIGURATIONS
+────────────────────────────────────────────────────────────────
+
+EXAMPLE CONFIGURATIONS
+
+RETAIL — Store performance by province
+    Latitude / Longitude ...  store coordinates
+    Value .................  SUM(Sales)
+    Label .................  Province
+    Scale .................  Sequential
+    Conditional formatting   Rule 1 < 50,000 red
+                             Rule 3 ≥ 200,000 green
+
+LOGISTICS — Average delivery time
+    Latitude / Longitude ...  delivery address
+    Value .................  AVERAGE(DeliveryHours)
+    Tooltips ..............  Order count, Late %
+    Scale .................  Diverging, mid colour at your SLA target
+                             Over-target regions shift to the warm end
+
+PUBLIC HEALTH — Incidence per 100K
+    Latitude / Longitude ...  health district centroid
+    Value .................  Cases / Population * 100000
+    Scale .................  Sequential
+    Labels ................  On
+    Legend ................  Right
+
+SALES TERRITORIES — Custom regions  (Pro)
+    Country / Region ......  Custom TopoJSON
+    Boundaries ............  drop your sales-territory file
+    Value .................  SUM(Revenue)
+    Scale .................  Categorical, to distinguish territories
+                             rather than rank them
+
+
+────────────────────────────────────────────────────────────────
+TEXT BOX 8 — TROUBLESHOOTING
+────────────────────────────────────────────────────────────────
+
+TROUBLESHOOTING
+
+NOTHING RENDERS  /  "No data points found"
+    Your coordinates fall outside the selected region. Check that
+    Country / Region matches your data, and that latitude and longitude
+    aren't swapped.
+
+SOME TILES ARE EMPTY
+    Those grid cells have no matching coordinates. Turn off Show Empty
+    Cells to hide them.
+
+"Free version limited to 500 data points"
+    Expected on the Free tier. Aggregate your data upstream, or upgrade
+    to Pro for the full dataset.
+
+TOOLTIP VALUES DON'T MATCH MY CARD VISUAL
+    The visual aggregates per cell using the field's own aggregation.
+    If a measure is defined differently in the card, set Value
+    Aggregation explicitly to match.
+
+CUSTOM TOPOJSON OPTION DOES NOTHING
+    Custom boundaries are a Pro feature and need an active AppSource
+    license.
+
+DROPPED TOPOJSON DISAPPEARED AFTER REOPENING
+    It shouldn't — the file is persisted into the .pbix. Make sure you
+    saved the report after dropping the file.
+
+
+────────────────────────────────────────────────────────────────
+Video:    https://www.youtube.com/watch?v=LnTb3qHsHdg
+Support:  https://tinocallarisa-web.github.io/tile-grid-map-pro/support.html
+Email:    tino@tcviz.com
+────────────────────────────────────────────────────────────────
