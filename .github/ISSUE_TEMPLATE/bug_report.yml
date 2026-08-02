@@ -1,0 +1,121 @@
+name: Bug report
+description: Something isn't working as expected in Tile Grid Map Pro
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this. A few details up front usually
+        save a round trip.
+
+        If your question is "how do I…" rather than "this is broken", the
+        [support page](https://tinocallarisa-web.github.io/tile-grid-map-pro/support.html)
+        and the [video walkthrough](https://www.youtube.com/watch?v=LnTb3qHsHdg)
+        may answer it faster.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the problem and what you expected instead.
+      placeholder: |
+        When I select Custom TopoJSON and drop my file, the visual stays blank.
+        I expected the polygons to render.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The exact sequence that triggers it.
+      placeholder: |
+        1. Add the visual to a blank report
+        2. Bind Latitude, Longitude and Value
+        3. Set Country / Region to "Spain"
+        4. Turn on Show Cell Labels
+        5. Labels appear on top of each other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tier
+    attributes:
+      label: Which tier are you on?
+      options:
+        - Free
+        - Pro (active AppSource license)
+        - Not sure
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Where does it happen?
+      multiple: true
+      options:
+        - Power BI Desktop
+        - Power BI Service (browser)
+        - Power BI Mobile
+        - Embedded
+    validations:
+      required: true
+
+  - type: input
+    id: visual-version
+    attributes:
+      label: Visual version
+      description: Format pane → About, or the version shown in AppSource.
+      placeholder: "1.0.0.4"
+    validations:
+      required: true
+
+  - type: input
+    id: pbi-version
+    attributes:
+      label: Power BI Desktop version
+      description: Help → About. Leave blank if you only use the Service.
+      placeholder: "2.145.1105.0 (August 2026)"
+
+  - type: dropdown
+    id: region
+    attributes:
+      label: Which map are you using?
+      options:
+        - A built-in country / region grid
+        - Custom TopoJSON — loaded by drag and drop
+        - Custom TopoJSON — loaded from a URL
+        - Not relevant to this issue
+    validations:
+      required: true
+
+  - type: textarea
+    id: data-shape
+    attributes:
+      label: Data details
+      description: >
+        Roughly how many rows, and what's in each field well. If coordinates are
+        involved, one or two sample lat/long values help a lot. Please don't
+        paste confidential data.
+      placeholder: |
+        ~4,000 rows
+        Latitude / Longitude: store coordinates, e.g. 41.3874 / 2.1686
+        Value: SUM(Sales)
+        Tooltips: Order count, Margin %
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Drag images in here. A screenshot of the visual and of the Format pane is usually enough.
+
+  - type: textarea
+    id: console
+    attributes:
+      label: Browser console output
+      description: >
+        Optional but very useful. In the Power BI Service, press F12, open the
+        Console tab, reproduce the issue and paste anything in red.
+      render: text

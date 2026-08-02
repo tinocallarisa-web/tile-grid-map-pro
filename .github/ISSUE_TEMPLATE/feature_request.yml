@@ -1,0 +1,75 @@
+name: Feature request
+description: Suggest a new capability or an improvement to an existing one
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ideas are welcome — especially the ones that come from a real report you
+        are trying to build. Concrete beats abstract.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: >
+        Describe the situation, not the solution. What does your report need to
+        show, and where does the visual get in the way today?
+      placeholder: |
+        I map delivery points across Portugal, but my stakeholders think in terms
+        of NUTS III regions. Right now I have to pre-aggregate in Power Query
+        because the built-in Portugal grid is at district level.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like to see?
+      description: Your suggested solution, if you have one in mind.
+      placeholder: |
+        An option to choose the administrative level for the built-in grids,
+        or a way to group cells into custom regions.
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: What area does this touch?
+      options:
+        - New country or region grid
+        - Custom TopoJSON handling
+        - Colours and conditional formatting
+        - Labels and legend
+        - Tooltips
+        - Interactivity — selection, cross-filtering, bookmarks
+        - Accessibility
+        - Performance
+        - Something else
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tier
+    attributes:
+      label: Which tier are you on?
+      options:
+        - Free
+        - Pro (active AppSource license)
+        - Evaluating
+    validations:
+      required: true
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: How do you handle it today?
+      description: >
+        Any workaround you're using, or another visual that does this well.
+        Knowing the current cost of the gap helps with prioritisation.
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Mockups, screenshots from other tools, links to examples.

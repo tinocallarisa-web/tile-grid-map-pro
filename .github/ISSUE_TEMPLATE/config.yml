@@ -1,0 +1,17 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Documentation and FAQ
+    url: https://tinocallarisa-web.github.io/tile-grid-map-pro/support.html
+    about: Setup guide, field wells, format pane reference and common questions.
+
+  - name: 📺 Video walkthrough
+    url: https://www.youtube.com/watch?v=LnTb3qHsHdg
+    about: Full walkthrough including the Pro custom TopoJSON workflow.
+
+  - name: 🔑 Licensing and billing
+    url: mailto:tino@tcviz.com
+    about: Questions about your AppSource subscription or Pro features not unlocking.
+
+  - name: 📝 Changelog
+    url: https://github.com/tinocallarisa-web/tile-grid-map-pro/blob/master/CHANGELOG.md
+    about: Check whether your issue was already fixed in a newer version.
