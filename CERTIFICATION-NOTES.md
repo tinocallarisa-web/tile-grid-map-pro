@@ -4,7 +4,7 @@
 > Ese campo se borra en cada reenvío — por eso está guardado aquí.
 
 **Visual GUID:** `tileGridMapProTCViz1234567890`
-**Version:** 1.0.0.4
+**Version:** 1.0.0.5
 **Plan ID / spIdentifier:** `tile-grid-map-pro-tcviz`
 **Demo video:** https://www.youtube.com/watch?v=LnTb3qHsHdg
 
@@ -32,8 +32,11 @@ contacted and no license data leaves the Power BI environment.
 
 The license state is resolved asynchronously in the constructor and never
 blocks rendering: the visual starts on the Free tier and re-renders only if
-an active Pro service plan is confirmed. If the licensing call fails or times
-out, the visual stays on the Free tier and continues to render normally.
+an active Pro service plan is confirmed. Both ServicePlanState.Active (1) and
+ServicePlanState.FreeTrial (2) are accepted as Pro-equivalent states, so users
+on the 30-day AppSource trial receive full Pro access. If the licensing call
+fails or times out, the visual stays on the Free tier and continues to render
+normally.
 
 ------------------------------------------------------------------
 FREE TIER (no license required)
@@ -122,7 +125,7 @@ TESTING INSTRUCTIONS
    - Clicking a tile cross-filters other visuals; clicking it again clears the
      selection; Ctrl+click multi-selects.
 
-4. With an active Pro license, verify:
+4. With an active Pro license **or during a 30-day free trial**, verify:
    - All rows render (no 500-row cap and no notice).
    - Color Scale min/mid/max colour pickers take effect; diverging and
      categorical scales are applied.
@@ -140,7 +143,7 @@ TESTING INSTRUCTIONS
 
 ## Checklist antes de enviar
 
-- [ ] Versión `1.0.0.4` en `pbiviz.json` **y** `package.json`
+- [ ] Versión `1.0.0.5` en `pbiviz.json` **y** `package.json`
 - [ ] GUID `tileGridMapProTCViz1234567890` (sin sufijo)
 - [ ] `isPro` resuelto por `licenseManager` (no forzado a `true`)
 - [ ] Sin instrumentación de debug ni marcadores de build

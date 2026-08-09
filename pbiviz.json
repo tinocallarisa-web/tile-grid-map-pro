@@ -4,7 +4,7 @@
     "displayName": "Tile Grid Map Pro",
     "guid": "tileGridMapProTCViz1234567890",
     "visualClassName": "Visual",
-    "version": "1.0.0.4",
+    "version": "1.0.0.5",
     "description": "Visualize geographic data as interactive tile grids. Supports 27 countries and regions with precise boundaries. Free tier includes 500 data points. Upgrade to Pro for unlimited data and custom color scales.",
     "supportUrl": "https://tinocallarisa-web.github.io/tile-grid-map-pro/support.html",
     "gitHubUrl": "https://github.com/tinocallarisa-web/tile-grid-map-pro",

@@ -7,6 +7,16 @@ This project follows the Power BI custom visual four-part versioning scheme
 
 ---
 
+## [1.0.0.5] — 2026-08-09
+
+### Added
+- **30-day free trial** — users without a paid license are granted full Pro
+  access for 30 days via the AppSource trial plan. The visual now recognises
+  `ServicePlanState.FreeTrial` (state 2) in addition to `Active` (state 1)
+  and unlocks all Pro features during the trial period.
+
+---
+
 ## [1.0.0.4] — 2026-08-02
 
 ### Added

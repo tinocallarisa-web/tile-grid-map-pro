@@ -159,7 +159,9 @@ export class Visual implements IVisual {
     this.host.licenseManager.getAvailableServicePlans().then((result) => {
       const wasProBefore = this.isPro;
       this.isPro = result?.plans?.some(
-        p => p.spIdentifier === "tile-grid-map-pro-tcviz" && (p.state as unknown as number) === 1 /* ServicePlanState.Active */
+        p => p.spIdentifier === "tile-grid-map-pro-tcviz" &&
+          ((p.state as unknown as number) === 1 /* ServicePlanState.Active */ ||
+           (p.state as unknown as number) === 2 /* ServicePlanState.FreeTrial */)
       ) ?? false;
       if (this.isPro !== wasProBefore && this._lastOptions) {
         this.update(this._lastOptions);
