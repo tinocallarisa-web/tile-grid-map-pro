@@ -1,6 +1,6 @@
 "use strict";
 export interface CountryBBox { minLat:number; maxLat:number; minLng:number; maxLng:number; cell_w:number; cell_h:number; }
-export interface CountryGrid { id:string; name:string; bbox:CountryBBox; cols:number; rows:number; cells:Set<string>; }
+export interface CountryGrid { id:string; name:string; bbox:CountryBBox; cols:number; rows:number; cells:Set<string>; snapCells?:number; }
 
 function toSet(cells:[number,number][]): Set<string> {
   const s = new Set<string>();
@@ -67,14 +67,106 @@ export const COUNTRY_GRIDS: Record<string, CountryGrid> = {
   it_islands:{id:"it_islands",name:"Sicily",bbox:{minLat:36.5,maxLat:38.4,minLng:11.9,maxLng:15.7,cell_w:0.19,cell_h:0.12666667},cols:20,rows:15,cells:toSet(C_IT_ISLANDS)},
 };
 
-export function latLngToCell(lat:number,lng:number,grid:CountryGrid):{col:number;row:number;insetIdx:number}|null {
+/** How many cells a point may be moved to reach the nearest land cell of the mask. */
+export const MAX_SNAP_CELLS = 3;
+
+/**
+ * Cell for a coordinate.
+ *
+ * The masks are a coarse land raster, so a coastal city often falls in a cell the mask
+ * treats as sea: Barcelona, Valencia, Porto, New York, Miami and Perth all did, and
+ * were dropped without a word. A point whose cell is not in the mask is now moved to
+ * the nearest mask cell within MAX_SNAP_CELLS. Only points genuinely away from the
+ * country — the Canaries on the Spain grid — return null, and the caller counts them.
+ */
+export function locateCell(lat:number,lng:number,grid:CountryGrid,maxSnap:number=grid.snapCells ?? MAX_SNAP_CELLS):{col:number;row:number;snapped:boolean}|null {
   const {bbox,cols,rows}=grid;
-  if(lat<bbox.minLat||lat>bbox.maxLat||lng<bbox.minLng||lng>bbox.maxLng) return null;
-  const col=Math.min(cols-1,Math.max(0,Math.floor((lng-bbox.minLng)/bbox.cell_w)));
-  const row=Math.min(rows-1,Math.max(0,Math.floor((bbox.maxLat-lat)/bbox.cell_h)));
-  // Reject if cell is outside country mask (e.g. islands in wrong country grid)
-  if(!grid.cells.has(`${col},${row}`)) return null;
-  return {col,row,insetIdx:-1};
+  const fc=(lng-bbox.minLng)/bbox.cell_w;
+  const fr=(bbox.maxLat-lat)/bbox.cell_h;
+  if(fc < -maxSnap || fc > cols+maxSnap || fr < -maxSnap || fr > rows+maxSnap) return null;
+  const col=Math.floor(fc), row=Math.floor(fr);
+  if(col>=0 && col<cols && row>=0 && row<rows && grid.cells.has(`${col},${row}`)) return {col,row,snapped:false};
+
+  let best:{col:number;row:number}|null=null, bestD=Infinity;
+  for(let dr=-maxSnap; dr<=maxSnap; dr++){
+    for(let dc=-maxSnap; dc<=maxSnap; dc++){
+      const c=col+dc, r=row+dr;
+      if(!grid.cells.has(`${c},${r}`)) continue;
+      const d=(c+0.5-fc)*(c+0.5-fc)+(r+0.5-fr)*(r+0.5-fr);
+      if(d<bestD){ bestD=d; best={col:c,row:r}; }
+    }
+  }
+  if(!best || bestD > (maxSnap+0.5)*(maxSnap+0.5)) return null;
+  return {col:best.col,row:best.row,snapped:true};
+}
+
+const _coarseCache = new Map<string, CountryGrid>();
+
+/**
+ * The same country at a coarser resolution: every factor×factor block of cells becomes
+ * one cell, kept if any of its cells is land. Masks only exist at their native
+ * resolution, so a grid can be made coarser but never finer.
+ */
+export function coarsenGrid(grid:CountryGrid, factor:number):CountryGrid {
+  if(factor<=1) return grid;
+  const id=`${grid.id}@${factor}`;
+  const hit=_coarseCache.get(id);
+  if(hit) return hit;
+  // A block is land when at least a third of it is land: keeping a block for a single
+  // land cell turned every coastline into a ragged blob.
+  const counts=new Map<string,number>();
+  grid.cells.forEach(k => {
+    const [c,r]=k.split(",").map(Number);
+    const key=`${Math.floor(c/factor)},${Math.floor(r/factor)}`;
+    counts.set(key,(counts.get(key)??0)+1);
+  });
+  const need=Math.max(1,Math.ceil(factor*factor/3));
+  const cells=new Set<string>();
+  counts.forEach((n,key) => { if(n>=need) cells.add(key); });
+  if(cells.size===0) counts.forEach((_n,key) => cells.add(key));
+  const g:CountryGrid={
+    id, name:grid.name, cells,
+    cols:Math.ceil(grid.cols/factor), rows:Math.ceil(grid.rows/factor),
+    bbox:{...grid.bbox, cell_w:grid.bbox.cell_w*factor, cell_h:grid.bbox.cell_h*factor},
+  };
+  _coarseCache.set(id,g);
+  return g;
+}
+
+/** The same country at a finer resolution: each land cell split into split×split cells. */
+export function subdivideGrid(grid:CountryGrid, split:number):CountryGrid {
+  if(split<=1) return grid;
+  const id=`${grid.id}/${split}`;
+  const hit=_coarseCache.get(id);
+  if(hit) return hit;
+  const cells=new Set<string>();
+  grid.cells.forEach(k => {
+    const [c,r]=k.split(",").map(Number);
+    for(let dr=0; dr<split; dr++) for(let dc=0; dc<split; dc++) cells.add(`${c*split+dc},${r*split+dr}`);
+  });
+  const g:CountryGrid={
+    id, name:grid.name, cells,
+    cols:grid.cols*split, rows:grid.rows*split,
+    bbox:{...grid.bbox, cell_w:grid.bbox.cell_w/split, cell_h:grid.bbox.cell_h/split},
+  };
+  _coarseCache.set(id,g);
+  return g;
+}
+
+/**
+ * Bundled grids too coarse for their territory: Canarias had 24 tiles and Hawaii 15, a
+ * handful of blocks. Each cell is split N×N so points spread over finer tiles. Grids are
+ * never merged: merging erases the country's outline. Applied once, here, so every
+ * consumer sees the corrected grid under its usual key.
+ */
+const RESOLUTION_OVERRIDES:Record<string,number> = { ic:4, hi:4 };
+for (const [key, f] of Object.entries(RESOLUTION_OVERRIDES)) {
+  const g = COUNTRY_GRIDS[key];
+  if (!g) continue;
+  const adjusted = f < 0 ? coarsenGrid(g, -f) : subdivideGrid(g, f);
+  // Splitting shrinks the cells, so snap over proportionally more of them: the ground
+  // distance a coastal point may move stays what it was on the original grid.
+  COUNTRY_GRIDS[key] = { ...adjusted, id: key, snapCells: MAX_SNAP_CELLS * Math.max(1, f) };
 }
 
 export function isInMask(col:number,row:number,grid:CountryGrid):boolean {

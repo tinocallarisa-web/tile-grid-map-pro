@@ -1,7 +1,6 @@
 /**
  * colorScale.ts
- * Lightweight color interpolation — no d3 dependency in Free tier.
- * Pro tier can leverage d3-scale-chromatic scales.
+ * Colour interpolation without external dependencies.
  */
 
 export interface ColorStop {
@@ -9,9 +8,11 @@ export interface ColorStop {
   color: string;   // hex
 }
 
-/** Parse "#rrggbb" → [r, g, b] */
-function hexToRgb(hex: string): [number, number, number] {
-  const h = hex.replace("#", "");
+/** Parse "#rgb" or "#rrggbb" → [r, g, b]. Anything unparseable falls back to mid grey. */
+export function hexToRgb(hex: string): [number, number, number] {
+  let h = String(hex ?? "").trim().replace("#", "");
+  if (h.length === 3) h = h.split("").map(c => c + c).join("");
+  if (!/^[0-9a-fA-F]{6}$/.test(h)) return [128, 128, 128];
   return [
     parseInt(h.slice(0, 2), 16),
     parseInt(h.slice(2, 4), 16),
@@ -56,37 +57,12 @@ export function buildStopScale(stops: ColorStop[]): (t: number) => string {
   };
 }
 
-/**
- * FREE tier — fixed sequential blue scale.
- */
-export function freeSequentialScale(): (t: number) => string {
-  return buildStopScale([
-    { value: 0, color: "#d0e4f7" },
-    { value: 0.5, color: "#5b9bd5" },
-    { value: 1, color: "#1a5276" },
-  ]);
-}
-
-/**
- * PRO sequential scale from two hex endpoints.
- */
-export function sequentialScale(colorMin: string, colorMax: string): (t: number) => string {
-  return buildStopScale([
-    { value: 0, color: colorMin },
-    { value: 1, color: colorMax },
-  ]);
-}
-
-/**
- * PRO diverging scale (min → mid → max).
- */
-export function divergingScale(colorMin: string, colorMid: string, colorMax: string): (t: number) => string {
-  return buildStopScale([
-    { value: 0,   color: colorMin },
-    { value: 0.5, color: colorMid },
-    { value: 1,   color: colorMax },
-  ]);
-}
+/** Free tier fixed sequential blue palette. */
+export const FREE_STOPS: ColorStop[] = [
+  { value: 0,   color: "#d0e4f7" },
+  { value: 0.5, color: "#5b9bd5" },
+  { value: 1,   color: "#1a5276" },
+];
 
 /**
  * PRO categorical scale — cycles through a palette.
@@ -97,8 +73,17 @@ export const CATEGORICAL_PALETTE = [
   "#1abc9c", "#c0392b", "#7f8c8d", "#f1c40f",
 ];
 
-export function categoricalColor(index: number): string {
-  return CATEGORICAL_PALETTE[index % CATEGORICAL_PALETTE.length];
+/**
+ * Colour for a category, derived from its name rather than its position, so the
+ * same category keeps its colour when a filter removes others.
+ */
+export function categoricalColorFor(key: string): string {
+  let h = 2166136261;
+  for (let i = 0; i < key.length; i++) {
+    h ^= key.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return CATEGORICAL_PALETTE[(h >>> 0) % CATEGORICAL_PALETTE.length];
 }
 
 /**
@@ -110,13 +95,25 @@ export function normalise(value: number, min: number, max: number): number {
 }
 
 /**
- * Compute min/max from a map of key → value.
+ * Diverging normalisation. When the domain crosses zero the neutral colour sits at
+ * zero, not at the midpoint of [min, max]: with data from -10 to 90 a value of 40 is
+ * not "neutral".
  */
-export function domain(values: Map<string, number>): [number, number] {
+export function normaliseDiverging(value: number, min: number, max: number): number {
+  if (min < 0 && max > 0) {
+    return value < 0
+      ? 0.5 * Math.max(0, (value - min) / (0 - min))
+      : 0.5 + 0.5 * Math.min(1, value / max);
+  }
+  return normalise(value, min, max);
+}
+
+/** Min/max of a list of finite numbers. */
+export function domainOf(values: number[]): [number, number] {
   let min = Infinity, max = -Infinity;
-  values.forEach(v => {
+  for (const v of values) {
     if (v < min) min = v;
     if (v > max) max = v;
-  });
+  }
   return [min === Infinity ? 0 : min, max === -Infinity ? 1 : max];
 }

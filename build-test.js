@@ -1,15 +1,18 @@
 /**
- * build-test.js
- * Empaqueta la versión ABIERTA de TileGridMapPro (uso propio, NO para AppSource):
- *   - isPro forzado a true → todas las features desbloqueadas sin licencia
- *   - GUID distinto (sufijo Open) → puede convivir con la versión de AppSource
- *   - Restaura los archivos originales al terminar
+ * build-test.js — Tile Grid Map Pro
  *
- * Uso: node build-test.js
+ * Genera un .pbiviz de TEST que convive con la versión de AppSource.
+ *
+ * Uso:
+ *   node build-test.js          Pro forzado (FORCE_PRO = true). GUID <real>_test
+ *   node build-test.js --free   tier Free REAL, sin forzar nada. GUID <real>_testfree
+ *
+ * El GUID de test es SIEMPRE el real con sufijo: nunca uno inventado.
+ * El fuente queda SIEMPRE en estado producción: se restaura al final, falle lo que falle.
  */
 
-const fs   = require("fs");
-const path = require("path");
+const fs           = require("fs");
+const path         = require("path");
 const { execSync } = require("child_process");
 
 const ROOT        = __dirname;
@@ -17,69 +20,49 @@ const VISUAL_TS   = path.join(ROOT, "src", "visual.ts");
 const PBIVIZ_JSON = path.join(ROOT, "pbiviz.json");
 
 const GUID_PROD = "tileGridMapProTCViz1234567890";
-const GUID_OPEN = "tileGridMapProTCVizOpen0000001";
 
-// ── 1. Back up originals ───────────────────────────────────────────────────
+// Línea exacta del fuente. Si cambia, actualiza ESTE script, no el fuente.
+const FORCE_OFF = "const FORCE_PRO = false; // FORCE_PRO_MARKER";
+const FORCE_ON  = "const FORCE_PRO = true;  // FORCE_PRO_MARKER";
+
 const originalVisual = fs.readFileSync(VISUAL_TS,   "utf8");
 const originalPbiviz = fs.readFileSync(PBIVIZ_JSON, "utf8");
-
-// ── 2. Patch visual.ts: forzar isPro = true ───────────────────────────────
-console.log("🔧  Parcheando visual.ts (isPro = true)...");
-
-const licenseBlock =
-`    // License check — Pro features unlocked via AppSource service plan
-    this.isPro = false; // default free until license confirmed
-    this.host.licenseManager.getAvailableServicePlans().then((result) => {
-      const wasProBefore = this.isPro;
-      this.isPro = result?.plans?.some(
-        p => p.spIdentifier === "tile-grid-map-pro-tcviz" && (p.state as unknown as number) === 1 /* ServicePlanState.Active */
-      ) ?? false;
-      if (this.isPro !== wasProBefore && this._lastOptions) {
-        this.update(this._lastOptions);
-      }
-    }).catch(() => { /* license check failed — stay free */ });`;
-
-const openBlock =
-`    // ⚠️ VERSIÓN ABIERTA — todas las features activadas. No publicar en AppSource.
-    this.isPro = true;`;
-
-const patchedVisual = originalVisual.replace(licenseBlock, openBlock);
-if (patchedVisual === originalVisual) {
-  console.error("❌  No se encontró el bloque de licencia en visual.ts.");
-  process.exit(1);
-}
-fs.writeFileSync(VISUAL_TS, patchedVisual, "utf8");
-
-// ── 3. Patch pbiviz.json: GUID y displayName distintos ────────────────────
-console.log("🔧  Parcheando pbiviz.json (GUID abierto)...");
-
-let patchedPbiviz = originalPbiviz
-  .replace(`"guid": "${GUID_PROD}"`, `"guid": "${GUID_OPEN}"`)
-  .replace(`"displayName": "Tile Grid Map Pro"`, `"displayName": "Tile Grid Map Pro (Open)"`);
-
-if (patchedPbiviz === originalPbiviz) {
-  console.error("❌  No se encontró el GUID en pbiviz.json.");
-  restore();
-  process.exit(1);
-}
-fs.writeFileSync(PBIVIZ_JSON, patchedPbiviz, "utf8");
-
-// ── 4. Build ───────────────────────────────────────────────────────────────
-try {
-  console.log("📦  Ejecutando pbiviz package...");
-  execSync("npx pbiviz package", { cwd: ROOT, stdio: "inherit" });
-  console.log("✅  Versión ABIERTA empaquetada en dist/");
-} catch (err) {
-  console.error("❌  Error durante pbiviz package.");
-  restore();
-  process.exit(1);
-}
-
-// ── 5. Restore originals ───────────────────────────────────────────────────
-restore();
-console.log("✅  Archivos originales restaurados (estado producción).");
 
 function restore() {
   fs.writeFileSync(VISUAL_TS,   originalVisual, "utf8");
   fs.writeFileSync(PBIVIZ_JSON, originalPbiviz, "utf8");
+  console.log("✅  Ficheros restaurados al estado de producción.");
+}
+
+process.on("SIGINT", () => { restore(); process.exit(130); });
+
+try {
+  const freeMode = process.argv.includes("--free");
+  const guid     = GUID_PROD + (freeMode ? "_testfree" : "_test");
+
+  const pbiviz = JSON.parse(originalPbiviz);
+  if (pbiviz.visual.guid !== GUID_PROD) {
+    throw new Error(`GUID inesperado en pbiviz.json: "${pbiviz.visual.guid}". Se esperaba "${GUID_PROD}".`);
+  }
+  pbiviz.visual.guid = guid;
+  fs.writeFileSync(PBIVIZ_JSON, JSON.stringify(pbiviz, null, 2), "utf8");
+  console.log(`📝  GUID  →  ${guid}`);
+
+  if (!originalVisual.includes(FORCE_OFF)) {
+    throw new Error(`No se encontró "${FORCE_OFF}" en src/visual.ts. Actualiza este script.`);
+  }
+  if (!freeMode) {
+    fs.writeFileSync(VISUAL_TS, originalVisual.replace(FORCE_OFF, FORCE_ON), "utf8");
+    console.log("📝  FORCE_PRO  →  true");
+  } else {
+    console.log("📝  --free: licencia real, sin forzar");
+  }
+
+  execSync("npx pbiviz package", { cwd: ROOT, stdio: "inherit", shell: true });
+  console.log(`\n✅  Build de TEST completado (${guid}).`);
+} catch (err) {
+  console.error("\n❌  Falló el build de test:", err.message);
+  process.exitCode = 1;
+} finally {
+  restore();
 }

@@ -1,0 +1,27 @@
+Tile Grid Map Pro v1.1.0.0 - GUID tileGridMapProTCViz1234567890
+Source (certification branch): https://github.com/tinocallarisa-web/tile-grid-map-pro/tree/certification
+Support: https://tinocallarisa-web.github.io/tile-grid-map-pro/support.html
+Privacy: https://tinocallarisa-web.github.io/tile-grid-map-pro/privacy.html
+Terms: https://tinocallarisa-web.github.io/tile-grid-map-pro/terms.html
+
+TESTING FREE (no licence)
+1. Sample .pbix: bind Latitude, Longitude, Value (optional Label, Tooltips, Category). Rules on: legend lists each rule.
+2. Map Settings > Country/Region: switch the 27 grids; toggle Correct Latitude Distortion.
+3. >500 rows: "Showing the first 500 of N rows"; outside/no-coordinate rows counted.
+4. Quantile/Diverging/Categorical, Color Min/Max, Circle/Hexagon, Size field: not applied; Custom TopoJSON: "not available". Power BI shows its feature-blocked banner and licence icon.
+5. Click, Ctrl+click, background click, right-click; keys: arrows, Enter/Space, Ctrl+Enter, Esc, Shift+F10.
+
+TESTING PRO (licence or 30-day trial)
+1. All rows up to 30,000 used (data reduction top 30000).
+2. Quantile, Diverging, custom colours, Circle/Hexagon, Size apply. Categorical+Category: 12 theme colours, legend.
+3. Country/Region = Custom TopoJSON (Pro): drop a TopoJSON (lon/lat WGS84, max 5 MB); regions render; save+reopen persists.
+
+PRIVACY/NETWORK
+No network calls, no telemetry, no cookies, no storage. privileges: []. TopoJSON only by drag & drop (FileReader), persisted in the report via persistProperties. No innerHTML; ESLint clean.
+
+LICENSING
+IVisualLicenseManager.getAvailableServicePlans. Pro when spIdentifier (full Service ID) ends with ".tile-grid-map-pro-tcviz" and state is Active or Warning. isLicenseUnsupportedEnv/isLicenseInfoAvailable honoured: no notifications there (Publish to Web, embed, export) or when unreadable. No own licensing UI: notifyFeatureBlocked, notifyLicenseRequired, clearLicenseNotification.
+
+FREE vs PRO
+Free: 27 maps, first 500 rows, square tiles, latitude correction, blue palette, aggregation, labels, legend, 3 colour rules, tooltips, cross-filter, multi-select, keyboard, high contrast.
+Pro: up to 30,000 rows, Custom TopoJSON, circle/hexagon, Size role, quantile/diverging/categorical scales, custom colours.

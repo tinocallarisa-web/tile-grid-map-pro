@@ -5,11 +5,11 @@ contact_links:
     about: Setup guide, field wells, format pane reference and common questions.
 
   - name: 📺 Video walkthrough
-    url: https://www.youtube.com/watch?v=LnTb3qHsHdg
+    url: https://www.youtube.com/watch?v=iCXAk3kI9nE
     about: Full walkthrough including the Pro custom TopoJSON workflow.
 
   - name: 🔑 Licensing and billing
-    url: mailto:tino@tcviz.com
+    url: mailto:support@tcviz.com
     about: Questions about your AppSource subscription or Pro features not unlocking.
 
   - name: 📝 Changelog

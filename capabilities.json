@@ -19,6 +19,12 @@
       "description": "Numeric value to color each tile"
     },
     {
+      "name": "size",
+      "kind": "Measure",
+      "displayName": "Size (Pro)",
+      "description": "Optional second measure that sizes each tile"
+    },
+    {
       "name": "tooltips",
       "kind": "Measure",
       "displayName": "Tooltips",
@@ -29,6 +35,12 @@
       "kind": "Grouping",
       "displayName": "Label",
       "description": "Optional display name (city, region...)"
+    },
+    {
+      "name": "category",
+      "kind": "Grouping",
+      "displayName": "Category",
+      "description": "Group used by the Categorical colour scale (Pro): each tile takes the category with most rows"
     }
   ],
   "dataViewMappings": [
@@ -48,6 +60,12 @@
             "max": 10
           },
           "label": {
+            "max": 1
+          },
+          "size": {
+            "max": 1
+          },
+          "category": {
             "max": 1
           }
         }
@@ -71,6 +89,11 @@
               }
             },
             {
+              "for": {
+                "in": "category"
+              }
+            },
+            {
               "bind": {
                 "to": "value"
               }
@@ -78,6 +101,11 @@
             {
               "bind": {
                 "to": "tooltips"
+              }
+            },
+            {
+              "bind": {
+                "to": "size"
               }
             }
           ],
@@ -214,11 +242,30 @@
         "aggregationType": {
           "type": {
             "enumeration": [
-              { "value": "sum",     "displayName": "Sum" },
-              { "value": "average", "displayName": "Average" },
-              { "value": "count",   "displayName": "Count" },
-              { "value": "min",     "displayName": "Min" },
-              { "value": "max",     "displayName": "Max" }
+              {
+                "value": "auto",
+                "displayName": "Auto (from field)"
+              },
+              {
+                "value": "sum",
+                "displayName": "Sum"
+              },
+              {
+                "value": "average",
+                "displayName": "Average"
+              },
+              {
+                "value": "count",
+                "displayName": "Count"
+              },
+              {
+                "value": "min",
+                "displayName": "Min"
+              },
+              {
+                "value": "max",
+                "displayName": "Max"
+              }
             ]
           }
         },
@@ -238,10 +285,37 @@
           }
         },
         "labelMinTileSize": {
-          "type": { "numeric": true }
+          "type": {
+            "numeric": true
+          }
         },
         "tooltipDecimals": {
-          "type": { "numeric": true }
+          "type": {
+            "numeric": true
+          }
+        },
+        "tileShape": {
+          "type": {
+            "enumeration": [
+              {
+                "value": "square",
+                "displayName": "Square"
+              },
+              {
+                "value": "circle",
+                "displayName": "Circle (Pro)"
+              },
+              {
+                "value": "hexagon",
+                "displayName": "Hexagon (Pro)"
+              }
+            ]
+          }
+        },
+        "latitudeCorrection": {
+          "type": {
+            "bool": true
+          }
         }
       }
     },
@@ -253,6 +327,10 @@
               {
                 "value": "sequential",
                 "displayName": "Sequential"
+              },
+              {
+                "value": "quantile",
+                "displayName": "Quantile (Pro)"
               },
               {
                 "value": "diverging",
@@ -318,81 +396,198 @@
                 "displayName": "Bottom"
               },
               {
-                "value": "right",
-                "displayName": "Right"
-              },
-              {
                 "value": "top",
                 "displayName": "Top"
               }
             ]
+          }
+        },
+        "fontColor": {
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "fontSize": {
+          "type": {
+            "formatting": {
+              "fontSize": true
+            }
+          }
+        },
+        "fontFamily": {
+          "type": {
+            "formatting": {
+              "fontFamily": true
+            }
           }
         }
       }
     },
     "accessibility": {
       "properties": {
-        "showBorders":      { "type": { "bool": true } },
-        "borderColor":      { "type": { "fill": { "solid": { "color": true } } } },
-        "borderWidth":      { "type": { "numeric": true } },
-        "selectedRingColor": { "type": { "fill": { "solid": { "color": true } } } },
-        "selectedRingWidth": { "type": { "numeric": true } }
+        "showBorders": {
+          "type": {
+            "bool": true
+          }
+        },
+        "borderColor": {
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "borderWidth": {
+          "type": {
+            "numeric": true
+          }
+        },
+        "selectedRingColor": {
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "selectedRingWidth": {
+          "type": {
+            "numeric": true
+          }
+        }
       }
     },
     "conditionalFormatting": {
       "properties": {
-        "cfEnabled": { "type": { "bool": true } },
+        "cfEnabled": {
+          "type": {
+            "bool": true
+          }
+        },
         "cfRule1Operator": {
           "type": {
             "enumeration": [
-              { "value": "lt",  "displayName": "< Less than" },
-              { "value": "lte", "displayName": "≤ Less than or equal" },
-              { "value": "gt",  "displayName": "> Greater than" },
-              { "value": "gte", "displayName": "≥ Greater than or equal" },
-              { "value": "eq",  "displayName": "= Equal to" }
+              {
+                "value": "lt",
+                "displayName": "< Less than"
+              },
+              {
+                "value": "lte",
+                "displayName": "≤ Less than or equal"
+              },
+              {
+                "value": "gt",
+                "displayName": "> Greater than"
+              },
+              {
+                "value": "gte",
+                "displayName": "≥ Greater than or equal"
+              },
+              {
+                "value": "eq",
+                "displayName": "= Equal to"
+              }
             ]
           }
         },
-        "cfRule1Value": { "type": { "numeric": true } },
-        "cfRule1Color": { "type": { "fill": { "solid": { "color": true } } } },
-        "cfRule2MinValue": { "type": { "numeric": true } },
-        "cfRule2MaxValue": { "type": { "numeric": true } },
-        "cfRule2Color": { "type": { "fill": { "solid": { "color": true } } } },
+        "cfRule1Value": {
+          "type": {
+            "numeric": true
+          }
+        },
+        "cfRule1Color": {
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "cfRule2MinValue": {
+          "type": {
+            "numeric": true
+          }
+        },
+        "cfRule2MaxValue": {
+          "type": {
+            "numeric": true
+          }
+        },
+        "cfRule2Color": {
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
         "cfRule3Operator": {
           "type": {
             "enumeration": [
-              { "value": "lt",  "displayName": "< Less than" },
-              { "value": "lte", "displayName": "≤ Less than or equal" },
-              { "value": "gt",  "displayName": "> Greater than" },
-              { "value": "gte", "displayName": "≥ Greater than or equal" },
-              { "value": "eq",  "displayName": "= Equal to" }
+              {
+                "value": "lt",
+                "displayName": "< Less than"
+              },
+              {
+                "value": "lte",
+                "displayName": "≤ Less than or equal"
+              },
+              {
+                "value": "gt",
+                "displayName": "> Greater than"
+              },
+              {
+                "value": "gte",
+                "displayName": "≥ Greater than or equal"
+              },
+              {
+                "value": "eq",
+                "displayName": "= Equal to"
+              }
             ]
           }
         },
-        "cfRule3Value": { "type": { "numeric": true } },
-        "cfRule3Color": { "type": { "fill": { "solid": { "color": true } } } }
+        "cfRule3Value": {
+          "type": {
+            "numeric": true
+          }
+        },
+        "cfRule3Color": {
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        }
       }
     },
     "proSettings": {
       "properties": {
-        "customTopoJsonUrl": {
-          "type": { "text": true }
-        },
-        "showPill": {
-          "type": { "bool": true }
-        },
         "topoJsonContent": {
-          "type": { "text": true }
+          "type": {
+            "text": true
+          }
         },
         "topoJsonFileName": {
-          "type": { "text": true }
+          "type": {
+            "text": true
+          }
         }
       }
     }
   },
-  "supportsHighlight": true,
   "supportsKeyboardFocus": true,
-  "supportsSynchronizingFilterState": true,
   "supportsMultiVisualSelection": true,
   "tooltips": {
     "supportedTypes": {

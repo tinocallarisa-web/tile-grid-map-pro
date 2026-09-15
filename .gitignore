@@ -5,3 +5,10 @@ webpack.statistics*.html
 *.pbiviz
 .DS_Store
 Thumbs.db
+
+# Informes y datos de prueba: nunca al repo
+*.pbix
+*.csv
+icon_300x300.png
+desktop.ini
+.vscode/

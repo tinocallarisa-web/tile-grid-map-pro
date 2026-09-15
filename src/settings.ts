@@ -1,6 +1,6 @@
 import { formattingSettings } from "powerbi-visuals-utils-formattingmodel";
 
-const { AutoDropdown, ToggleSwitch, NumUpDown, ColorPicker, TextInput } = formattingSettings;
+const { AutoDropdown, ToggleSwitch, NumUpDown, ColorPicker } = formattingSettings;
 type SimpleSlice = formattingSettings.SimpleSlice;
 type FormattingSettingsCard = formattingSettings.SimpleCard;
 
@@ -15,10 +15,22 @@ export class MapSettingsCard extends formattingSettings.SimpleCard {
     value: "es",
   });
 
+  tileShape = new AutoDropdown({
+    name: "tileShape",
+    displayName: "Tile Shape",
+    value: "square",
+  });
+
+  latitudeCorrection = new ToggleSwitch({
+    name: "latitudeCorrection",
+    displayName: "Correct Latitude Distortion",
+    value: true,
+  });
+
   aggregationType = new AutoDropdown({
     name: "aggregationType",
     displayName: "Value Aggregation",
-    value: "sum",
+    value: "auto",
   });
 
   showEmptyCells = new ToggleSwitch({
@@ -49,12 +61,12 @@ export class MapSettingsCard extends formattingSettings.SimpleCard {
 
   tooltipDecimals = new NumUpDown({
     name: "tooltipDecimals",
-    displayName: "Tooltip Decimal Places",
+    displayName: "Decimal Places",
     value: 2,
     options: { minValue: { type: powerbi.visuals.ValidatorType.Min, value: 0 }, maxValue: { type: powerbi.visuals.ValidatorType.Max, value: 6 } }
   });
 
-  slices: SimpleSlice[] = [this.country, this.aggregationType, this.showEmptyCells, this.showLabels, this.labelFontSize, this.labelMinTileSize, this.tooltipDecimals];
+  slices: SimpleSlice[] = [this.country, this.tileShape, this.latitudeCorrection, this.aggregationType, this.showEmptyCells, this.showLabels, this.labelFontSize, this.labelMinTileSize, this.tooltipDecimals];
 }
 
 // ─── Color Scale Card ─────────────────────────────────────────────────────────
@@ -70,19 +82,19 @@ export class ColorScaleCard extends formattingSettings.SimpleCard {
 
   colorMin = new ColorPicker({
     name: "colorMin",
-    displayName: "Color Min",
+    displayName: "Color Min (Pro)",
     value: { value: "#d0e4f7" },
   });
 
   colorMid = new ColorPicker({
     name: "colorMid",
-    displayName: "Color Mid (Diverging)",
+    displayName: "Color Mid (Pro, Diverging)",
     value: { value: "#f7f7f7" },
   });
 
   colorMax = new ColorPicker({
     name: "colorMax",
-    displayName: "Color Max",
+    displayName: "Color Max (Pro)",
     value: { value: "#1a5276" },
   });
 
@@ -112,7 +124,29 @@ export class LegendCard extends formattingSettings.SimpleCard {
     value: "bottom",
   });
 
-  slices: SimpleSlice[] = [this.showLegend, this.legendPosition];
+  fontColor = new ColorPicker({
+    name: "fontColor",
+    displayName: "Text Color",
+    value: { value: "#555555" },
+  });
+
+  fontSize = new NumUpDown({
+    name: "fontSize",
+    displayName: "Text Size",
+    value: 10,
+    options: {
+      minValue: { type: powerbi.visuals.ValidatorType.Min, value: 7 },
+      maxValue: { type: powerbi.visuals.ValidatorType.Max, value: 24 },
+    },
+  });
+
+  fontFamily = new formattingSettings.FontPicker({
+    name: "fontFamily",
+    displayName: "Font",
+    value: "Segoe UI, wf_segoe-ui_normal, helvetica, arial, sans-serif",
+  });
+
+  slices: SimpleSlice[] = [this.showLegend, this.legendPosition, this.fontFamily, this.fontSize, this.fontColor];
 }
 
 // ─── Accessibility Card ───────────────────────────────────────────────────────
@@ -209,16 +243,16 @@ export class ConditionalFormattingCard extends formattingSettings.SimpleCard {
     value: { value: "#f39c12" },
   });
 
-  // ── Rule 3 ──
+  // ── Rule 3 ── default "> 100": it no longer swallows every value rules 1 and 2 leave.
   cfRule3Operator = new AutoDropdown({
     name: "cfRule3Operator",
     displayName: "Rule 3 – Operator",
-    value: "gte",
+    value: "gt",
   });
   cfRule3Value = new NumUpDown({
     name: "cfRule3Value",
     displayName: "Rule 3 – Value",
-    value: 0,
+    value: 100,
   });
   cfRule3Color = new ColorPicker({
     name: "cfRule3Color",
@@ -226,43 +260,26 @@ export class ConditionalFormattingCard extends formattingSettings.SimpleCard {
     value: { value: "#27ae60" },
   });
 
+  // The switch sits in the card header: buried among the rules it went unnoticed, and
+  // colours chosen with it off appeared to do nothing.
+  topLevelSlice = this.cfEnabled;
+
   slices: SimpleSlice[] = [
-    this.cfEnabled,
     this.cfRule1Operator, this.cfRule1Value, this.cfRule1Color,
     this.cfRule2MinValue, this.cfRule2MaxValue, this.cfRule2Color,
     this.cfRule3Operator, this.cfRule3Value, this.cfRule3Color,
   ];
 }
 
-// ─── Pro Settings Card ────────────────────────────────────────────────────────
-export class ProSettingsCard extends formattingSettings.SimpleCard {
-  name = "proSettings";
-  displayName = "Pro Settings";
-
-  customTopoJsonUrl = new TextInput({
-    name: "customTopoJsonUrl",
-    displayName: "Custom TopoJSON URL",
-    placeholder: "https://example.com/regions.topojson",
-    value: "",
-  });
-
-  showPill = new ToggleSwitch({
-    name: "showPill",
-    displayName: "Show Pro Pill",
-    value: true,
-  });
-
-  slices: SimpleSlice[] = [this.customTopoJsonUrl, this.showPill];
-}
-
 // ─── Root Model ───────────────────────────────────────────────────────────────
+// The persisted TopoJSON lives in the "proSettings" object (capabilities.json). It has
+// no card: it is set by dropping a file on the visual, never typed in the pane.
 export class VisualFormattingSettingsModel extends formattingSettings.Model {
   mapSettings           = new MapSettingsCard();
   colorScale            = new ColorScaleCard();
   conditionalFormatting = new ConditionalFormattingCard();
   accessibility         = new AccessibilityCard();
   legend                = new LegendCard();
-  proSettings           = new ProSettingsCard();
 
   cards: FormattingSettingsCard[] = [
     this.mapSettings,
@@ -270,6 +287,5 @@ export class VisualFormattingSettingsModel extends formattingSettings.Model {
     this.conditionalFormatting,
     this.accessibility,
     this.legend,
-    this.proSettings,
   ];
 }

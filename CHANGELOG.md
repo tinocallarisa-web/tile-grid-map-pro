@@ -7,13 +7,94 @@ This project follows the Power BI custom visual four-part versioning scheme
 
 ---
 
+## [1.1.0.0] — 2026-09-14
+
+### Fixed
+- **Licence never matched a paying customer.** `spIdentifier` is the full Service
+  ID (`publisher.offer.plan`); it is now accepted when it ends with
+  `.tile-grid-map-pro-tcviz`.
+- A Pro customer stayed limited to 500 rows after the licence arrived (the row
+  cache was not rebuilt).
+- Coastal points (Barcelona, Valencia, Porto, New York, Miami, Perth, Osaka…) were
+  silently dropped by the land masks. They are now snapped to the nearest land cell
+  within 3 cells, and rows truly outside the map are counted on screen.
+- Blank values were counted as 0 (wrong averages and minimums) and blank
+  coordinates as 0,0.
+- The default aggregation summed already-aggregated fields. New default
+  **Auto (from field)** follows the field-well aggregation (Sum / Average / Min /
+  Max / Count); model measures default to Sum, and the tooltip names the
+  aggregation used.
+- The legend is now drawn from the same scale as the tiles (diverging midpoint,
+  free palette, minimum excludes empty cells). With colour rules on it shows one
+  swatch per active rule with its condition (e.g. "< 0", "0 – 100", "> 100",
+  thresholds formatted like the field) plus "Other"; with the categorical scale it
+  lists the categories and their colours.
+- High contrast now encodes the value by opacity.
+- Ctrl multi-select highlighted only one tile.
+- Clicking the background left the selection ring visible.
+- TopoJSON: MultiPolygon regions are one region; the tooltip shows the region name;
+  projected-coordinate files are detected and explained; invalid or oversized files
+  are explained.
+- Number formatting respects the locale, the field's percent format and 0 decimals;
+  no more "1000K".
+- Colour rules (the visual's own 3-rule card): rule 3 default changed to `> 100` (was `>= 0`, which
+  matched everything); empty thresholds are ignored; the Enable switch moved to the
+  card header; thresholds for a percent field are typed as shown (25 for 25%).
+- Labels are only drawn when they fit.
+- "Show Empty Cells" and legend "Position" (Top / Bottom; Right removed) now work.
+- Legend text font, size and colour are configurable (Format → Legend).
+- Tiny viewports no longer draw broken tiles.
+
+### Added
+- **Tile Shape** (Map Settings): Square (Free), Circle (Pro), Hexagon (Pro).
+  Hexagons use offset rows (odd rows shifted half a tile).
+- **Legend text options** (Format → Legend): Font, Text Size, Text Color (Free).
+- **Category** data role (Grouping, max 1), used by the **Categorical (Pro)** scale:
+  each tile takes the category with the most rows; the 12 categories covering most
+  rows get the report theme's colours (stable per category across filters) and the
+  rest share a grey "Other". The legend lists the categories (up to 2 rows, long
+  names shortened) and the tooltip shows "Category: X (+N more)". Without a
+  Category field, Categorical colours by the first Label, with no legend.
+- **Size (Pro)** data role (Measure, max 1): a second measure scales each tile's
+  area (colour = Value, size = Size). Shown in the tooltip. Not applied in Custom
+  TopoJSON mode.
+- **Quantile (Pro)** scale type: 5 classes with an equal number of cells each,
+  coloured from Color Min to Color Max; the legend shows the classes with their
+  break values, so one outlier no longer washes out the map.
+- **Correct Latitude Distortion** (Map Settings, Free, on by default): tiles take the
+  real ground proportion of each cell at the map's mid-latitude, so northern
+  countries (Norway, Sweden, Canada) are no longer stretched.
+- **Keyboard navigation:** arrow keys move focus, Enter / Space select,
+  Ctrl+Enter multi-selects, Esc clears, Shift+F10 or the context-menu key opens the
+  context menu.
+- Bookmarks and external selections are reflected on the tiles.
+- On-screen row notes: "Showing the first 500 of N rows", "Power BI sent the first
+  30,000 rows", and how many rows were not shown (outside the map / without
+  coordinates).
+
+### Changed
+- Finer default grids for Canarias and Hawaii: each cell is split 4×4 (about 380
+  and 240 tiles instead of 24 and 15), so the islands read in detail.
+
+### Removed
+- TopoJSON URL option — the visual no longer makes any network request. Custom
+  TopoJSON is loaded only by drag & drop and saved in the report.
+- "Pro Settings → Show Pro Pill" and the in-visual "Upgrade" message; Power BI's
+  own licence notifications are used instead.
+- Unused format options, the unimplemented `supportsHighlight` /
+  `supportsSynchronizingFilterState` flags, unused dependencies and dead code.
+
+### Security / compliance
+- No `innerHTML`; ESLint (`eslint-plugin-powerbi-visuals`) clean.
+
+---
+
 ## [1.0.0.5] — 2026-08-09
 
 ### Added
 - **30-day free trial** — users without a paid license are granted full Pro
-  access for 30 days via the AppSource trial plan. The visual now recognises
-  `ServicePlanState.FreeTrial` (state 2) in addition to `Active` (state 1)
-  and unlocks all Pro features during the trial period.
+  access for 30 days via the AppSource trial plan, unlocking all Pro features
+  during the trial period.
 
 ---
 
@@ -90,10 +171,12 @@ Initial release.
 - Tooltips with up to 10 additional measures.
 - Legend with configurable position.
 - High contrast support, cross-filtering, multi-selection and context menu.
-- Free tier limited to 500 data points; Pro tier unlimited.
+- Free tier limited to 500 data points; Pro tier without the 500-point cap.
 
 ---
 
+[1.1.0.0]: https://github.com/tinocallarisa-web/tile-grid-map-pro
+[1.0.0.5]: https://github.com/tinocallarisa-web/tile-grid-map-pro
 [1.0.0.4]: https://github.com/tinocallarisa-web/tile-grid-map-pro
 [1.0.0.3]: https://github.com/tinocallarisa-web/tile-grid-map-pro
 [1.0.0.0]: https://github.com/tinocallarisa-web/tile-grid-map-pro

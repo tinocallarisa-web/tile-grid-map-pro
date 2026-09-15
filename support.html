@@ -49,17 +49,18 @@
 
   <h1>Support — Tile Grid <span>Map Pro</span></h1>
   <p class="lead">Published by <strong>TCViz</strong> &nbsp;·&nbsp;
-    <a href="mailto:tino@tcviz.com">tino@tcviz.com</a> &nbsp;·&nbsp; Version 1.0.0.4</p>
+    <a href="mailto:support@tcviz.com">support@tcviz.com</a> &nbsp;·&nbsp; Version 1.1.0.0
+    &nbsp;·&nbsp; Documentation updated 14 September 2026</p>
 
   <h2>Video walkthrough</h2>
   <div class="video">
-    <iframe src="https://www.youtube.com/embed/LnTb3qHsHdg"
-            title="Tile Grid Map Pro — Power BI custom visual walkthrough"
+    <iframe src="https://www.youtube.com/embed/iCXAk3kI9nE"
+            title="How to Build a Tile Grid Map in Power BI (No Map Service Needed) — Tile Grid Map Pro"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture"
             allowfullscreen></iframe>
   </div>
-  <p>Full setup, formatting options and the Pro custom TopoJSON workflow —
-     <a href="https://www.youtube.com/watch?v=LnTb3qHsHdg">watch on YouTube</a>.</p>
+  <p>Setup, formatting options and the Pro custom TopoJSON workflow —
+     <a href="https://www.youtube.com/watch?v=iCXAk3kI9nE">watch on YouTube</a>.</p>
 
   <h2>Quick start</h2>
   <ol>
@@ -68,53 +69,228 @@
         — decimal degrees, e.g. <code>40.4168</code>.</li>
     <li>Drag your <strong>Longitude</strong> column into the Longitude field well
         — e.g. <code>-3.7038</code>.</li>
-    <li>Drop a numeric measure into <strong>Value</strong>. This is what colours each tile.</li>
+    <li>Drop a numeric field or measure into <strong>Value</strong>. This is what colours each tile.</li>
     <li>In the Format pane, open <strong>Map Settings</strong> and pick your
         <strong>Country / Region</strong>.</li>
   </ol>
 
   <div class="note">
     The visual works from raw coordinates. There is no region-name or ISO-code
-    lookup — each latitude/longitude pair is snapped to the grid cell that
-    contains it. No shapefiles or GIS setup required.
+    lookup — each latitude/longitude pair is assigned to the grid cell that
+    contains it. Coastal points that fall just off the land mask are snapped to the
+    nearest land cell within 3 cells.
   </div>
+
+  <h2>How it works</h2>
+  <p>Every refresh follows the same steps, in this order.</p>
+
+  <h3>1. Rows → coordinates</h3>
+  <ul>
+    <li>Each row needs a numeric Latitude and Longitude in decimal degrees (WGS84).</li>
+    <li>A row whose latitude or longitude is blank or not a number is skipped and counted as
+        <em>without coordinates</em>.</li>
+  </ul>
+
+  <h3>2. Coordinates → tile</h3>
+  <ul>
+    <li>Each bundled map is a raster of land cells laid over a latitude/longitude bounding box.
+        A point goes to the cell that contains it.</li>
+    <li>If that cell is sea (common for coastal cities), the point moves to the nearest land
+        cell within 3 cells. Canarias and Hawaii use grids split 4×4, so they search 12 of
+        their smaller cells: the same distance on the ground.</li>
+    <li>A point farther away than that is counted as <em>outside the map</em>.</li>
+    <li>Rows for other countries are not dropped silently: they count as outside the map. Filter
+        them out (for example with a country slicer) when you only want one country.</li>
+  </ul>
+
+  <h3>3. Row limits</h3>
+  <table>
+    <tr><th>On-screen note</th><th colspan="2">Meaning</th></tr>
+    <tr><td>Showing the first 500 of N rows.</td><td colspan="2">Free tier: only the first 500 rows Power BI sent are placed on the map.</td></tr>
+    <tr><td>Power BI sent the first 30,000 rows; further rows are not shown.</td><td colspan="2">Power BI's own limit for this visual (Pro, or Free below 500 rows never reaches it).</td></tr>
+    <tr><td>N rows not shown: X outside the map, Y without coordinates.</td><td colspan="2">Rows from steps 1 and 2 that could not be placed.</td></tr>
+  </table>
+  <p>At most two notes are shown at a time, under the map.</p>
+
+  <h3>4. Aggregation per tile</h3>
+  <ul>
+    <li><strong>Auto (from field)</strong> reads the aggregation Power BI applies in the field well
+        (Sum, Average, Min, Max or Count), from the field's query or its display name
+        ("Average of …"). A model measure gives no hint, so it is treated as <strong>Sum</strong>.
+        For ratios and averages written as measures, choose <em>Average</em> in Map Settings.</li>
+    <li>Sum, Average, Min and Max use only rows that have a value: blanks are ignored, not
+        counted as zero. <strong>Count</strong> counts all rows in the tile.</li>
+    <li>The tooltip names the aggregation used and shows <em>Rows: N (M with a value)</em> when
+        some rows are blank. Tooltip fields are aggregated with their own field-well
+        aggregation.</li>
+    <li>Numbers follow your locale and <em>Decimal Places</em>; values of 1,000 and more are shortened
+        to K, M or B, and percent fields are shown as percentages.</li>
+  </ul>
+
+  <h3>5. Colour</h3>
+  <p>The first matching step decides the tile's colour:</p>
+  <table>
+    <tr><th>Step</th><th colspan="2">What happens</th></tr>
+    <tr><td>No value</td><td colspan="2">A tile with rows but no value uses <em>No Data Color</em>. Land cells without any
+        row use it too, or are hidden when <em>Show Empty Cells</em> is off.</td></tr>
+    <tr><td>High contrast</td><td colspan="2">When Windows high contrast is on, every tile uses the theme foreground colour and the
+        value is shown by opacity (25% for the lowest, 100% for the highest). Colour rules are
+        not used.</td></tr>
+    <tr><td>Colour rules</td><td colspan="2">Only when <em>Enable Rules</em> (switch in the Conditional Formatting card header) is
+        on. Rule 1, Rule 2 (between From and To, inclusive) and Rule 3 are tested in that order;
+        the first match wins. Empty thresholds are ignored. For a percent field, type thresholds
+        as shown: <code>25</code> means 25%. Tiles no rule matches use the scale below.</td></tr>
+    <tr><td>Sequential</td><td colspan="2">Free: fixed blue palette from the lowest to the highest tile. Pro: Color Min → Color
+        Max.</td></tr>
+    <tr><td>Quantile (Pro)</td><td colspan="2">Tiles sorted by value and split into 5 classes with the same number of tiles each
+        (fewer classes when there are fewer distinct values), coloured Color Min → Color Max.</td></tr>
+    <tr><td>Diverging (Pro)</td><td colspan="2">When values cross zero, zero gets Color Mid, negatives run to Color Min and positives
+        to Color Max. When they don't, Color Mid sits halfway between the lowest and highest
+        value.</td></tr>
+    <tr><td>Categorical (Pro)</td><td colspan="2">With a <strong>Category</strong> field, each tile takes the category with the most rows (ties by
+        name). The 12 categories with the most rows get the report theme's colours, stable per
+        category across filters; all others share grey "Other". Without a Category field, tiles
+        are coloured by their first Label from a fixed 12-colour palette, and no legend is
+        drawn.</td></tr>
+  </table>
+  <p>Free users who pick a Pro scale or colours see the Free blue palette.</p>
+
+  <h3>6. Size <span class="badge">Pro</span></h3>
+  <ul>
+    <li>With a measure in <strong>Size</strong>, each tile's width and height become
+        30% + 70% × √(tile size ÷ largest tile size) of the full tile, so the area grows roughly
+        in proportion to the size value.</li>
+    <li>Tiles with a blank or negative size are drawn at the 30% minimum.</li>
+    <li>Size is not applied to Custom TopoJSON regions.</li>
+  </ul>
+
+  <h3>7. Shape and layout</h3>
+  <ul>
+    <li><strong>Tile Shape</strong>: Square (Free), Circle or Hexagon (Pro). Hexagons shift every odd row
+        by half a tile so they interlock.</li>
+    <li><strong>Correct Latitude Distortion</strong> (on by default): a degree of longitude is shorter on the
+        ground than a degree of latitude, by the cosine of the latitude. The tile height is set
+        to cell height ÷ (cell width × cos(mid-latitude of the map)) times its width, limited
+        to between 0.4 and 2.5, so countries like Norway are not stretched. Turn it off for
+        square tiles.</li>
+    <li>The map is centred and scaled to fit the visual; if it is too small, the visual asks you
+        to enlarge it.</li>
+    <li><strong>Labels</strong> (Show Cell Labels): when a tile is at least <em>Label Min Tile Size</em> pixels,
+        it shows the value; when it is between half that size and the full size, it shows the
+        first 4 characters of its Label. A label is only drawn when it fits inside the tile.</li>
+  </ul>
+
+  <h3>8. Legend</h3>
+  <table>
+    <tr><th>Situation</th><th colspan="2">Legend</th></tr>
+    <tr><td>Sequential / Diverging / high contrast</td><td colspan="2">Gradient bar with the lowest and highest value (and 0 for a diverging scale that crosses zero).</td></tr>
+    <tr><td>Quantile</td><td colspan="2">One block per class with its starting value.</td></tr>
+    <tr><td>Colour rules on</td><td colspan="2">One swatch per active rule with its condition ("&lt; 0", "0 – 100", "&gt; 100"), formatted
+        like the field, plus "Other" for tiles no rule matches.</td></tr>
+    <tr><td>Categorical with Category</td><td colspan="2">One swatch per category (and "Other"), at most 2 rows; names longer than 18
+        characters are shortened.</td></tr>
+  </table>
+  <p>Position (Top or Bottom), Font, Text Size (7–24) and Text Color are set in Format → Legend.</p>
+
+  <h3>9. Interaction</h3>
+  <ul>
+    <li>Click a tile to filter the other visuals; the rest dim. Click the same tile again, or
+        click the background, to clear.</li>
+    <li>Ctrl+click adds or removes tiles. Right-click opens the Power BI context menu.</li>
+    <li>Keyboard: arrow keys move focus, Enter / Space select, Ctrl+Enter adds to the selection,
+        Esc clears, Shift+F10 or the context-menu key opens the context menu.</li>
+    <li>Selections from bookmarks and other visuals are shown on the tiles.</li>
+    <li>Tooltip: region name (TopoJSON), up to 3 labels (+N more), the aggregated value, Size,
+        Category (+N more), row count, cell centre coordinates and your tooltip fields.</li>
+  </ul>
+
+  <h3>10. Custom TopoJSON <span class="badge">Pro</span></h3>
+  <ul>
+    <li>Choose <em>Custom TopoJSON (Pro)</em> in Country / Region and drag a file onto the visual. The file
+        is read locally; no network request is made.</li>
+    <li>From the topology, the object with the most geometries is used. Each Polygon or
+        MultiPolygon geometry is one region (holes respected).</li>
+    <li>Region names come from the properties <code>name</code>, <code>NAME</code>, <code>NAME_1</code>,
+        <code>name_en</code>, <code>NAME_EN</code>, or the geometry <code>id</code>; otherwise "Region N".</li>
+    <li>Maximum 5 MB. Coordinates must be longitude/latitude (WGS84); projected files are detected
+        and a note explains it. Files that are not TopoJSON or have no polygons are explained too.</li>
+    <li>The file is stored in the report (.pbix). Save the report after dropping it.</li>
+  </ul>
+
+  <h3>11. Licensing for Free users</h3>
+  <ul>
+    <li>Pro options chosen without a licence are simply not applied (square tiles, blue palette,
+        500 rows, no Size). Custom TopoJSON shows "Custom TopoJSON regions are not available".</li>
+    <li>Power BI shows its own licence notice (banner and licence icon) naming the Pro features in
+        use. It never appears in Publish to Web, embedded reports or exports, or when the licence
+        cannot be read.</li>
+  </ul>
 
   <h2>Field wells</h2>
   <table>
     <tr><th>Field well</th><th>Required</th><th>Max</th><th>Description</th></tr>
     <tr><td><strong>Latitude</strong></td><td>Yes</td><td>1</td><td>Decimal degrees</td></tr>
     <tr><td><strong>Longitude</strong></td><td>Yes</td><td>1</td><td>Decimal degrees</td></tr>
-    <tr><td><strong>Value</strong></td><td>Recommended</td><td>1</td><td>Numeric measure used for colouring</td></tr>
-    <tr><td><strong>Label</strong></td><td>No</td><td>1</td><td>City or region name, shown on tiles and tooltips</td></tr>
-    <tr><td><strong>Tooltips</strong></td><td>No</td><td>10</td><td>Extra measures shown on hover, each aggregated independently</td></tr>
+    <tr><td><strong>Value</strong></td><td>Recommended</td><td>1</td><td>Numeric value used for colouring</td></tr>
+    <tr><td><strong>Size</strong> <span class="badge">Pro</span></td><td>No</td><td>1</td><td>Second measure that scales each tile's area (colour = Value, size = Size). Shown in the tooltip. Not applied in Custom TopoJSON mode.</td></tr>
+    <tr><td><strong>Tooltips</strong></td><td>No</td><td>10</td><td>Extra fields shown on hover</td></tr>
+    <tr><td><strong>Label</strong></td><td>No</td><td>1</td><td>Display name (city, region), shown on tiles and tooltips</td></tr>
+    <tr><td><strong>Category</strong></td><td>No</td><td>1</td><td>Group used by the Categorical (Pro) colour scale: each tile takes the category with the most rows</td></tr>
   </table>
 
-  <h2>Built-in regions</h2>
-  <p>27 country and region grids are included: Spain, Canarias, Portugal, France,
+  <h2>Row limits</h2>
+  <p>Power BI sends the visual at most <strong>30,000 rows</strong>. The Free tier uses
+     the first <strong>500 rows</strong>; Pro uses all rows up to 30,000.</p>
+  <p>The visual tells you on screen when this applies — <em>"Showing the first 500 of N
+     rows"</em> or <em>"Power BI sent the first 30,000 rows"</em> — and how many rows were
+     not shown because they are <em>outside the map</em> or <em>without coordinates</em>.</p>
+
+  <h2>Built-in maps</h2>
+  <p>27 square tile grids are included: Spain, Canarias, Portugal, France,
      Germany, Italy, Sicily, Sardinia, United Kingdom, Netherlands, Belgium,
      Poland, Sweden, Norway, Switzerland, Austria, United States, Alaska, Hawaii,
      Canada, Mexico, Brazil, Argentina, Colombia, Australia, India and Japan.</p>
-  <p>Need a geography that isn't on the list? Pro supports any TopoJSON boundary
-     file — see below.</p>
+  <p>Canarias and Hawaii use finer grids (about 380 and 240 tiles) so the islands
+     read in detail.</p>
+  <h3>Tile shape and latitude correction</h3>
+  <ul>
+    <li><strong>Tile Shape</strong> — Square (Free), Circle (Pro), Hexagon (Pro).
+        Hexagons use offset rows: odd rows are shifted half a tile.</li>
+    <li><strong>Correct Latitude Distortion</strong> (Free, on by default) — tiles take
+        the real ground proportion of each cell at the map's mid-latitude, so northern
+        countries such as Norway, Sweden and Canada are no longer stretched.</li>
+  </ul>
+  <p>Need a geography that isn't on the list? Pro supports your own TopoJSON
+     boundary file — see below.</p>
 
   <h2>Free vs Pro</h2>
   <table>
     <tr><th>Feature</th><th>Free</th><th><span class="badge">Pro</span></th></tr>
-    <tr><td>27 built-in country and region grids</td><td>✅</td><td>✅</td></tr>
-    <tr><td>Aggregations — Sum, Average, Count, Min, Max</td><td>✅</td><td>✅</td></tr>
-    <tr><td>Conditional formatting, 3 rules</td><td>✅</td><td>✅</td></tr>
-    <tr><td>Tooltips, up to 10 extra fields</td><td>✅</td><td>✅</td></tr>
-    <tr><td>Cell labels and legend</td><td>✅</td><td>✅</td></tr>
-    <tr><td>Accessibility and high contrast</td><td>✅</td><td>✅</td></tr>
-    <tr><td>Cross-filter, multi-select, context menu</td><td>✅</td><td>✅</td></tr>
-    <tr><td>Data points</td><td>500</td><td><strong>30,000</strong></td></tr>
-    <tr><td>Sequential colour scale</td><td>Fixed palette</td><td><strong>Your colours</strong></td></tr>
-    <tr><td>Diverging scale — min / mid / max</td><td>❌</td><td>✅</td></tr>
-    <tr><td>Categorical palette</td><td>❌</td><td>✅</td></tr>
-    <tr><td>Custom TopoJSON boundaries</td><td>❌</td><td>✅</td></tr>
-    <tr><td>TopoJSON saved inside the .pbix</td><td>❌</td><td>✅</td></tr>
-    <tr><td>Load TopoJSON from a public URL</td><td>❌</td><td>✅</td></tr>
+    <tr><td>27 built-in maps</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Rows used</td><td>First 500</td><td><strong>Up to 30,000</strong></td></tr>
+    <tr><td>Aggregation — Auto (from field), Sum, Average, Count, Min, Max</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Tile shape</td><td>Square</td><td><strong>Square, Circle, Hexagon</strong></td></tr>
+    <tr><td>Correct latitude distortion</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Size role — tile area from a second measure</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Rule-based colour rules, 3 rules</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Tooltips, up to 10 fields</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Cell labels, legend (top or bottom), decimal places</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Borders, selection ring, no-data colour, show/hide empty cells</td><td>✅</td><td>✅</td></tr>
+    <tr><td>High contrast and keyboard navigation</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Cross-filter, Ctrl multi-select, context menu</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Sequential colour scale</td><td>Fixed blue palette</td><td><strong>Your colours</strong></td></tr>
+    <tr><td>Diverging scale — neutral colour at zero when data crosses zero</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Categorical scale — colour per Category, theme colours, with legend</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Quantile scale — 5 classes with an equal number of cells</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Custom scale colours (Color Min / Mid / Max)</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Custom TopoJSON regions, saved inside the .pbix</td><td>❌</td><td>✅</td></tr>
   </table>
+  <p>There is no upgrade message or badge inside the visual. When a Free user picks a
+     Pro option, Power BI itself shows its licence notification (a feature-blocked
+     banner and the licence icon) with the purchase path. These notifications never
+     appear where licensing is not supported (Publish to Web, embedded reports,
+     exports) or when the licence cannot be read. The 30-day trial and the payment
+     grace period count as Pro.</p>
 
   <h2>Custom TopoJSON <span class="badge">Pro</span></h2>
   <ol>
@@ -122,13 +298,21 @@
         <em>Custom TopoJSON (Pro)</em>.</li>
     <li>Drag a <code>.json</code> or <code>.topojson</code> file directly onto
         the visual. The drop zone appears automatically.</li>
-    <li>Coordinates are assigned to polygons by point-in-polygon testing and
-        coloured by the aggregated value.</li>
+    <li>Rows are assigned to regions by point-in-polygon testing and coloured by the
+        aggregated value. A MultiPolygon region counts as one region, and the tooltip
+        shows the region name.</li>
     <li>The file is stored inside the <code>.pbix</code>, so it survives closing
         and reopening the report. Remember to save after dropping it.</li>
   </ol>
-  <p>Alternatively, paste a public HTTPS link into
-     <strong>Pro Settings → Custom TopoJSON URL</strong>.</p>
+  <h3>File requirements</h3>
+  <ul>
+    <li>A valid TopoJSON topology with Polygon or MultiPolygon geometries.</li>
+    <li>Coordinates in longitude/latitude (WGS84). Files in projected coordinates are
+        detected and the visual explains that they need to be exported in WGS84.</li>
+    <li>Maximum 5 MB. Invalid or oversized files are rejected with an explanation.</li>
+  </ul>
+  <p>Files are loaded by drag &amp; drop only. The visual makes no network requests, so
+     there is no option to load a file from a URL.</p>
 
   <h3>Where to find boundary files</h3>
   <ul>
@@ -138,26 +322,95 @@
   </ul>
   <p><strong>Tip:</strong> simplify large files at
      <a href="https://mapshaper.org/">mapshaper.org</a> to 5–10% before loading.
-     The shape stays the same and rendering is much faster.</p>
+     The shape stays the same, the file fits the 5 MB limit and rendering is faster.</p>
+
+  <h2>Aggregation</h2>
+  <p>The default, <strong>Auto (from field)</strong>, follows the aggregation chosen in the
+     field well (Sum, Average, Min, Max or Count). Model measures default to Sum. The
+     tooltip names the aggregation used. Pick Sum, Average, Count, Min or Max in
+     <em>Map Settings → Value Aggregation</em> to override it. Blank values are ignored,
+     not counted as 0.</p>
+
+  <h2>Keyboard navigation</h2>
+  <table>
+    <tr><th>Key</th><th colspan="2">Action</th></tr>
+    <tr><td>Arrow keys</td><td colspan="2">Move focus between tiles</td></tr>
+    <tr><td>Enter / Space</td><td colspan="2">Select the focused tile</td></tr>
+    <tr><td>Ctrl+Enter</td><td colspan="2">Add the focused tile to the selection</td></tr>
+    <tr><td>Esc</td><td colspan="2">Clear the selection</td></tr>
+    <tr><td>Shift+F10 / context-menu key</td><td colspan="2">Open the context menu</td></tr>
+  </table>
 
   <h2>Format pane reference</h2>
   <table>
     <tr><th>Section</th><th colspan="2">Options</th></tr>
-    <tr><td><strong>Map Settings</strong></td><td colspan="2">Country/Region · Value Aggregation · Show Empty Cells · Show Cell Labels · Label Font Size · Label Min Tile Size · Tooltip Decimal Places</td></tr>
-    <tr><td><strong>Color Scale</strong></td><td colspan="2">Scale Type · Color Min / Mid / Max · No Data Color</td></tr>
-    <tr><td><strong>Conditional Formatting</strong></td><td colspan="2">Enable Rules · Rule 1 (operator) · Rule 2 (between range) · Rule 3 (operator)</td></tr>
+    <tr><td><strong>Map Settings</strong></td><td colspan="2">Country / Region · Tile Shape · Correct Latitude Distortion · Value Aggregation · Show Empty Cells · Show Cell Labels · Label Font Size · Label Min Tile Size · Decimal Places</td></tr>
+    <tr><td><strong>Color Scale</strong></td><td colspan="2">Scale Type (Sequential · Quantile (Pro) · Diverging (Pro) · Categorical (Pro)) · Color Min / Mid / Max (Pro) · No Data Color</td></tr>
+    <tr><td><strong>Legend</strong></td><td colspan="2">Show Legend · Position (Bottom / Top) · Font · Text Size · Text Color</td></tr>
     <tr><td><strong>Accessibility</strong></td><td colspan="2">Show Cell Borders · Border Color · Border Width · Selected Ring Color · Selected Ring Width</td></tr>
-    <tr><td><strong>Legend</strong></td><td colspan="2">Show Legend · Position (Bottom / Right / Top)</td></tr>
-    <tr><td><strong>Pro Settings</strong></td><td colspan="2">Custom TopoJSON URL · Show Pro Pill</td></tr>
+    <tr><td><strong>Conditional Formatting</strong></td><td colspan="2">Enable Rules (switch in the card header) · Rule 1 (operator) · Rule 2 (between range) · Rule 3 (operator, default &gt; 100)</td></tr>
   </table>
+  <p>The legend uses the same scale as the tiles; with the Quantile scale it shows the
+     5 classes and their break values. With the colour rules on it shows one swatch per
+     active rule with its condition (e.g. "&lt; 0", "0 – 100", "&gt; 100", thresholds
+     formatted like the field, 25% for percent fields) plus "Other" for tiles no rule
+     matches. With the categorical scale it lists the categories and their colours.</p>
+  <p><strong>Categorical (Pro)</strong> uses the <strong>Category</strong> field: each tile
+     takes the category with the most rows. The 12 categories covering most rows get the
+     report theme's colours, stable per category across filters; the rest share a grey
+     "Other". The legend lists the categories (up to 2 rows, long names shortened) and
+     the tooltip shows "Category: X (+N more)". Without a Category field, tiles are
+     coloured by their first Label and no legend is drawn.</p>
+  <p><strong>Quantile (Pro)</strong> splits the cells into 5 classes with an equal number of
+     cells each, coloured from Color Min to Color Max, so a single outlier does not wash
+     out the rest of the map.</p>
+  <p><strong>Conditional Formatting</strong> is the visual's own card of three rule-based
+     colour rules (Rule 1 and Rule 3 compare with a value, Rule 2 tests a range). It is
+     not Power BI's field-based fx formatting. Turn it on with the <em>Enable Rules</em>
+     switch in the card header. For a percent field, type thresholds as shown:
+     <code>25</code> means 25%.</p>
 
   <h2>FAQ</h2>
 
   <div class="faq">
-    <p class="q">Nothing renders, or I get "No data points found".</p>
-    <p>Your coordinates fall outside the selected region. Check that
-       Country/Region matches your data, and that latitude and longitude
-       aren't swapped in the field wells.</p>
+    <p class="q">Rows are reported as "outside the map" (or "No rows fall inside …").</p>
+    <p>Those coordinates are more than 3 cells away from any land cell of the selected map.
+       Check that Country / Region matches your data, that Latitude and Longitude are not
+       swapped, and filter out other countries with a slicer — rows from other countries
+       always count as outside.</p>
+  </div>
+
+  <div class="faq">
+    <p class="q">All tiles have the same colour, or my colour rules don't apply.</p>
+    <p>Check the <em>Enable Rules</em> switch in the Conditional Formatting card header. Rules are
+       tested 1 → 2 → 3 and the first match wins, so a wide Rule 2 range can hide Rule 3. For a
+       percent field type 25, not 0.25. With high contrast on, rules are not used. If every
+       tile has the same value, the scale has nothing to spread.</p>
+  </div>
+
+  <div class="faq">
+    <p class="q">The legend is missing.</p>
+    <p>Check <em>Show Legend</em>. No legend is drawn when no tile has a value, or with the
+       Categorical scale and no Category field. A very small visual may leave no room.</p>
+  </div>
+
+  <div class="faq">
+    <p class="q">An average looks like a sum.</p>
+    <p>A model measure is aggregated as Sum by default. Set <em>Value Aggregation</em> to Average
+       in Map Settings; the tooltip shows which aggregation is used.</p>
+  </div>
+
+  <div class="faq">
+    <p class="q">Labels are not showing.</p>
+    <p>Turn on <em>Show Cell Labels</em>. A label is only drawn when it fits: enlarge the visual,
+       reduce <em>Label Font Size</em> or <em>Decimal Places</em>, or lower <em>Label Min Tile Size</em>.</p>
+  </div>
+
+  <div class="faq">
+    <p class="q">My TopoJSON is not loading.</p>
+    <p>You need Pro and <em>Custom TopoJSON (Pro)</em> selected before dropping. The file must be a
+       TopoJSON topology (not GeoJSON) with polygons, up to 5 MB, in longitude/latitude. Read the
+       note under the map: it says which of these failed.</p>
   </div>
 
   <div class="faq">
@@ -173,23 +426,23 @@
   </div>
 
   <div class="faq">
-    <p class="q">I see "Free version limited to 500 data points".</p>
-    <p>Expected on the Free tier. Aggregate your data upstream, or upgrade to
-       Pro for the full dataset.</p>
+    <p class="q">I see "Showing the first 500 of N rows".</p>
+    <p>Expected on the Free tier, which uses the first 500 rows. Aggregate your data
+       upstream, or use Pro for up to 30,000 rows.</p>
   </div>
 
   <div class="faq">
-    <p class="q">Tooltip values don't match my card visual.</p>
-    <p>The visual aggregates per cell using each field's own aggregation, read
-       from its metadata. If a measure is defined differently in the card, set
-       <em>Value Aggregation</em> explicitly in Map Settings to match.</p>
+    <p class="q">Values don't match my card visual.</p>
+    <p>Check the aggregation named in the tooltip. With <em>Auto (from field)</em> the
+       visual follows the field-well aggregation; set <em>Value Aggregation</em>
+       explicitly in Map Settings to match the card.</p>
   </div>
 
   <div class="faq">
-    <p class="q">I upgraded to Pro but the features are still locked.</p>
-    <p>Sign out of Power BI Desktop and sign back in to refresh your license
-       status. The visual resolves the license asynchronously after the first
-       render, so give it a moment.</p>
+    <p class="q">I bought Pro but the features are still locked.</p>
+    <p>Sign out of Power BI Desktop and sign back in to refresh your licence
+       status. The visual reads the licence after the first render and repaints with
+       all rows once it arrives, so give it a moment.</p>
   </div>
 
   <div class="faq">
@@ -200,26 +453,25 @@
 
   <div class="faq">
     <p class="q">Does the visual send my data anywhere?</p>
-    <p>No. There is no telemetry, no analytics and no cookies, and your data
-       never leaves the Power BI environment. The only optional outbound request
-       is fetching a TopoJSON file from a URL you type in yourself. See the
+    <p>No. The visual makes no network requests at all: no telemetry, no analytics,
+       no cookies, and your data never leaves the Power BI environment. See the
        <a href="privacy.html">Privacy Policy</a>.</p>
   </div>
 
   <h2>Report a bug or request a feature</h2>
   <p>Open an issue on GitHub:
      <a href="https://github.com/tinocallarisa-web/tile-grid-map-pro/issues">github.com/tinocallarisa-web/tile-grid-map-pro/issues</a><br>
-     Or email <a href="mailto:tino@tcviz.com">tino@tcviz.com</a>. We aim to reply
+     Or email <a href="mailto:support@tcviz.com">support@tcviz.com</a>. We aim to reply
      within two business days.</p>
   <p>Changelog:
-     <a href="https://github.com/tinocallarisa-web/tile-grid-map-pro/blob/main/CHANGELOG.md">CHANGELOG.md</a></p>
+     <a href="https://github.com/tinocallarisa-web/tile-grid-map-pro/blob/master/CHANGELOG.md">CHANGELOG.md</a></p>
 
   <footer>
     &copy; 2026 TCViz &nbsp;·&nbsp;
     <a href="privacy.html">Privacy Policy</a> &nbsp;·&nbsp;
     <a href="terms.html">Terms of Use</a> &nbsp;·&nbsp;
     <a href="https://github.com/tinocallarisa-web/tile-grid-map-pro">GitHub</a> &nbsp;·&nbsp;
-    <a href="https://www.youtube.com/watch?v=LnTb3qHsHdg">Video</a>
+    <a href="https://www.youtube.com/watch?v=iCXAk3kI9nE">Video</a>
   </footer>
 
 </body>
