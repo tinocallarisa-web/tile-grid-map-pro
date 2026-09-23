@@ -1,7 +1,7 @@
 # Ficha de producto — Tile Grid Map Pro
 
 Contenido para las cuatro pestañas de la web de TCViz.
-Versión 1.1.0.0 · Actualizado 14 septiembre 2026
+Versión 1.2.0.0 · Actualizado 23 septiembre 2026
 
 ---
 ---
@@ -160,6 +160,17 @@ rule with its condition. For percent fields, type thresholds as shown (25 = 25%)
 | **Diverging scale** | — | ✅ |
 | **Categorical scale** | — | ✅ |
 | **Custom TopoJSON (saved in the .pbix)** | — | ✅ |
+| **Pro preview while editing** | ✅ | — |
+
+### See it before you buy it
+
+Turn on a Pro feature without a licence and it is drawn **working**, under a "Pro preview"
+watermark that names it. You get to see your own data as a hexagon grid, on a diverging
+scale, sized by a second measure — not a screenshot of someone else's.
+
+Reading view shows the free result with no watermark and no prompt, so a published report
+never uses a feature nobody paid for. The preview covers only the setting you changed, not
+every Pro option at once.
 
 ---
 ---
@@ -170,7 +181,7 @@ rule with its condition. For percent fields, type thresholds as shown (25 = 25%)
 
 | | |
 |---|---|
-| **Version** | 1.1.0.0 |
+| **Version** | 1.2.0.0 |
 | **Power BI API** | 5.10.0 |
 | **Publisher** | TCViz |
 | **Data view mapping** | Table |
@@ -245,6 +256,19 @@ Full policy: [Privacy Policy](https://tinocallarisa-web.github.io/tile-grid-map-
 ---
 
 # 🟠 PESTAÑA 4 — CHANGELOG
+
+## 1.2.0.0 — 23 September 2026
+
+**Added**
+- Pro preview: turn on a Pro feature without a licence and it is drawn working, under a
+  watermark that names it, so you can see your own data as a hexagon grid or on a diverging
+  scale before deciding. Reading view shows the free result, with no watermark
+
+**Fixed**
+- The Upgrade option could disappear. Power BI shows one notification at a time, and the
+  banner naming the blocked feature was replacing the persistent Upgrade bar instead of
+  following it; once the banner faded there was nothing left to click. The banner now comes
+  first and the Upgrade bar follows about ten seconds later
 
 ## 1.1.0.0 — 14 September 2026
 

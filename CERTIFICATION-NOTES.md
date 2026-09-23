@@ -5,14 +5,14 @@
 > Si el campo tiene límite de caracteres, usar `docs/CERTIFICATION-NOTES-SHORT.txt`.
 
 **Visual GUID:** `tileGridMapProTCViz1234567890`
-**Version:** 1.1.0.0
+**Version:** 1.2.0.0
 **Plan ID / spIdentifier:** `tile-grid-map-pro-tcviz` (Service ID completo `publisher.offer.plan`, se acepta por sufijo)
 **Demo video:** https://www.youtube.com/watch?v=iCXAk3kI9nE
 
 ---
 
 ```
-Tile Grid Map Pro v1.1.0.0 - GUID tileGridMapProTCViz1234567890
+Tile Grid Map Pro v1.2.0.0 - GUID tileGridMapProTCViz1234567890
 
 Source code (certification branch):
 https://github.com/tinocallarisa-web/tile-grid-map-pro/tree/certification
@@ -23,6 +23,43 @@ Support:        https://tinocallarisa-web.github.io/tile-grid-map-pro/support.ht
 
 Demo / onboarding video:
 https://www.youtube.com/watch?v=iCXAk3kI9nE
+
+------------------------------------------------------------------
+WHAT CHANGED IN 1.2.0.0
+------------------------------------------------------------------
+Two things, and the first one is the reason this release exists.
+
+1. THE PURCHASE PATH WAS BROKEN. notifyLicenseRequired was raised before
+notifyFeatureBlocked in the same update. Power BI shows one notification at a
+time and the last call replaces the previous one, so the banner wiped out the
+persistent Upgrade bar; when the banner faded some ten seconds later, a free
+user who had just reached for a Pro feature was left with no way to buy at all.
+The sequence is now: clear any standing notice, raise the banner naming the
+feature, and raise the Upgrade bar 10.5 s later, once the banner has gone. The
+timer is cancelled in destroy(), because Power BI recreates the visual on every
+page change and a live timer would notify for a map that no longer exists.
+
+2. PRO PREVIEW. A free user who chose a hexagon tile, a diverging scale, custom
+colours or a size measure saw the setting silently reverted - the map simply
+carried on as before, which reads as a visual that ignores you rather than as
+something to buy. Those features are now drawn WORKING, under a "Pro preview"
+watermark that names them, while the user edits a report without a licence.
+
+The preview is granted PER FEATURE, never in bulk: inserting the visual hands
+out nothing, because nothing has been asked for yet. It requires the licence to
+have RESOLVED and the environment to support licensing - at start-up isPro is
+false for a paying customer too, and where the licence cannot be read (Publish
+to Web, embedding, export) a Pro customer reads as Free. Drawing the watermark
+there would put it in front of someone who already paid.
+
+In reading view the free result renders with no watermark and no prompt, so a
+published report never uses a feature nobody paid for.
+
+The watermark is built with createElementNS and textContent. No innerHTML.
+
+3. Toolchain on current versions: tools 7.2.1, API 5.11.1 (the manifest still
+declared 5.10.0), TypeScript 5.5.4. npm audit reports 0 vulnerabilities and
+`pbiviz package --certification-audit` finds no external requests.
 
 ------------------------------------------------------------------
 LICENSE VALIDATION
@@ -158,7 +195,7 @@ TESTING INSTRUCTIONS
 
 ## Checklist antes de enviar
 
-- [ ] Versión `1.1.0.0` en `pbiviz.json` y `1.1.0` en `package.json` (3 dígitos)
+- [ ] Versión `1.2.0.0` en `pbiviz.json` y `1.2.0` en `package.json` (3 dígitos)
 - [ ] GUID `tileGridMapProTCViz1234567890` (sin sufijo)
 - [ ] `isPro` resuelto por `licenseManager` (no forzado a `true`)
 - [ ] Sin instrumentación de debug ni marcadores de build

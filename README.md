@@ -2,7 +2,7 @@
 
 > Regional maps for Power BI without the GIS detour. Bind latitude and longitude, pick one of 27 bundled square tile grids, and every region gets the same visual weight.
 
-[![Version](https://img.shields.io/badge/version-1.1.0.0-2980b9)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.2.0.0-2980b9)](CHANGELOG.md)
 [![AppSource](https://img.shields.io/badge/Microsoft_AppSource-Available-0078D4?logo=microsoft)](https://appsource.microsoft.com)
 [![TCViz](https://img.shields.io/badge/Publisher-TCViz-2980b9)](https://tcviz.com)
 

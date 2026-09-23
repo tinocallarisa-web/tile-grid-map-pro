@@ -3,7 +3,7 @@
 > Microsoft marca como *soft failure* los envíos cuyo `.pbix` de muestra no incluye
 > orientación de uso. Crea una página nueva llamada **"Tips & Hints"** en Power BI Desktop
 > y copia cada bloque de abajo en un **text box** independiente.
-> Versión del visual: 1.1.0.0
+> Versión del visual: 1.2.0.0
 
 ---
 
@@ -87,6 +87,19 @@ Notes under the map tell you how many rows were not shown and why.
 | Categorical scale (by Category field) | ❌ | ✅ |
 | Size role | ❌ | ✅ |
 | Custom TopoJSON regions | ❌ | ✅ |
+
+**TRY PRO BEFORE YOU BUY**
+
+While you are editing a report WITHOUT a licence, a Pro feature you turn on is drawn
+WORKING, under a "Pro preview" watermark that names it, and Power BI shows its own notice
+with the Upgrade option. Turn the setting off and the watermark goes with it.
+
+In READING VIEW — and anywhere Power BI cannot check licences, such as Publish to Web,
+embedding or export — the free result is drawn with no watermark and no prompt, so a
+published report never uses a feature you have not paid for. The preview applies only to the
+setting you actually changed, not to every Pro option at once.
+
+30-day free trial on Microsoft AppSource.
 
 ---
 
