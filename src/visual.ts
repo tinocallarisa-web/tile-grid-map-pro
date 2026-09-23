@@ -120,6 +120,15 @@ export class Visual implements IVisual {
   private licenseInfoAvailable = true;
   private lastBlockedNotice = "";
   private licenseIconShown = false;
+  /** Editando sin licencia y con la licencia ya resuelta: lo Pro se dibuja con marca. */
+  private proPreview = false;
+  private editing = false;
+  /** Claves de las funciones Pro que el usuario ha tocado. */
+  private attemptedKeys = new Set<string>();
+  /** Etiquetas legibles de esas funciones, para la marca de agua. */
+  private attemptedLabels: string[] = [];
+  /** Temporizador que deja la barra de Upgrade cuando el banner termina. */
+  private licenseIconTimer: number | null = null;
 
   private _lastOptions: VisualUpdateOptions | null = null;
   private grid: CountryGrid | null = null;
@@ -231,28 +240,53 @@ export class Visual implements IVisual {
   }
 
   /** Pro features the user is actually trying to use. */
-  private attemptedProFeatures(dataView: DataView | undefined): { labels: string[]; signature: string } {
+  private attemptedProFeatures(dataView: DataView | undefined): { labels: string[]; signature: string; keys: Set<string> } {
     const labels: string[] = [];
     const parts: string[] = [];
+    const keys = new Set<string>();
     const objs = (dataView?.metadata?.objects ?? {}) as powerbi.DataViewObjects;
     const country = String(this.settings.mapSettings.country.value);
     const scale = String(this.settings.colorScale.scaleType.value);
 
     const custom = country === "custom";
-    if (custom) { labels.push("custom TopoJSON regions"); parts.push("custom"); }
-    if (scale === "diverging" || scale === "categorical") { labels.push(`the ${scale} colour scale`); parts.push(scale); }
+    if (custom) { labels.push("custom TopoJSON regions"); parts.push("custom"); keys.add("custom"); }
+    if (scale === "diverging" || scale === "categorical") { labels.push(`the ${scale} colour scale`); parts.push(scale); keys.add("scale"); }
     const cs = objs["colorScale"] ?? {};
     const colours = ["colorMin", "colorMid", "colorMax"].filter(p => cs[p] !== undefined);
-    if (colours.length) { labels.push("custom scale colours"); parts.push(colours.map(p => `${p}=${JSON.stringify(cs[p])}`).join(",")); }
+    if (colours.length) { labels.push("custom scale colours"); parts.push(colours.map(p => `${p}=${JSON.stringify(cs[p])}`).join(",")); keys.add("colours"); }
     const ms = this.settings.mapSettings;
-    if (!custom && String(ms.tileShape.value) !== "square") { labels.push(`${String(ms.tileShape.value)} tiles`); parts.push(`shape=${String(ms.tileShape.value)}`); }
-    if (scale === "quantile") { labels.push("the quantile colour scale"); parts.push("quantile"); }
-    if (this._hasSize && !custom) { labels.push("sizing tiles by a second measure"); parts.push("size"); }
+    if (!custom && String(ms.tileShape.value) !== "square") { labels.push(`${String(ms.tileShape.value)} tiles`); parts.push(`shape=${String(ms.tileShape.value)}`); keys.add("shape"); }
+    if (scale === "quantile") { labels.push("the quantile colour scale"); parts.push("quantile"); keys.add("scale"); }
+    if (this._hasSize && !custom) { labels.push("sizing tiles by a second measure"); parts.push("size"); keys.add("size"); }
     if (this._stats.total > FREE_ROW_LIMIT) {
       labels.push(`more than ${FREE_ROW_LIMIT} rows (this report has ${this._stats.total.toLocaleString(this.locale)})`);
       parts.push(`rows>${FREE_ROW_LIMIT}`);
+      keys.add("rows");
     }
-    return { labels, signature: parts.join("|") };
+    return { labels, signature: parts.join("|"), keys };
+  }
+
+  /**
+   * Vista previa Pro.
+   *
+   * Solo con la licencia ya resuelta y en un entorno donde se puede leer: al arrancar,
+   * isPro es false tambien para quien ya pago, y donde la licencia no se resuelve
+   * -Publicar en la web, incrustado, exportacion- un cliente Pro se lee como gratuito.
+   * Dibujar la marca ahi seria ponersela a quien ya compro.
+   */
+  private computePreview(): boolean {
+    return !this.isPro && this.editing && this.licenseResolved
+      && this.licenseEnvSupported && this.licenseInfoAvailable;
+  }
+
+  /**
+   * Si una funcion concreta se dibuja. POR FUNCION, nunca en bloque: conceder la previa
+   * entera repartiria los valores Pro por defecto en cuanto se inserta el visual.
+   */
+  private allow(key: string): boolean {
+    if (this.isPro) return true;
+    if (!this.proPreview) return false;
+    return this.attemptedKeys.has(key);
   }
 
   private notifyLicense(dataView: DataView | undefined): void {
@@ -264,20 +298,50 @@ export class Visual implements IVisual {
     if (labels.length === 0) { this.clearLicenseNotice(); return; }
 
     const lm = this.host.licenseManager;
-    if (!this.licenseIconShown) {
-      this.licenseIconShown = true;
-      try { lm.notifyLicenseRequired(0 /* LicenseNotificationType.General */); } catch (_) { /* best-effort */ }
-    }
     if (signature === this.lastBlockedNotice) return;
     this.lastBlockedNotice = signature;
+
+    // Limpiar primero. Si hay una barra de Upgrade levantada, el banner la sustituiria y al
+    // expirar no quedaria nada: es lo que pasaba llamando a notifyLicenseRequired antes.
+    try { lm.clearLicenseNotification?.(); } catch (_) { /* best-effort */ }
+    this.licenseIconShown = false;
+
     const list = labels.length === 1 ? labels[0] : labels.slice(0, -1).join(", ") + " and " + labels[labels.length - 1];
     try {
       lm.notifyFeatureBlocked(`Tile Grid Map Pro: ${list} ${labels.length === 1 ? "is" : "are"} part of the Pro plan. Get a licence to enable ${labels.length === 1 ? "it" : "them"}.`);
     } catch (_) { /* best-effort */ }
+
+    // La barra de Upgrade, cuando el banner ya se ha ido. 10,5 s es lo que dura.
+    this.cancelLicenseIcon();
+    this.licenseIconTimer = window.setTimeout(() => {
+      this.licenseIconTimer = null;
+      if (this.isPro) return;
+      try {
+        lm.notifyLicenseRequired(0 /* LicenseNotificationType.General */);
+        this.licenseIconShown = true;
+      } catch (_) { /* best-effort */ }
+    }, 10500);
+  }
+
+  /** Cancela la barra de Upgrade pendiente. */
+  /**
+   * Power BI recrea el visual al cambiar de pagina: un temporizador vivo levantaria la
+   * barra de Upgrade sobre un visual que ya no existe.
+   */
+  public destroy(): void {
+    this.cancelLicenseIcon();
+  }
+
+  private cancelLicenseIcon(): void {
+    if (this.licenseIconTimer !== null) {
+      window.clearTimeout(this.licenseIconTimer);
+      this.licenseIconTimer = null;
+    }
   }
 
   private clearLicenseNotice(): void {
     this.lastBlockedNotice = "";
+    this.cancelLicenseIcon();
     if (!this.licenseIconShown) return;
     this.licenseIconShown = false;
     try { this.host.licenseManager?.clearLicenseNotification(); } catch (_) { /* best-effort */ }
@@ -287,9 +351,24 @@ export class Visual implements IVisual {
   public update(options: VisualUpdateOptions): void {
     this.events.renderingStarted(options);
     this._lastOptions = options;
+    // viewMode 0 es vista de lectura. La previa es cosa de quien edita: un informe
+    // publicado nunca debe usar una funcion que no se ha pagado.
+    this.editing = (options as unknown as { viewMode?: number }).viewMode !== 0;
+    this.proPreview = this.computePreview();
     try {
       const dataView = options?.dataViews?.[0];
       this.settings = this.formattingService.populateFormattingSettingsModel(VisualFormattingSettingsModel, dataView);
+
+      // Las claves se calculan ANTES de pintar: el render pregunta por ellas en cada
+      // punto de bloqueo, asi que no pueden salir del aviso, que va despues.
+      if (this.isPro) {
+        this.attemptedKeys = new Set<string>();
+        this.attemptedLabels = [];
+      } else {
+        const intento = this.attemptedProFeatures(dataView);
+        this.attemptedKeys = intento.keys;
+        this.attemptedLabels = intento.labels;
+      }
 
       const palette = this.host.colorPalette;
       this.isHC = !!palette.isHighContrast;
@@ -308,7 +387,7 @@ export class Visual implements IVisual {
 
       if (!dataView?.table) {
         this.renderLandingPage(vp);
-      } else if (custom && !this.isPro) {
+      } else if (custom && !this.allow("custom")) {
         // Gated where it is drawn. The purchase path is Power BI's notification.
         this._stats = { total: dataView.table.rows?.length ?? 0, used: 0, blankCoords: 0, outside: 0, snapped: 0, capped: false };
         this._scanDataView = null; // these stats are not a scan: force the next one
@@ -328,6 +407,7 @@ export class Visual implements IVisual {
       }
 
       this.applySelectionStyles();
+      this.renderWatermark(vp);
       this.notifyLicense(dataView);
       this.events.renderingFinished(options);
     } catch (e) {
@@ -337,7 +417,7 @@ export class Visual implements IVisual {
 
   // ── Data scan (cached) ────────────────────────────────────────────────────
   private scan(dataView: DataView, grid: CountryGrid | null): void {
-    const limit = this.isPro ? Infinity : FREE_ROW_LIMIT;
+    const limit = this.allow("rows") ? Infinity : FREE_ROW_LIMIT;
     const key = [grid ? grid.id : "topo:" + this._topoSource, String(limit)].join("|");
     if (dataView === this._scanDataView && key === this._scanKey) return;
     this._scanDataView = dataView;
@@ -492,7 +572,7 @@ export class Visual implements IVisual {
         legendStops: [{ value: 0, color: this.mixHex(this.hcBg, this.hcFg, 0.25) }, { value: 1, color: this.hcFg }],
       };
     }
-    if (!this.isPro) {
+    if (!this.allow("scale") && !this.allow("colours")) {
       const fn = buildStopScale(FREE_STOPS);
       return { kind: "free", min, max, colorFor: v => fn(normalise(v, min, max)), opacityFor: () => 1, legendStops: FREE_STOPS };
     }
@@ -568,7 +648,7 @@ export class Visual implements IVisual {
     const s = this._stats;
     const out: string[] = [];
     const n = (x: number) => x.toLocaleString(this.locale);
-    if (!this.isPro && s.total > FREE_ROW_LIMIT) out.push(`Showing the first ${n(FREE_ROW_LIMIT)} of ${n(s.total)} rows.`);
+    if (!this.allow("rows") && s.total > FREE_ROW_LIMIT) out.push(`Showing the first ${n(FREE_ROW_LIMIT)} of ${n(s.total)} rows.`);
     else if (s.capped) out.push(`Power BI sent the first ${n(ROW_CAP)} rows; further rows are not shown.`);
     const missing = s.outside + s.blankCoords;
     if (missing > 0) {
@@ -606,7 +686,7 @@ export class Visual implements IVisual {
 
     const ms = this.settings.mapSettings;
     const acc = this.settings.accessibility;
-    const shape = this.isPro ? String(ms.tileShape.value) : "square";
+    const shape = this.allow("shape") ? String(ms.tileShape.value) : "square";
     const hex = shape === "hexagon";
 
     // A cell spans cell_w degrees of longitude and cell_h of latitude. On the ground a
@@ -635,7 +715,7 @@ export class Visual implements IVisual {
     const minLabel = Number(ms.labelMinTileSize.value) || 20;
 
     // Size (Pro): area proportional to the second measure, never below 30% of the tile.
-    const useSize = this.isPro && this._hasSize;
+    const useSize = this.allow("size") && this._hasSize;
     let sizeMax = 0;
     const sizeOf = new Map<string, number>();
     if (useSize) {
@@ -1106,6 +1186,57 @@ export class Visual implements IVisual {
     };
   }
 
+  /**
+   * "Pro preview" sobre el lienzo, y debajo las funciones que lo han encendido.
+   *
+   * Solo mientras se edita sin licencia y con alguna funcion Pro activa: en vista de
+   * lectura no se dibuja, porque ahi tampoco se dibuja la funcion. Blanco con contorno
+   * oscuro -SVG no tiene text-shadow, se hace con stroke y paint-order- para que se lea
+   * igual sobre teselas claras y oscuras. Todo con createElementNS y textContent, nunca
+   * innerHTML.
+   */
+  private renderWatermark(vp: powerbi.IViewport): void {
+    if (!this.proPreview || this.attemptedLabels.length === 0) return;
+
+    const cx = vp.width / 2, cy = vp.height / 2;
+    const fs = Math.round(Math.max(24, Math.min(88, vp.width / 7.5, vp.height / 3.5)));
+    const NS = "http://www.w3.org/2000/svg";
+
+    const g = document.createElementNS(NS, "g");
+    g.setAttribute("transform", `rotate(-20 ${cx} ${cy})`);
+    g.setAttribute("aria-hidden", "true");
+    g.setAttribute("opacity", "0.72");
+    g.style.pointerEvents = "none";
+
+    const linea = (texto: string, y: number, size: number, peso: string) => {
+      const el = document.createElementNS(NS, "text");
+      el.setAttribute("x", String(cx));
+      el.setAttribute("y", String(y));
+      el.setAttribute("text-anchor", "middle");
+      el.setAttribute("dominant-baseline", "middle");
+      el.setAttribute("font-family", "'Segoe UI', sans-serif");
+      el.setAttribute("font-size", String(size));
+      el.setAttribute("font-weight", peso);
+      el.setAttribute("letter-spacing", "0.06em");
+      el.setAttribute("fill", "#FFFFFF");
+      el.setAttribute("stroke", "#1B2A41");
+      el.setAttribute("stroke-width", String(Math.max(2, size / 14)));
+      el.setAttribute("paint-order", "stroke");
+      el.textContent = texto;
+      g.appendChild(el);
+    };
+
+    // Con mas de dos, la lista tapa el mapa que se quiere ensenar.
+    const etiquetas = this.attemptedLabels.length <= 2
+      ? this.attemptedLabels
+      : this.attemptedLabels.slice(0, 2).concat([`+${this.attemptedLabels.length - 2}`]);
+
+    linea("Pro preview", cy - fs * 0.22, fs, "700");
+    linea(etiquetas.join(" \u00b7 "), cy + fs * 0.45, Math.round(fs * 0.32), "600");
+
+    this.svg.appendChild(g);
+  }
+
   private renderStatus(vp: powerbi.IViewport, lines: string[]): void {
     const color = this.isHC ? this.hcFg : "#777";
     lines.slice(0, 2).forEach((line, i, arr) => {
@@ -1273,7 +1404,7 @@ export class Visual implements IVisual {
   }
 
   private bindDrop(): void {
-    const canDrop = () => this.isPro && String(this.settings.mapSettings.country.value) === "custom"
+    const canDrop = () => this.allow("custom") && String(this.settings.mapSettings.country.value) === "custom"
       && this.host.hostCapabilities.allowInteractions;
     this.container.addEventListener("dragover", (e: DragEvent) => {
       if (!canDrop()) return;

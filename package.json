@@ -1,6 +1,6 @@
 {
   "name": "tile-grid-map-pro",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Tile Grid Map Pro — TCViz Power BI Custom Visual",
   "scripts": {
     "start": "pbiviz start",
@@ -10,14 +10,19 @@
     "lint": "tsc --noEmit && npx eslint ."
   },
   "dependencies": {
-    "powerbi-visuals-api": "~5.10.0",
     "powerbi-visuals-utils-formattingmodel": "^6.2.2"
   },
+  "overrides": {
+    "qs": "^6.16.0",
+    "uuid": "^11.1.1"
+  },
   "devDependencies": {
+    "@types/node": "^22.20.4",
     "@typescript-eslint/eslint-plugin": "^8.70.0",
     "eslint": "^9.39.5",
     "eslint-plugin-powerbi-visuals": "^1.1.1",
-    "powerbi-visuals-tools": "^7.0.3",
-    "typescript": "^5.0.0"
+    "powerbi-visuals-api": "^5.11.1",
+    "powerbi-visuals-tools": "^7.2.1",
+    "typescript": "^5.5.4"
   }
 }

@@ -4,7 +4,7 @@
     "displayName": "Tile Grid Map Pro",
     "guid": "tileGridMapProTCViz1234567890",
     "visualClassName": "Visual",
-    "version": "1.1.0.0",
+    "version": "1.2.0.0",
     "description": "Visualize geographic data as interactive tile grids. Supports 27 countries and regions with precise boundaries. Free uses up to 500 rows; Pro uses up to 30,000 rows and adds circle and hexagon tiles, sizing by a second measure, quantile, diverging and categorical scales, custom colours and your own TopoJSON regions.",
     "supportUrl": "https://tinocallarisa-web.github.io/tile-grid-map-pro/support.html",
     "gitHubUrl": "https://github.com/tinocallarisa-web/tile-grid-map-pro",
@@ -14,7 +14,7 @@
     "name": "TCViz",
     "email": "support@tcviz.com"
   },
-  "apiVersion": "5.10.0",
+  "apiVersion": "5.11.1",
   "style": "style/visual.less",
   "stringResources": [],
   "capabilities": "capabilities.json",

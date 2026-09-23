@@ -7,6 +7,22 @@ This project follows the Power BI custom visual four-part versioning scheme
 
 ---
 
+## [1.2.0.0] — 2026-09-23
+
+### Fixed
+
+- **The purchase path was broken.** `notifyLicenseRequired` was raised first and `notifyFeatureBlocked` second, in the same update. Power BI shows one notification at a time and the last call replaces the previous one, so the banner wiped out the persistent Upgrade bar; when the banner faded some ten seconds later, a free user who had just reached for a Pro feature was left with **no way to buy at all**. The sequence is now: clear any standing notice, raise the banner naming the feature, and raise the Upgrade bar 10.5 seconds later, once the banner has gone. The timer is cancelled in `destroy()`, because Power BI recreates the visual on every page change and a live timer would notify on behalf of a map that no longer exists.
+
+### Added
+
+- **Pro preview.** A free user who chose a hexagon tile, a diverging scale, custom colours or a size measure saw the setting **silently reverted** — the map simply carried on as before. That does not read as "there is something here to buy", it reads as a visual that ignores you. Those features are now drawn *working*, under a "Pro preview" watermark that names them, while you edit a report without a licence. In reading view — and anywhere the licence cannot be read, such as Publish to Web, embedding or export — the free result renders with no watermark and no prompt, so a published report never uses a feature nobody paid for. The preview is granted **per feature**, never in bulk: inserting the visual hands out nothing, because nothing has been asked for yet.
+
+### Changed
+
+- **Toolchain on current versions.** Tools 7.2.1, API 5.11.1 (the manifest still declared 5.10.0), TypeScript 5.5.4 and the `qs`/`uuid` overrides. `npm audit` reports 0 vulnerabilities, lint runs over four files with no errors, and `pbiviz package --certification-audit` — the official check for `fetch`, `XMLHttpRequest` and `eval`, which needs tools 6.1.0 and could not be run before — finds no external requests.
+
+---
+
 ## [1.1.0.0] — 2026-09-14
 
 ### Fixed
