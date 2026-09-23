@@ -403,6 +403,13 @@ export class Visual implements IVisual {
       const custom = countryKey === "custom";
 
       if (!dataView?.table) {
+        // Sin datos no hay nada que contar. scan() no llega a ejecutarse en esta rama, asi
+        // que sin este reinicio el recuento de filas anterior sobrevivia: al quitar la
+        // latitud, la marca de agua de "mas de 500 filas" se quedaba puesta para siempre.
+        this._stats = { total: 0, used: 0, blankCoords: 0, outside: 0, snapped: 0, capped: false };
+        this._hasSize = false;
+        this.attemptedKeys = new Set<string>();
+        this.attemptedLabels = [];
         this.renderLandingPage(vp);
       } else if (custom && !this.allow("custom")) {
         // Gated where it is drawn. The purchase path is Power BI's notification.
@@ -1221,6 +1228,9 @@ export class Visual implements IVisual {
    */
   private renderWatermark(vp: powerbi.IViewport): void {
     if (!this.proPreview || this.attemptedLabels.length === 0) return;
+    // Nunca sobre la pagina de bienvenida: ahi no se esta dibujando ninguna funcion Pro,
+    // asi que no hay nada que marcar.
+    if (!this._lastOptions?.dataViews?.[0]?.table) return;
 
     const cx = vp.width / 2, cy = vp.height / 2;
     const fs = Math.round(Math.max(24, Math.min(88, vp.width / 7.5, vp.height / 3.5)));

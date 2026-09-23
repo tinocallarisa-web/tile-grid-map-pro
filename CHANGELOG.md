@@ -25,7 +25,12 @@ This project follows the Power BI custom visual four-part versioning scheme
   render, but `_hasSize` and the row count are filled in *during* it, inside `scan()`, so
   removing the Size field left the watermark up for one more update. The keys are still
   computed first, because the render needs them to decide what to draw, but the labels are
-  recomputed afterwards with fresh data.
+  recomputed afterwards with fresh data. A third case came from the same root: `_stats` was
+  never reset when the data went away, so removing the Latitude field left the "more than
+  500 rows" watermark up for good — the landing page renders without calling `scan()`, and
+  the previous row count simply survived. The counters are reset on that path, and the
+  watermark is never drawn over the landing page: with no data there is no Pro feature being
+  drawn, so there is nothing to mark.
 
 ### Added
 
