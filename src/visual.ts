@@ -242,6 +242,11 @@ export class Visual implements IVisual {
   }
 
   /** Pro features the user is actually trying to use. */
+  /** Colores que da el tier gratuito. Tienen que coincidir con settings.ts. */
+  private static readonly COLORES_POR_DEFECTO: Record<string, string> = {
+    colorMin: "#d0e4f7", colorMid: "#f7f7f7", colorMax: "#1a5276",
+  };
+
   private attemptedProFeatures(dataView: DataView | undefined): { labels: string[]; signature: string; keys: Set<string> } {
     const labels: string[] = [];
     const parts: string[] = [];
@@ -253,9 +258,19 @@ export class Visual implements IVisual {
     const custom = country === "custom";
     if (custom) { labels.push("custom TopoJSON regions"); parts.push("custom"); keys.add("custom"); }
     if (scale === "diverging" || scale === "categorical") { labels.push(`the ${scale} colour scale`); parts.push(scale); keys.add("scale"); }
-    const cs = objs["colorScale"] ?? {};
-    const colours = ["colorMin", "colorMid", "colorMax"].filter(p => cs[p] !== undefined);
-    if (colours.length) { labels.push("custom scale colours"); parts.push(colours.map(p => `${p}=${JSON.stringify(cs[p])}`).join(",")); keys.add("colours"); }
+    // Por VALOR, no por presencia: Power BI deja la propiedad escrita para siempre una vez
+    // tocada, asi que mirar si existe dejaba la marca de agua puesta aunque el usuario
+    // devolviera el color a su valor de origen.
+    const csAj = this.settings.colorScale;
+    const colours = (["colorMin", "colorMid", "colorMax"] as const).filter(p => {
+      const actual = String(csAj[p].value?.value ?? "").toLowerCase();
+      return actual !== "" && actual !== Visual.COLORES_POR_DEFECTO[p];
+    });
+    if (colours.length) {
+      labels.push("custom scale colours");
+      parts.push(colours.map(p => `${p}=${String(csAj[p].value?.value ?? "")}`).join(","));
+      keys.add("colours");
+    }
     const ms = this.settings.mapSettings;
     if (!custom && String(ms.tileShape.value) !== "square") { labels.push(`${String(ms.tileShape.value)} tiles`); parts.push(`shape=${String(ms.tileShape.value)}`); keys.add("shape"); }
     if (scale === "quantile") { labels.push("the quantile colour scale"); parts.push("quantile"); keys.add("scale"); }
@@ -409,6 +424,13 @@ export class Visual implements IVisual {
       }
 
       this.applySelectionStyles();
+      // Recalculadas AQUI, no antes de pintar: _hasSize y el recuento de filas se rellenan
+      // dentro de scan(), asi que antes iban un ciclo por detras y la marca sobrevivia a
+      // quitar el campo Size. Las CLAVES si se calculan antes, porque el render las
+      // necesita para decidir que dibuja.
+      if (!this.isPro) {
+        this.attemptedLabels = this.attemptedProFeatures(dataView).labels;
+      }
       this.renderWatermark(vp);
       this.notifyLicense(dataView);
       this.events.renderingFinished(options);

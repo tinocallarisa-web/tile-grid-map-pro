@@ -13,6 +13,20 @@ This project follows the Power BI custom visual four-part versioning scheme
 
 - **The purchase path was broken.** `notifyLicenseRequired` was raised first and `notifyFeatureBlocked` second, in the same update. Power BI shows one notification at a time and the last call replaces the previous one, so the banner wiped out the persistent Upgrade bar; when the banner faded some ten seconds later, a free user who had just reached for a Pro feature was left with **no way to buy at all**. The sequence is now: clear any standing notice, raise the banner naming the feature, and raise the Upgrade bar 10.5 seconds later, once the banner has gone. The timer is cancelled in `destroy()`, because Power BI recreates the visual on every page change and a live timer would notify on behalf of a map that no longer exists.
 
+### Fixed (also new in this release)
+
+- **The watermark did not go away when the Pro settings were turned off.** Two causes. The
+  colour overrides were detected by the *presence* of the property in `metadata.objects`, and
+  Power BI keeps a property written there for good once it has been touched — even after the
+  user puts the colour back to its original value — so "custom scale colours" stayed on the
+  list for ever. It now compares the **value** against the free default. A legitimate value can
+  never be a sentinel; this is the same fault that cost a release in Pareto Chart Pro. The
+  second cause was introduced with the preview itself: the labels were computed *before* the
+  render, but `_hasSize` and the row count are filled in *during* it, inside `scan()`, so
+  removing the Size field left the watermark up for one more update. The keys are still
+  computed first, because the render needs them to decide what to draw, but the labels are
+  recomputed afterwards with fresh data.
+
 ### Added
 
 - **Pro preview.** A free user who chose a hexagon tile, a diverging scale, custom colours or a size measure saw the setting **silently reverted** — the map simply carried on as before. That does not read as "there is something here to buy", it reads as a visual that ignores you. Those features are now drawn *working*, under a "Pro preview" watermark that names them, while you edit a report without a licence. In reading view — and anywhere the licence cannot be read, such as Publish to Web, embedding or export — the free result renders with no watermark and no prompt, so a published report never uses a feature nobody paid for. The preview is granted **per feature**, never in bulk: inserting the visual hands out nothing, because nothing has been asked for yet.
