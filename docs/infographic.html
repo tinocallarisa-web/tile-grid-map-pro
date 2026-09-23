@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Tile Grid Map Pro 1.2.0.0 — TCViz</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   :root{
     --bg:#FAF9F5; --bg2:#EDE9DE; --bd:#F5F3ED; --line:#DAD9D4;
@@ -11,6 +12,19 @@
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:#888;font-family:'Segoe UI',system-ui,sans-serif}
+
+  /* Fuera del lienzo de 1366x768: van fixed y se ocultan al imprimir, asi que no
+     salen en el PNG que se sube a Partner Center. */
+  #download-btn{
+    position:fixed;top:12px;left:12px;z-index:9999;
+    background:var(--acc);color:#fff;border:none;border-radius:6px;
+    padding:8px 16px;font:700 13px 'Segoe UI',sans-serif;cursor:pointer;
+  }
+  #download-btn:hover{background:var(--accd)}
+  #download-btn:disabled{opacity:.6;cursor:default}
+  #fitcheck{position:fixed;bottom:10px;right:10px;z-index:9999;
+    font:700 13px 'Segoe UI',sans-serif;padding:6px 12px;border-radius:6px;color:#fff}
+  @media print{#download-btn,#fitcheck{display:none}}
   #infographic{width:1366px;height:768px;overflow:hidden;background:var(--bg);color:var(--t1);
     padding:14px 30px 10px;display:grid;grid-template-rows:auto auto 1fr auto;gap:10px}
 
@@ -67,6 +81,8 @@
 </style>
 </head>
 <body>
+<button id="download-btn" onclick="downloadPNG()">⬇ Download PNG</button>
+<div id="fitcheck"></div>
 <div id="infographic">
 
   <!-- HEADER -->
@@ -164,5 +180,34 @@
     <div>tcviz.com · support@tcviz.com</div>
   </div>
 </div>
+
+<script>
+async function downloadPNG() {
+  const btn = document.getElementById('download-btn');
+  btn.textContent = 'Generating…';
+  btn.disabled = true;
+  try {
+    const canvas = await html2canvas(document.getElementById('infographic'), {
+      width: 1366, height: 768, scale: 1, useCORS: true, backgroundColor: '#FAF9F5', logging: false
+    });
+    const a = document.createElement('a');
+    a.download = 'tile-grid-map-pro-infographic.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  } finally {
+    btn.textContent = '⬇ Download PNG';
+    btn.disabled = false;
+  }
+}
+// El lienzo mide 1366x768 exactos y recorta lo que sobra sin avisar: sin este aviso, un
+// bloque de mas se pierde en silencio y se sube una imagen incompleta a la oferta.
+function checkFit() {
+  const h = document.getElementById('infographic').scrollHeight;
+  const box = document.getElementById('fitcheck');
+  if (h > 768) { box.textContent = 'OVERFLOW: ' + (h - 768) + 'px'; box.style.background = '#B00020'; document.title = 'OVERFLOW'; }
+  else { box.textContent = 'FIT 1366×768'; box.style.background = '#3E9C5B'; document.title = 'FIT'; }
+}
+window.addEventListener('load', function () { checkFit(); if (document.fonts) document.fonts.ready.then(checkFit); });
+</script>
 </body>
 </html>
