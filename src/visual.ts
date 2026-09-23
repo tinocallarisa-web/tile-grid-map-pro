@@ -165,7 +165,9 @@ export class Visual implements IVisual {
 
     this.host              = options.host;
     this.selectionManager  = this.host.createSelectionManager();
-    this.formattingService = new FormattingSettingsService();
+    // CON el gestor de localizacion. Sin el, los displayNameKey de settings.ts no se
+    // resuelven y el panel sale en ingles aunque existan las traducciones.
+    this.formattingService = new FormattingSettingsService(this.host.createLocalizationManager());
     this.events            = this.host.eventService;
     this.tooltipSvc        = this.host.tooltipService;
     this.locale            = this.host.locale || "en-US";

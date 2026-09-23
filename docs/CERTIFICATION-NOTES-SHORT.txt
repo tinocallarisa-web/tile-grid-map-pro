@@ -1,42 +1,42 @@
 Tile Grid Map Pro v1.2.0.0 - GUID tileGridMapProTCViz1234567890
-Source: github.com/tinocallarisa-web/tile-grid-map-pro (certification)
+Source: github.com/tinocallarisa-web/tile-grid-map-pro
 Support: tinocallarisa-web.github.io/tile-grid-map-pro/
 
 WHAT CHANGED IN 1.2.0.0
 1. THE PURCHASE PATH WAS BROKEN. notifyLicenseRequired went before notifyFeatureBlocked,
-   and Power BI shows one notification at a time, the last replacing the previous: the
-   banner wiped out the Upgrade bar and, once it faded, a free user had no way to buy. Now:
-   clear, banner, Upgrade bar 10.5 s later, cancelled in destroy().
-2. PRO PREVIEW. A free user who picked a hexagon tile, a diverging scale or a size measure
-   saw it silently reverted: a broken visual, not something to buy. Editing without a
-   licence, once resolved, it draws WORKING under a "Pro preview" watermark naming it, per
-   feature, never in bulk. Reading view or unreadable licence: free result, no watermark.
-3. Toolchain current (tools 7.2.1, API 5.11.1): npm audit 0, --certification-audit clean.
+   and Power BI shows one notification at a time: the banner wiped out the Upgrade bar and,
+   once it faded, a free user had no way to buy. Now: clear, banner, Upgrade bar 10.5 s
+   later, cancelled in destroy().
+2. PRO PREVIEW. A free user who picked a hexagon tile or a diverging scale saw it silently
+   reverted: a broken visual, not something to buy. Editing without a licence, once
+   resolved, it draws WORKING under a "Pro preview" watermark naming it, per feature. In
+   reading view, or with an unreadable licence: free result.
+3. FORMAT PANE IN SPANISH. No displayNameKey anywhere, stringResources empty and
+   FormattingSettingsService built without a localization manager. 100 keys in en-US/es-ES.
+4. Toolchain current (tools 7.2.1, API 5.11.1), npm audit 0, cert-audit clean.
 
 TESTING FREE (no licence)
 1. Sample .pbix: bind Latitude, Longitude, Value (Label, Tooltips, Category optional).
-2. Map Settings > Country/Region: switch the grids, toggle Correct Latitude Distortion.
+2. Map Settings: switch the grids. Report in Spanish: the pane is in Spanish.
 3. Over 500 rows: "Showing the first 500 of N rows".
 4. Quantile/Diverging/Categorical, Color Min/Max, Circle/Hexagon, Size: while EDITING each
-   draws under a "Pro preview" watermark, a banner names it and the Upgrade bar follows ten
-   seconds later.
-5. Click, Ctrl+click, background click, right-click; keyboard navigation.
+   draws under a "Pro preview" watermark, a banner names it, the Upgrade bar follows.
+5. Click, Ctrl+click, background click, right-click, keyboard.
 
 TESTING PRO (licence or trial)
-1. All rows up to 30,000 used. 2. Quantile, Diverging, custom colours, Circle/Hexagon and
-Size apply, no watermark. 3. Custom TopoJSON: drop a file (lon/lat WGS84, max 5 MB); it
-renders and persists on save and reopen.
+1. All rows up to 30,000. 2. Quantile, Diverging, own colours, Circle/Hexagon and Size
+apply, no watermark. 3. Custom TopoJSON: drop a file (lon/lat WGS84, max 5 MB); it renders
+and persists on reopen.
 
 PRIVACY: no network calls, no telemetry, no storage. privileges []. TopoJSON only by drag
-& drop (FileReader), persisted via persistProperties. No innerHTML, lint clean.
+& drop (FileReader). No innerHTML, lint clean.
 
-LICENSING
-getAvailableServicePlans. Pro when spIdentifier (the full Service ID) ends with
+LICENSING: getAvailableServicePlans. Pro when spIdentifier (the full Service ID) ends with
 ".tile-grid-map-pro-tcviz" and the state is Active or Warning. isLicenseUnsupportedEnv and
 isLicenseInfoAvailable honoured.
 
 FREE vs PRO
 Free: the maps, first 500 rows, square tiles, latitude correction, blue palette, labels,
-legend, colour rules, tooltips, cross-filtering, high contrast.
+legend, colour rules, tooltips, cross-filtering, high contrast, Spanish pane.
 Pro: 30,000 rows, Custom TopoJSON, circle/hexagon, Size role, quantile/diverging/
-categorical scales, custom colours.
+categorical scales, own colours.

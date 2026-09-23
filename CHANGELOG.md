@@ -19,6 +19,7 @@ This project follows the Power BI custom visual four-part versioning scheme
 
 ### Changed
 
+- **The format pane is available in Spanish.** It was always going to be English: `capabilities.json` had **zero** `displayNameKey`, `settings.ts` had none either, `stringResources` in the manifest was an empty array, and `FormattingSettingsService` was built without a localization manager — so even the `en-US` folder that existed was a dead file nobody read. There are now 100 keys in `en-US` and `es-ES`, covering the five cards, the 34 pane settings, the seven field wells, their descriptions, every enumeration value and all 27 grid names. Six entries are identical in both languages because the country is spelled the same.
 - **Toolchain on current versions.** Tools 7.2.1, API 5.11.1 (the manifest still declared 5.10.0), TypeScript 5.5.4 and the `qs`/`uuid` overrides. `npm audit` reports 0 vulnerabilities, lint runs over four files with no errors, and `pbiviz package --certification-audit` — the official check for `fetch`, `XMLHttpRequest` and `eval`, which needs tools 6.1.0 and could not be run before — finds no external requests.
 
 ---

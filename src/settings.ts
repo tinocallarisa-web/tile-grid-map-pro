@@ -8,46 +8,54 @@ type FormattingSettingsCard = formattingSettings.SimpleCard;
 export class MapSettingsCard extends formattingSettings.SimpleCard {
   name = "mapSettings";
   displayName = "Map Settings";
+  displayNameKey = "Visual_MapSettings";
 
   country = new AutoDropdown({
     name: "country",
     displayName: "Country / Region",
+    displayNameKey: "Visual_Country",
     value: "es",
   });
 
   tileShape = new AutoDropdown({
     name: "tileShape",
     displayName: "Tile Shape",
+    displayNameKey: "Visual_TileShape",
     value: "square",
   });
 
   latitudeCorrection = new ToggleSwitch({
     name: "latitudeCorrection",
     displayName: "Correct Latitude Distortion",
+    displayNameKey: "Visual_LatitudeCorrection",
     value: true,
   });
 
   aggregationType = new AutoDropdown({
     name: "aggregationType",
     displayName: "Value Aggregation",
+    displayNameKey: "Visual_Aggregation",
     value: "auto",
   });
 
   showEmptyCells = new ToggleSwitch({
     name: "showEmptyCells",
     displayName: "Show Empty Cells",
+    displayNameKey: "Visual_ShowEmptyCells",
     value: true,
   });
 
   showLabels = new ToggleSwitch({
     name: "showLabels",
     displayName: "Show Cell Labels",
+    displayNameKey: "Visual_ShowLabels",
     value: false,
   });
 
   labelFontSize = new NumUpDown({
     name: "labelFontSize",
     displayName: "Label Font Size",
+    displayNameKey: "Visual_LabelFontSize",
     value: 7,
     options: { minValue: { type: powerbi.visuals.ValidatorType.Min, value: 5 }, maxValue: { type: powerbi.visuals.ValidatorType.Max, value: 14 } }
   });
@@ -55,6 +63,7 @@ export class MapSettingsCard extends formattingSettings.SimpleCard {
   labelMinTileSize = new NumUpDown({
     name: "labelMinTileSize",
     displayName: "Label Min Tile Size (px)",
+    displayNameKey: "Visual_LabelMinTile",
     value: 20,
     options: { minValue: { type: powerbi.visuals.ValidatorType.Min, value: 8 }, maxValue: { type: powerbi.visuals.ValidatorType.Max, value: 60 } }
   });
@@ -62,6 +71,7 @@ export class MapSettingsCard extends formattingSettings.SimpleCard {
   tooltipDecimals = new NumUpDown({
     name: "tooltipDecimals",
     displayName: "Decimal Places",
+    displayNameKey: "Visual_Decimals",
     value: 2,
     options: { minValue: { type: powerbi.visuals.ValidatorType.Min, value: 0 }, maxValue: { type: powerbi.visuals.ValidatorType.Max, value: 6 } }
   });
@@ -73,34 +83,40 @@ export class MapSettingsCard extends formattingSettings.SimpleCard {
 export class ColorScaleCard extends formattingSettings.SimpleCard {
   name = "colorScale";
   displayName = "Color Scale";
+  displayNameKey = "Visual_ColorScale";
 
   scaleType = new AutoDropdown({
     name: "scaleType",
     displayName: "Scale Type",
+    displayNameKey: "Visual_ScaleType",
     value: "sequential",
   });
 
   colorMin = new ColorPicker({
     name: "colorMin",
     displayName: "Color Min (Pro)",
+    displayNameKey: "Visual_ColorMin",
     value: { value: "#d0e4f7" },
   });
 
   colorMid = new ColorPicker({
     name: "colorMid",
     displayName: "Color Mid (Pro, Diverging)",
+    displayNameKey: "Visual_ColorMid",
     value: { value: "#f7f7f7" },
   });
 
   colorMax = new ColorPicker({
     name: "colorMax",
     displayName: "Color Max (Pro)",
+    displayNameKey: "Visual_ColorMax",
     value: { value: "#1a5276" },
   });
 
   noDataColor = new ColorPicker({
     name: "noDataColor",
     displayName: "No Data Color",
+    displayNameKey: "Visual_NoDataColor",
     value: { value: "#e8e8e8" },
   });
 
@@ -111,28 +127,33 @@ export class ColorScaleCard extends formattingSettings.SimpleCard {
 export class LegendCard extends formattingSettings.SimpleCard {
   name = "legend";
   displayName = "Legend";
+  displayNameKey = "Visual_Legend";
 
   showLegend = new ToggleSwitch({
     name: "showLegend",
     displayName: "Show Legend",
+    displayNameKey: "Visual_ShowLegend",
     value: true,
   });
 
   legendPosition = new AutoDropdown({
     name: "legendPosition",
     displayName: "Position",
+    displayNameKey: "Visual_Position",
     value: "bottom",
   });
 
   fontColor = new ColorPicker({
     name: "fontColor",
     displayName: "Text Color",
+    displayNameKey: "Visual_TextColor",
     value: { value: "#555555" },
   });
 
   fontSize = new NumUpDown({
     name: "fontSize",
     displayName: "Text Size",
+    displayNameKey: "Visual_TextSize",
     value: 10,
     options: {
       minValue: { type: powerbi.visuals.ValidatorType.Min, value: 7 },
@@ -143,6 +164,7 @@ export class LegendCard extends formattingSettings.SimpleCard {
   fontFamily = new formattingSettings.FontPicker({
     name: "fontFamily",
     displayName: "Font",
+    displayNameKey: "Visual_Font",
     value: "Segoe UI, wf_segoe-ui_normal, helvetica, arial, sans-serif",
   });
 
@@ -153,22 +175,26 @@ export class LegendCard extends formattingSettings.SimpleCard {
 export class AccessibilityCard extends formattingSettings.SimpleCard {
   name = "accessibility";
   displayName = "Accessibility";
+  displayNameKey = "Visual_Accessibility";
 
   showBorders = new ToggleSwitch({
     name: "showBorders",
     displayName: "Show Cell Borders",
+    displayNameKey: "Visual_ShowBorders",
     value: false,
   });
 
   borderColor = new ColorPicker({
     name: "borderColor",
     displayName: "Border Color",
+    displayNameKey: "Visual_BorderColor",
     value: { value: "#cccccc" },
   });
 
   borderWidth = new NumUpDown({
     name: "borderWidth",
     displayName: "Border Width",
+    displayNameKey: "Visual_BorderWidth",
     value: 0.5,
     options: {
       minValue: { type: powerbi.visuals.ValidatorType.Min, value: 0.5 },
@@ -179,12 +205,14 @@ export class AccessibilityCard extends formattingSettings.SimpleCard {
   selectedRingColor = new ColorPicker({
     name: "selectedRingColor",
     displayName: "Selected Ring Color",
+    displayNameKey: "Visual_RingColor",
     value: { value: "#2980b9" },
   });
 
   selectedRingWidth = new NumUpDown({
     name: "selectedRingWidth",
     displayName: "Selected Ring Width",
+    displayNameKey: "Visual_RingWidth",
     value: 2,
     options: {
       minValue: { type: powerbi.visuals.ValidatorType.Min, value: 1 },
@@ -202,10 +230,12 @@ export class AccessibilityCard extends formattingSettings.SimpleCard {
 export class ConditionalFormattingCard extends formattingSettings.SimpleCard {
   name = "conditionalFormatting";
   displayName = "Conditional Formatting";
+  displayNameKey = "Visual_ConditionalFormatting";
 
   cfEnabled = new ToggleSwitch({
     name: "cfEnabled",
     displayName: "Enable Rules",
+    displayNameKey: "Visual_EnableRules",
     value: false,
   });
 
@@ -213,16 +243,19 @@ export class ConditionalFormattingCard extends formattingSettings.SimpleCard {
   cfRule1Operator = new AutoDropdown({
     name: "cfRule1Operator",
     displayName: "Rule 1 – Operator",
+    displayNameKey: "Visual_Rule1Operator",
     value: "lt",
   });
   cfRule1Value = new NumUpDown({
     name: "cfRule1Value",
     displayName: "Rule 1 – Value",
+    displayNameKey: "Visual_Rule1Value",
     value: 0,
   });
   cfRule1Color = new ColorPicker({
     name: "cfRule1Color",
     displayName: "Rule 1 – Color",
+    displayNameKey: "Visual_Rule1Color",
     value: { value: "#e74c3c" },
   });
 
@@ -230,16 +263,19 @@ export class ConditionalFormattingCard extends formattingSettings.SimpleCard {
   cfRule2MinValue = new NumUpDown({
     name: "cfRule2MinValue",
     displayName: "Rule 2 – From (≥)",
+    displayNameKey: "Visual_Rule2From",
     value: 0,
   });
   cfRule2MaxValue = new NumUpDown({
     name: "cfRule2MaxValue",
     displayName: "Rule 2 – To (≤)",
+    displayNameKey: "Visual_Rule2To",
     value: 100,
   });
   cfRule2Color = new ColorPicker({
     name: "cfRule2Color",
     displayName: "Rule 2 – Color",
+    displayNameKey: "Visual_Rule2Color",
     value: { value: "#f39c12" },
   });
 
@@ -247,16 +283,19 @@ export class ConditionalFormattingCard extends formattingSettings.SimpleCard {
   cfRule3Operator = new AutoDropdown({
     name: "cfRule3Operator",
     displayName: "Rule 3 – Operator",
+    displayNameKey: "Visual_Rule3Operator",
     value: "gt",
   });
   cfRule3Value = new NumUpDown({
     name: "cfRule3Value",
     displayName: "Rule 3 – Value",
+    displayNameKey: "Visual_Rule3Value",
     value: 100,
   });
   cfRule3Color = new ColorPicker({
     name: "cfRule3Color",
     displayName: "Rule 3 – Color",
+    displayNameKey: "Visual_Rule3Color",
     value: { value: "#27ae60" },
   });
 

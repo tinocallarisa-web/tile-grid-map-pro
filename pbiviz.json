@@ -16,7 +16,10 @@
   },
   "apiVersion": "5.11.1",
   "style": "style/visual.less",
-  "stringResources": [],
+  "stringResources": [
+    "stringResources/en-US/resources.resjson",
+    "stringResources/es-ES/resources.resjson"
+  ],
   "capabilities": "capabilities.json",
   "dependencies": null,
   "stringResourcesPath": "stringResources/en-US/resources.resjson",

@@ -3,43 +3,43 @@
     {
       "name": "latitude",
       "kind": "Grouping",
-      "displayName": "Latitude",
-      "description": "Latitude column (decimal degrees, e.g. 40.4168)"
+      "displayName": "Latitude", "displayNameKey": "Visual_Latitude",
+      "description": "Latitude column (decimal degrees, e.g. 40.4168)", "descriptionKey": "Visual_Desc_Latitude"
     },
     {
       "name": "longitude",
       "kind": "Grouping",
-      "displayName": "Longitude",
-      "description": "Longitude column (decimal degrees, e.g. -3.7038)"
+      "displayName": "Longitude", "displayNameKey": "Visual_Longitude",
+      "description": "Longitude column (decimal degrees, e.g. -3.7038)", "descriptionKey": "Visual_Desc_Longitude"
     },
     {
       "name": "value",
       "kind": "Measure",
-      "displayName": "Value",
-      "description": "Numeric value to color each tile"
+      "displayName": "Value", "displayNameKey": "Visual_Value",
+      "description": "Numeric value to color each tile", "descriptionKey": "Visual_Desc_Value"
     },
     {
       "name": "size",
       "kind": "Measure",
-      "displayName": "Size (Pro)",
-      "description": "Optional second measure that sizes each tile"
+      "displayName": "Size (Pro)", "displayNameKey": "Visual_Size",
+      "description": "Optional second measure that sizes each tile", "descriptionKey": "Visual_Desc_Size"
     },
     {
       "name": "tooltips",
       "kind": "Measure",
-      "displayName": "Tooltips",
-      "description": "Additional fields shown in tooltip"
+      "displayName": "Tooltips", "displayNameKey": "Visual_Tooltips",
+      "description": "Additional fields shown in tooltip", "descriptionKey": "Visual_Desc_Tooltips"
     },
     {
       "name": "label",
       "kind": "Grouping",
-      "displayName": "Label",
-      "description": "Optional display name (city, region...)"
+      "displayName": "Label", "displayNameKey": "Visual_Label",
+      "description": "Optional display name (city, region...)", "descriptionKey": "Visual_Desc_Label"
     },
     {
       "name": "category",
       "kind": "Grouping",
-      "displayName": "Category",
+      "displayName": "Category", "displayNameKey": "Visual_Category",
       "description": "Group used by the Categorical colour scale (Pro): each tile takes the category with most rows"
     }
   ],
@@ -126,115 +126,115 @@
             "enumeration": [
               {
                 "value": "es",
-                "displayName": "Spain"
+                "displayName": "Spain", "displayNameKey": "Visual_Spain"
               },
               {
                 "value": "ic",
-                "displayName": "Canarias (Spain)"
+                "displayName": "Canarias (Spain)", "displayNameKey": "Visual_Canarias"
               },
               {
                 "value": "pt",
-                "displayName": "Portugal"
+                "displayName": "Portugal", "displayNameKey": "Visual_Portugal"
               },
               {
                 "value": "fr",
-                "displayName": "France"
+                "displayName": "France", "displayNameKey": "Visual_France"
               },
               {
                 "value": "de",
-                "displayName": "Germany"
+                "displayName": "Germany", "displayNameKey": "Visual_Germany"
               },
               {
                 "value": "it",
-                "displayName": "Italy"
+                "displayName": "Italy", "displayNameKey": "Visual_Italy"
               },
               {
                 "value": "it_islands",
-                "displayName": "Sicily (Italy)"
+                "displayName": "Sicily (Italy)", "displayNameKey": "Visual_Sicily"
               },
               {
                 "value": "it_sardinia",
-                "displayName": "Sardinia (Italy)"
+                "displayName": "Sardinia (Italy)", "displayNameKey": "Visual_Sardinia"
               },
               {
                 "value": "gb",
-                "displayName": "United Kingdom"
+                "displayName": "United Kingdom", "displayNameKey": "Visual_UK"
               },
               {
                 "value": "nl",
-                "displayName": "Netherlands"
+                "displayName": "Netherlands", "displayNameKey": "Visual_Netherlands"
               },
               {
                 "value": "be",
-                "displayName": "Belgium"
+                "displayName": "Belgium", "displayNameKey": "Visual_Belgium"
               },
               {
                 "value": "pl",
-                "displayName": "Poland"
+                "displayName": "Poland", "displayNameKey": "Visual_Poland"
               },
               {
                 "value": "se",
-                "displayName": "Sweden"
+                "displayName": "Sweden", "displayNameKey": "Visual_Sweden"
               },
               {
                 "value": "no",
-                "displayName": "Norway"
+                "displayName": "Norway", "displayNameKey": "Visual_Norway"
               },
               {
                 "value": "ch",
-                "displayName": "Switzerland"
+                "displayName": "Switzerland", "displayNameKey": "Visual_Switzerland"
               },
               {
                 "value": "at",
-                "displayName": "Austria"
+                "displayName": "Austria", "displayNameKey": "Visual_Austria"
               },
               {
                 "value": "us",
-                "displayName": "United States"
+                "displayName": "United States", "displayNameKey": "Visual_USA"
               },
               {
                 "value": "ak",
-                "displayName": "Alaska (USA)"
+                "displayName": "Alaska (USA)", "displayNameKey": "Visual_Alaska"
               },
               {
                 "value": "hi",
-                "displayName": "Hawaii (USA)"
+                "displayName": "Hawaii (USA)", "displayNameKey": "Visual_Hawaii"
               },
               {
                 "value": "ca",
-                "displayName": "Canada"
+                "displayName": "Canada", "displayNameKey": "Visual_Canada"
               },
               {
                 "value": "mx",
-                "displayName": "Mexico"
+                "displayName": "Mexico", "displayNameKey": "Visual_Mexico"
               },
               {
                 "value": "br",
-                "displayName": "Brazil"
+                "displayName": "Brazil", "displayNameKey": "Visual_Brazil"
               },
               {
                 "value": "ar",
-                "displayName": "Argentina"
+                "displayName": "Argentina", "displayNameKey": "Visual_Argentina"
               },
               {
                 "value": "co",
-                "displayName": "Colombia"
+                "displayName": "Colombia", "displayNameKey": "Visual_Colombia"
               },
               {
                 "value": "au",
-                "displayName": "Australia"
+                "displayName": "Australia", "displayNameKey": "Visual_Australia"
               },
               {
                 "value": "in",
-                "displayName": "India"
+                "displayName": "India", "displayNameKey": "Visual_India"
               },
               {
                 "value": "jp",
-                "displayName": "Japan"
+                "displayName": "Japan", "displayNameKey": "Visual_Japan"
               },
               {
                 "value": "custom",
-                "displayName": "Custom TopoJSON (Pro)"
+                "displayName": "Custom TopoJSON (Pro)", "displayNameKey": "Visual_CustomTopo"
               }
             ]
           }
@@ -244,27 +244,27 @@
             "enumeration": [
               {
                 "value": "auto",
-                "displayName": "Auto (from field)"
+                "displayName": "Auto (from field)", "displayNameKey": "Visual_AggAuto"
               },
               {
                 "value": "sum",
-                "displayName": "Sum"
+                "displayName": "Sum", "displayNameKey": "Visual_AggSum"
               },
               {
                 "value": "average",
-                "displayName": "Average"
+                "displayName": "Average", "displayNameKey": "Visual_AggAvg"
               },
               {
                 "value": "count",
-                "displayName": "Count"
+                "displayName": "Count", "displayNameKey": "Visual_AggCount"
               },
               {
                 "value": "min",
-                "displayName": "Min"
+                "displayName": "Min", "displayNameKey": "Visual_AggMin"
               },
               {
                 "value": "max",
-                "displayName": "Max"
+                "displayName": "Max", "displayNameKey": "Visual_AggMax"
               }
             ]
           }
@@ -299,15 +299,15 @@
             "enumeration": [
               {
                 "value": "square",
-                "displayName": "Square"
+                "displayName": "Square", "displayNameKey": "Visual_Square"
               },
               {
                 "value": "circle",
-                "displayName": "Circle (Pro)"
+                "displayName": "Circle (Pro)", "displayNameKey": "Visual_Circle"
               },
               {
                 "value": "hexagon",
-                "displayName": "Hexagon (Pro)"
+                "displayName": "Hexagon (Pro)", "displayNameKey": "Visual_Hexagon"
               }
             ]
           }
@@ -326,19 +326,19 @@
             "enumeration": [
               {
                 "value": "sequential",
-                "displayName": "Sequential"
+                "displayName": "Sequential", "displayNameKey": "Visual_ScaleSequential"
               },
               {
                 "value": "quantile",
-                "displayName": "Quantile (Pro)"
+                "displayName": "Quantile (Pro)", "displayNameKey": "Visual_ScaleQuantile"
               },
               {
                 "value": "diverging",
-                "displayName": "Diverging (Pro)"
+                "displayName": "Diverging (Pro)", "displayNameKey": "Visual_ScaleDiverging"
               },
               {
                 "value": "categorical",
-                "displayName": "Categorical (Pro)"
+                "displayName": "Categorical (Pro)", "displayNameKey": "Visual_ScaleCategorical"
               }
             ]
           }
@@ -393,11 +393,11 @@
             "enumeration": [
               {
                 "value": "bottom",
-                "displayName": "Bottom"
+                "displayName": "Bottom", "displayNameKey": "Visual_Bottom"
               },
               {
                 "value": "top",
-                "displayName": "Top"
+                "displayName": "Top", "displayNameKey": "Visual_Top"
               }
             ]
           }
@@ -476,23 +476,23 @@
             "enumeration": [
               {
                 "value": "lt",
-                "displayName": "< Less than"
+                "displayName": "< Less than", "displayNameKey": "Visual_OpLt"
               },
               {
                 "value": "lte",
-                "displayName": "≤ Less than or equal"
+                "displayName": "≤ Less than or equal", "displayNameKey": "Visual_OpLe"
               },
               {
                 "value": "gt",
-                "displayName": "> Greater than"
+                "displayName": "> Greater than", "displayNameKey": "Visual_OpGt"
               },
               {
                 "value": "gte",
-                "displayName": "≥ Greater than or equal"
+                "displayName": "≥ Greater than or equal", "displayNameKey": "Visual_OpGe"
               },
               {
                 "value": "eq",
-                "displayName": "= Equal to"
+                "displayName": "= Equal to", "displayNameKey": "Visual_OpEq"
               }
             ]
           }
@@ -535,23 +535,23 @@
             "enumeration": [
               {
                 "value": "lt",
-                "displayName": "< Less than"
+                "displayName": "< Less than", "displayNameKey": "Visual_OpLt"
               },
               {
                 "value": "lte",
-                "displayName": "≤ Less than or equal"
+                "displayName": "≤ Less than or equal", "displayNameKey": "Visual_OpLe"
               },
               {
                 "value": "gt",
-                "displayName": "> Greater than"
+                "displayName": "> Greater than", "displayNameKey": "Visual_OpGt"
               },
               {
                 "value": "gte",
-                "displayName": "≥ Greater than or equal"
+                "displayName": "≥ Greater than or equal", "displayNameKey": "Visual_OpGe"
               },
               {
                 "value": "eq",
-                "displayName": "= Equal to"
+                "displayName": "= Equal to", "displayNameKey": "Visual_OpEq"
               }
             ]
           }
