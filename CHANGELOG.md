@@ -14,7 +14,8 @@ This project follows the Power BI custom visual four-part versioning scheme
   default) takes the colour ramp from the first data colour of the report theme, the diverging ends from its good/bad
   sentiment colours and the legend ink from its secondary text colour. Six collection styles (Pro): Boardroom, Ledger,
   Editorial, Signal, Aurora and Terrace, each with its own ramp, empty-tile colour, legend ink and font, tile borders,
-  selection ring and visual background (dark in Boardroom and Aurora). A colour you set yourself still wins, and
+  selection ring and visual background (dark in Boardroom and Aurora), with a small margin so the map does not touch
+  its edge. A colour you set yourself still wins, and
   choosing a style clears the saved colours it defines. Without a licence, choosing one draws it under the Pro preview
   watermark; reading view shows Report theme.
 

@@ -146,8 +146,23 @@ async def main():
             check(f"Estilo {tpl}: se dibuja sin errores", not pg.__errs and r["teselas"] > 2, f"{r} {pg.__errs[:1]}")
             if tpl == "classic":
                 check("Report theme: sin fondo propio (transparente)", "rgba(0, 0, 0, 0)" in r["fondo"] and "none" in r["fondo"], r["fondo"])
+            if tpl != "classic":
+                m = await pg.evaluate("""() => { const h = document.getElementById('host').getBoundingClientRect();
+                    const t = Array.from(document.querySelectorAll('[data-key]')).map(e => e.getBoundingClientRect());
+                    return Math.min(...t.map(r => r.left - h.left), ...t.map(r => h.right - r.right), ...t.map(r => r.top - h.top)); }""")
+                check(f"Estilo {tpl}: el mapa deja margen respecto al fondo", m >= 6, f"{m:.1f}px")
             if oscuro:
                 check(f"Estilo {tpl}: fondo oscuro del estilo", "rgb(22, 38, 61)" in r["fondo"] or "gradient" in r["fondo"], r["fondo"])
+            await pg.close()
+        for tpl in ("classic", "terrace"):
+            pg = await page(b, dv(objects={"style": {"template": tpl}, "mapSettings": {"country": "us", "tileShape": "circle"}, "legend": {"showLegend": False}}), 700, 420, name=f"08_eeuu_{tpl}")
+            m = await pg.evaluate("""() => { const h = document.getElementById('host').getBoundingClientRect();
+                const t = Array.from(document.querySelectorAll('svg circle, svg rect, svg polygon')).map(e => e.getBoundingClientRect()).filter(r => r.width > 0);
+                return Math.min(...t.map(r => r.left - h.left), ...t.map(r => h.right - r.right)); }""")
+            if tpl == "classic":
+                check("EE. UU. con Report theme: el mapa usa todo el ancho, como siempre", m < 3, f"{m:.1f}px")
+            else:
+                check("EE. UU. con Terrace: margen a los lados del fondo", m >= 6, f"{m:.1f}px")
             await pg.close()
         pg = await page(b, dv(objects={"style": {"template": "boardroom"}, "legend": {"fontColor": {"solid": {"color": "#FF0000"}}}}), 470, 380)
         r = await pg.evaluate("() => Array.from(document.querySelectorAll('svg text')).filter(e => !e.closest('.tgm-watermark')).map(e => e.getAttribute('fill'))")

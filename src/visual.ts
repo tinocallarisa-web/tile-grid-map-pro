@@ -550,7 +550,15 @@ export class Visual implements IVisual {
       this._points = new Map();
       this._orderedKeys = [];
 
-      const vp = options.viewport;
+      // Con un estilo que pinta fondo (Ledger, Boardroom, Aurora…), el mapa deja un margen para no tocar el canto del
+      // fondo (Tino, 21-11-2026). Con Report theme, sin fondo propio, el mapa usa todo el visual como siempre.
+      const vpTotal = options.viewport;
+      const margen = (this.tk.bg || this.tk.grad) && !this.isHC
+        ? Math.max(6, Math.min(16, Math.round(Math.min(vpTotal.width, vpTotal.height) * 0.03))) : 0;
+      this.svg.style.margin = margen ? `${margen}px` : "";
+      this.svg.style.width = margen ? `calc(100% - ${2 * margen}px)` : "100%";
+      this.svg.style.height = margen ? `calc(100% - ${2 * margen}px)` : "100%";
+      const vp = { width: Math.max(0, vpTotal.width - 2 * margen), height: Math.max(0, vpTotal.height - 2 * margen) };
       const countryKey = String(this.settings.mapSettings.country.value);
       const custom = countryKey === "custom";
 
@@ -590,7 +598,7 @@ export class Visual implements IVisual {
       if (!this.isPro) {
         this.attemptedLabels = this.attemptedProFeatures(dataView).labels;
       }
-      this.renderWatermark(vp);
+      this.renderWatermark(vpTotal);
       this.notifyLicense(dataView);
     }
   }
