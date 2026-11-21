@@ -7,6 +7,25 @@ This project follows the Power BI custom visual four-part versioning scheme
 
 ---
 
+## [1.3.0.0] — unreleased
+
+### Changed
+- **Numbers use your model's format and the report language.** Tiles, legend, colour-rule legend and tooltips now
+  show each measure with its own format string (currency, percentage, decimals) and the report's locale, like the
+  built-in visuals, with automatic units (K, M, bn). Percentages are never scaled. *Decimal Places* in Map Settings
+  still applies when you set it; otherwise the measure's decimals are used. Tiles that count rows show whole numbers.
+- **Text shrinks with the visual.** Below about 760×440 the legend, messages and the start screen scale down with the
+  visual (to 60 %, never below 8 px), so the map keeps its room in the small tiles of a real report page. Larger
+  visuals keep the sizes you chose.
+- **Tile labels are never smaller than 8 px.** They used to go down to 5 px; a label that does not fit at 8 px is not
+  drawn. The default label size is now 8 px.
+
+### Fixed
+- Resolving the licence or dropping a TopoJSON file repainted the visual through a second update, which sent Power BI
+  an extra rendering event. Each update now reports exactly one start and one finish.
+
+---
+
 ## [1.2.0.0] — 2026-09-23
 
 ### Fixed

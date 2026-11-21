@@ -10,7 +10,8 @@
     "lint": "tsc --noEmit && npx eslint ."
   },
   "dependencies": {
-    "powerbi-visuals-utils-formattingmodel": "^6.2.2"
+    "powerbi-visuals-utils-formattingmodel": "^6.2.2",
+    "powerbi-visuals-utils-formattingutils": "^6.1.2"
   },
   "overrides": {
     "qs": "^6.16.0",

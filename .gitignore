@@ -12,3 +12,7 @@ Thumbs.db
 icon_300x300.png
 desktop.ini
 .vscode/
+
+# Capturas del simulador
+tools/simulador/capturas/
+__pycache__/

@@ -56,8 +56,8 @@ export class MapSettingsCard extends formattingSettings.SimpleCard {
     name: "labelFontSize",
     displayName: "Label Font Size",
     displayNameKey: "Visual_LabelFontSize",
-    value: 7,
-    options: { minValue: { type: powerbi.visuals.ValidatorType.Min, value: 5 }, maxValue: { type: powerbi.visuals.ValidatorType.Max, value: 14 } }
+    value: 8,
+    options: { minValue: { type: powerbi.visuals.ValidatorType.Min, value: 8 }, maxValue: { type: powerbi.visuals.ValidatorType.Max, value: 14 } }
   });
 
   labelMinTileSize = new NumUpDown({
@@ -156,7 +156,7 @@ export class LegendCard extends formattingSettings.SimpleCard {
     displayNameKey: "Visual_TextSize",
     value: 10,
     options: {
-      minValue: { type: powerbi.visuals.ValidatorType.Min, value: 7 },
+      minValue: { type: powerbi.visuals.ValidatorType.Min, value: 8 },
       maxValue: { type: powerbi.visuals.ValidatorType.Max, value: 24 },
     },
   });

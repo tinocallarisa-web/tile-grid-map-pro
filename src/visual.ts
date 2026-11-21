@@ -2,6 +2,7 @@
 
 import powerbi from "powerbi-visuals-api";
 import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
+import { valueFormatter } from "powerbi-visuals-utils-formattingutils";
 
 import { VisualFormattingSettingsModel } from "./settings";
 import { COUNTRY_GRIDS, CountryGrid, locateCell, isInMask, MAX_SNAP_CELLS } from "./countryGrids";
@@ -58,7 +59,7 @@ interface TopoFeature {
   name:     string;
 }
 
-type TooltipColData = { nums: number[]; firstText: string; aggType: string; percent: boolean };
+type TooltipColData = { nums: number[]; firstText: string; aggType: string; percent: boolean; fmt?: string };
 
 /** Rows aggregated into one cell (grid) or one region (TopoJSON). */
 interface Bucket {
@@ -101,6 +102,11 @@ const MAX_CATEGORIES = 12;
 const OTHER_CATEGORY_COLOR = "#b0b0b0";
 
 // ─── Visual ───────────────────────────────────────────────────────────────────
+/** ¿La cadena de formato es un porcentaje? El "%" cuenta fuera de comillas y escapes. */
+function esPorcentaje(fmt: string | null | undefined): boolean {
+  return !!fmt && /%/.test(fmt.replace(/"[^"]*"|\\./g, ""));
+}
+
 export class Visual implements IVisual {
   private host!: IVisualHost;
   private selectionManager!: ISelectionManager;
@@ -144,10 +150,12 @@ export class Visual implements IVisual {
   private _stats: ScanStats = { total: 0, used: 0, blankCoords: 0, outside: 0, snapped: 0, capped: false };
   private _valueAggType = "sum";
   private _valuePercent = false;
+  private _valueFmt: string | undefined;   // cadena de formato de la medida (1.3)
   private _hasSize = false;
   private _hasCategory = false;
   private _sizeAggType = "sum";
   private _sizePercent = false;
+  private _sizeFmt: string | undefined;
 
   // Rendered points — the only source for hit-testing, tooltips and selection
   private _points: Map<string, Point> = new Map();
@@ -238,7 +246,7 @@ export class Visual implements IVisual {
     if (pro) this.clearLicenseNotice();
     // Always repaint: a Pro customer needs the full rows (the scan key includes the
     // row limit), and a Free user needs the notification render() skipped earlier.
-    if (this._lastOptions) this.update(this._lastOptions);
+    this.repaint();
   }
 
   /** Pro features the user is actually trying to use. */
@@ -367,12 +375,45 @@ export class Visual implements IVisual {
   // ── Update ──────────────────────────────────────────────────────────────────
   public update(options: VisualUpdateOptions): void {
     this.events.renderingStarted(options);
+    try {
+      this.render(options);
+      this.events.renderingFinished(options);
+    } catch (e) {
+      this.events.renderingFailed(options, String(e));
+    }
+  }
+
+  /**
+   * Repintado interno (licencia resuelta, TopoJSON soltado), SIN eventos de render. Microsoft exige un
+   * renderingStarted/Finished por cada update del host: repintar llamando a update() los duplicaba, y es el
+   * motivo por el que rechazaron Likert (1.3, 21-11-2026).
+   */
+  private repaint(): void {
+    if (!this._lastOptions) return;
+    try { this.render(this._lastOptions); } catch (_) { /* se mantiene lo pintado */ }
+  }
+
+  /**
+   * TEXTO QUE ENCOGE CON EL VISUAL (1.3, norma de la cartera; receta de Waterfall 1.3). Por debajo de ~760×440 todo
+   * el texto propio (leyenda, mensajes, pantalla de inicio) baja en proporción, hasta el 60 % y nunca por debajo de
+   * 8 px. Por encima, los tamaños elegidos: los informes guardados se ven igual.
+   */
+  private scale = 1;
+  private fz(px: number): number {
+    if (this.scale >= 1) return px;
+    return Math.max(Math.min(8, px), Math.round(px * this.scale * 2) / 2);
+  }
+
+  private render(options: VisualUpdateOptions): void {
     this._lastOptions = options;
+    const vp0 = options.viewport;
+    this.scale = vp0 && vp0.width > 0 && vp0.height > 0
+      ? Math.min(1, Math.max(0.6, Math.min(vp0.width / 760, vp0.height / 440))) : 1;
     // viewMode 0 es vista de lectura. La previa es cosa de quien edita: un informe
     // publicado nunca debe usar una funcion que no se ha pagado.
     this.editing = (options as unknown as { viewMode?: number }).viewMode !== 0;
     this.proPreview = this.computePreview();
-    try {
+    {
       const dataView = options?.dataViews?.[0];
       this.settings = this.formattingService.populateFormattingSettingsModel(VisualFormattingSettingsModel, dataView);
 
@@ -440,9 +481,6 @@ export class Visual implements IVisual {
       }
       this.renderWatermark(vp);
       this.notifyLicense(dataView);
-      this.events.renderingFinished(options);
-    } catch (e) {
-      this.events.renderingFailed(options, String(e));
     }
   }
 
@@ -468,12 +506,14 @@ export class Visual implements IVisual {
     const sizeIdx  = columns.findIndex(c => c.roles?.["size"]);
     this._hasSize = sizeIdx >= 0;
     this._sizeAggType = sizeIdx >= 0 ? this.detectAggType(columns[sizeIdx]) : "sum";
-    this._sizePercent = sizeIdx >= 0 && /%/.test(columns[sizeIdx].format ?? "");
+    this._sizeFmt = sizeIdx >= 0 ? (columns[sizeIdx].format || undefined) : undefined;
+    this._sizePercent = esPorcentaje(this._sizeFmt);
     const catIdx   = columns.findIndex(c => c.roles?.["category"]);
     this._hasCategory = catIdx >= 0;
     const maxSnap = grid?.snapCells ?? MAX_SNAP_CELLS;
     this._valueAggType = valIdx >= 0 ? this.detectAggType(columns[valIdx]) : "count";
-    this._valuePercent = valIdx >= 0 && /%/.test(columns[valIdx].format ?? "");
+    this._valueFmt = valIdx >= 0 ? (columns[valIdx].format || undefined) : undefined;
+    this._valuePercent = esPorcentaje(this._valueFmt);
 
     const stats: ScanStats = { total: allRows.length, used: 0, blankCoords: 0, outside: 0, snapped: 0, capped: allRows.length >= ROW_CAP };
     const buckets = new Map<string, Bucket>();
@@ -529,7 +569,7 @@ export class Visual implements IVisual {
           const name = columns[ti].displayName ?? `col${ti}`;
           let td = b.tooltips.get(name);
           if (!td) {
-            td = { nums: [], firstText: "", aggType: this.detectAggType(columns[ti]), percent: /%/.test(columns[ti].format ?? "") };
+            td = { nums: [], firstText: "", aggType: this.detectAggType(columns[ti]), percent: esPorcentaje(columns[ti].format), fmt: columns[ti].format || undefined };
             b.tooltips.set(name, td);
           }
           const raw = row[ti];
@@ -742,7 +782,7 @@ export class Visual implements IVisual {
     const gap = base >= 6 ? Math.max(1, Math.floor(base * 0.08)) : 0;
     const showLabels = ms.showLabels.value;
     const showEmpty = ms.showEmptyCells.value;
-    const fontSize = Math.min(Number(ms.labelFontSize.value) || 7, base * 0.4);
+    const fontSize = Math.min(Number(ms.labelFontSize.value) || 8, base * 0.4);
     const minLabel = Number(ms.labelMinTileSize.value) || 20;
 
     // Size (Pro): area proportional to the second measure, never below 30% of the tile.
@@ -833,9 +873,10 @@ export class Visual implements IVisual {
         const inner = Math.min(w, h) * (shape === "square" ? 1 : 0.8);
         if (showLabels && value !== null && inner >= minLabel * 0.5) {
           const textColor = this.isHC ? this.hcBg : this.contrastColor(color);
-          const full = this.formatValue(value, this._valuePercent);
+          const full = this.formatValue(value, this.fmtValor());
           const text = inner >= minLabel ? full : (b.labels[0] ?? "").slice(0, 4);
-          const fs = inner >= minLabel ? fontSize : Math.max(5, fontSize * 0.8);
+          // Nunca por debajo de 8 px (1.3): antes bajaba hasta 5, ilegible. Lo que no cabe a 8 no se dibuja.
+          const fs = Math.max(8, inner >= minLabel ? fontSize : fontSize * 0.8);
           // Only when it fits: a label wider than its tile covers the neighbours.
           if (text && text.length * fs * 0.6 <= inner - 2) {
             const t = document.createElementNS(ns, "text");
@@ -978,7 +1019,7 @@ export class Visual implements IVisual {
   private loadDroppedFile(file: File): void {
     if (file.size > MAX_TOPO_CHARS) {
       this._topoError = `"${file.name}" is ${(file.size / 1048576).toFixed(1)} MB; the limit is 5 MB. Simplify it (e.g. mapshaper.org) and try again.`;
-      if (this._lastOptions) this.update(this._lastOptions);
+      this.repaint();
       return;
     }
     const reader = new FileReader();
@@ -997,7 +1038,7 @@ export class Visual implements IVisual {
       } catch (_) {
         this._topoError = `"${file.name}" is not a TopoJSON file with polygons.`;
       }
-      if (this._lastOptions) this.update(this._lastOptions);
+      this.repaint();
     };
     reader.readAsText(file);
   }
@@ -1080,8 +1121,9 @@ export class Visual implements IVisual {
     const gradW = Math.min(200, vp.width * 0.6);
     const x = (vp.width - gradW) / 2;
     const { color: lc, size: fs, family: ff } = this.legendFont();
-    const p = this._valuePercent;
-    const ty = y + 22 + fs;
+    const p = this.fmtValor();
+    const barH = this.legendBarH();
+    const ty = y + 10 + barH + fs;
 
     if (model.classes) {
       const k = model.classes.length;
@@ -1089,7 +1131,7 @@ export class Visual implements IVisual {
       model.classes.forEach((c, i) => {
         const r = document.createElementNS(ns, "rect");
         r.setAttribute("x", String(x + i * sw)); r.setAttribute("y", String(y + 6));
-        r.setAttribute("width", String(Math.max(1, sw - 1))); r.setAttribute("height", "12");
+        r.setAttribute("width", String(Math.max(1, sw - 1))); r.setAttribute("height", String(barH));
         r.setAttribute("fill", c.color);
         this.svg.appendChild(r);
         // Break values under each boundary, when there is room for them.
@@ -1114,7 +1156,7 @@ export class Visual implements IVisual {
 
     const bar = document.createElementNS(ns, "rect");
     bar.setAttribute("x", String(x)); bar.setAttribute("y", String(y + 6));
-    bar.setAttribute("width", String(gradW)); bar.setAttribute("height", "12");
+    bar.setAttribute("width", String(gradW)); bar.setAttribute("height", String(barH));
     bar.setAttribute("rx", "4"); bar.setAttribute("fill", "url(#tgmLegendGrad)");
     if (this.isHC) { bar.setAttribute("stroke", this.hcFg); bar.setAttribute("stroke-width", "1"); }
     this.svg.appendChild(bar);
@@ -1152,7 +1194,7 @@ export class Visual implements IVisual {
   private legendHeight(model: ColorModel, width: number): number {
     const fs = this.legendFont().size;
     const swatches = this.swatchItems(model);
-    if (!swatches) return 26 + fs;
+    if (!swatches) return 14 + this.legendBarH() + fs;
     return 10 + this.layoutSwatches(swatches, width).length * (Math.max(8, fs) + 8);
   }
 
@@ -1189,7 +1231,7 @@ export class Visual implements IVisual {
     const cf = this.settings.conditionalFormatting;
     const num = (x: unknown) => (x === null || x === undefined || x === "") ? NaN : Number(x);
     // Thresholds are typed as shown (25 for 25%); formatValue expects the raw value.
-    const shown = (t: number) => this._valuePercent ? this.formatValue(t / 100, true) : this.formatValue(t, false);
+    const shown = (t: number) => this.formatValue(this._valuePercent ? t / 100 : t, this.fmtValor());
     const sym: Record<string, string> = { lt: "<", lte: "≤", gt: ">", gte: "≥", eq: "=" };
 
     const items: { color: string; text: string }[] = [];
@@ -1206,13 +1248,16 @@ export class Visual implements IVisual {
     return items;
   }
 
+  /** Alto de la barra de la leyenda: 12 px, y menos con el visual pequeño. */
+  private legendBarH(): number { return Math.max(8, Math.round(12 * this.scale)); }
+
   /** Legend text style from the format pane; high contrast keeps the theme foreground. */
   private legendFont(): { color: string; size: number; family: string } {
     const lg = this.settings.legend;
     const size = Number(lg.fontSize.value);
     return {
       color: this.isHC ? this.hcFg : (lg.fontColor.value?.value ?? "#555555"),
-      size: Number.isFinite(size) ? Math.max(7, Math.min(24, size)) : 10,
+      size: this.fz(Number.isFinite(size) ? Math.max(8, Math.min(24, size)) : 10),
       family: String(lg.fontFamily.value || "Segoe UI, sans-serif"),
     };
   }
@@ -1237,6 +1282,7 @@ export class Visual implements IVisual {
     const NS = "http://www.w3.org/2000/svg";
 
     const g = document.createElementNS(NS, "g");
+    g.setAttribute("class", "tgm-watermark");
     g.setAttribute("transform", `rotate(-20 ${cx} ${cy})`);
     g.setAttribute("aria-hidden", "true");
     g.setAttribute("opacity", "0.72");
@@ -1274,13 +1320,13 @@ export class Visual implements IVisual {
   private renderStatus(vp: powerbi.IViewport, lines: string[]): void {
     const color = this.isHC ? this.hcFg : "#777";
     lines.slice(0, 2).forEach((line, i, arr) => {
-      this.addText(line, vp.width / 2, vp.height - 4 - (arr.length - 1 - i) * 14, "middle", color, 10);
+      this.addText(line, vp.width / 2, vp.height - 4 - (arr.length - 1 - i) * this.fz(14), "middle", color, this.fz(10));
     });
   }
 
   private renderCentredText(vp: powerbi.IViewport, lines: string[]): void {
     const color = this.isHC ? this.hcFg : "#666";
-    lines.forEach((line, i) => this.addText(line, vp.width / 2, vp.height / 2 + i * 16, "middle", color, i === 0 ? 12 : 10));
+    lines.forEach((line, i) => this.addText(line, vp.width / 2, vp.height / 2 + i * this.fz(16), "middle", color, this.fz(i === 0 ? 12 : 10)));
   }
 
   private addText(text: string, x: number, y: number, anchor: string, color: string, size: number, family?: string): void {
@@ -1305,8 +1351,8 @@ export class Visual implements IVisual {
     zone.setAttribute("rx", "8"); zone.setAttribute("fill", "none");
     zone.setAttribute("stroke", accent); zone.setAttribute("stroke-width", "2"); zone.setAttribute("stroke-dasharray", "6 4");
     this.svg.appendChild(zone);
-    this.addText("Drag & drop a TopoJSON file here", vp.width / 2, zy + 44, "middle", fg, 11);
-    this.addText(".json / .topojson in longitude/latitude, up to 5 MB", vp.width / 2, zy + 62, "middle", fg, 9);
+    this.addText("Drag & drop a TopoJSON file here", vp.width / 2, zy + 44, "middle", fg, this.fz(11));
+    this.addText(".json / .topojson in longitude/latitude, up to 5 MB", vp.width / 2, zy + 62, "middle", fg, this.fz(9));
     this.renderStatus(vp, this.statusLines());
   }
 
@@ -1325,8 +1371,8 @@ export class Visual implements IVisual {
         this.svg.appendChild(r);
       }
     }
-    this.addText("Tile Grid Map Pro", vp.width / 2, vp.height / 2 + 4, "middle", accent, 14);
-    this.addText("Add Latitude and Longitude fields to start.", vp.width / 2, vp.height / 2 + 22, "middle", fg, 11);
+    this.addText("Tile Grid Map Pro", vp.width / 2, vp.height / 2 + 4, "middle", accent, this.fz(14));
+    this.addText("Add Latitude and Longitude fields to start.", vp.width / 2, vp.height / 2 + 4 + this.fz(18), "middle", fg, this.fz(11));
   }
 
   // ── Interaction ───────────────────────────────────────────────────────────
@@ -1433,7 +1479,7 @@ export class Visual implements IVisual {
     const p = this._points.get(this._focusKey);
     if (!p) return;
     const name = p.name || p.bucket.labels.slice(0, 3).join(", ") || "Cell";
-    const value = p.value === null ? "no value" : this.formatValue(p.value, this._valuePercent);
+    const value = p.value === null ? "no value" : this.formatValue(p.value, this.fmtValor());
     this.container.setAttribute("aria-label", `${name}: ${value}, ${p.bucket.rowCount} rows`);
   }
 
@@ -1526,9 +1572,9 @@ export class Visual implements IVisual {
       const extra = b.labels.length > 3 ? ` (+${b.labels.length - 3} more)` : "";
       items.push({ displayName: "Location", value: b.labels.slice(0, 3).join(", ") + extra });
     }
-    items.push({ displayName: aggLabels[type] ?? "Value", value: p.value === null ? "No value" : this.formatValue(p.value, type !== "count" && this._valuePercent) });
+    items.push({ displayName: aggLabels[type] ?? "Value", value: p.value === null ? "No value" : this.formatValue(p.value, this.fmtValor()) });
     if (this._hasSize && b.sizes.length > 0) {
-      items.push({ displayName: "Size", value: this.formatValue(this.aggregate(b.sizes, this._sizeAggType), this._sizePercent) });
+      items.push({ displayName: "Size", value: this.formatValue(this.aggregate(b.sizes, this._sizeAggType), this._sizeFmt) });
     }
     if (this._hasCategory && b.cats.size > 0) {
       const main = this.majorityCategory(b);
@@ -1549,30 +1595,49 @@ export class Visual implements IVisual {
       items.push({ displayName: "Cell centre", value: `${lat.toFixed(2)}°, ${lng.toFixed(2)}°` });
     }
     b.tooltips.forEach((td, name) => {
-      const v = td.nums.length > 0 ? this.formatValue(this.aggregate(td.nums, td.aggType), td.percent) : td.firstText;
+      const v = td.nums.length > 0 ? this.formatValue(this.aggregate(td.nums, td.aggType), td.aggType === "count" ? null : td.fmt) : td.firstText;
       items.push({ displayName: name, value: v });
     });
     return items;
   }
 
   // ── Formatting helpers ────────────────────────────────────────────────────
-  private formatValue(v: number | null, percent: boolean): string {
+  /** Formato del valor de las teselas: el de la medida, salvo si la tesela cuenta filas (un recuento no es dinero). */
+  private fmtValor(): string | null | undefined {
+    return this.aggType() === "count" ? null : this._valueFmt;
+  }
+
+  /**
+   * FORMATO NATIVO (1.3, obligatorio en la cartera): la cadena de formato de la medida en el modelo y el idioma del
+   * informe, como los visuales nativos. Antes se miraba solo si llevaba "%" y se pintaba con K/M propios: se perdían
+   * moneda, separadores y decimales del modelo. Unidades automáticas (K, M, bn) salvo en porcentajes, que nunca se
+   * escalan (0,3 con Miles daba "0.03K%"). Los decimales del panel solo mandan si el usuario los tocó; si no, los del
+   * formato de la medida. fmt null: recuento, entero sin formato.
+   */
+  private formatValue(v: number | null, fmt: string | null | undefined): string {
     if (v === null || !Number.isFinite(v)) return "—";
+    const objs = (this._lastOptions?.dataViews?.[0]?.metadata?.objects ?? {}) as Record<string, Record<string, unknown> | undefined>;
+    const decTocado = objs.mapSettings?.tooltipDecimals !== undefined;
     const rawDec = Number(this.settings.mapSettings.tooltipDecimals.value);
     const dec = Number.isFinite(rawDec) ? Math.max(0, Math.min(6, Math.round(rawDec))) : 2;
-    const fmt = (x: number) => x.toLocaleString(this.locale, { maximumFractionDigits: dec, minimumFractionDigits: 0 });
-    if (percent) return fmt(v * 100) + "%";
-    const units: [number, string][] = [[1e9, "B"], [1e6, "M"], [1e3, "K"]];
-    const abs = Math.abs(v);
-    for (let i = 0; i < units.length; i++) {
-      const [div, suffix] = units[i];
-      if (abs >= div) return fmt(v / div) + suffix;
-      // 999,999.6 would print as "1000K": promote it to the next unit.
-      if (i < units.length - 1 && Math.abs(Number((v / units[i + 1][0]).toFixed(dec))) >= 1000) return fmt(v / div) + suffix;
+    const formato = fmt === null ? "#,0" : fmt;
+    const pct = esPorcentaje(formato);
+    const opts: Record<string, unknown> = { format: formato, cultureSelector: this.locale, displayUnitSystemType: 2 };
+    if (!pct && fmt !== null) opts.value = Math.abs(v);
+    if (decTocado && fmt !== null) {
+      opts.precision = dec;
+      if (opts.value === undefined) opts.value = 0;   // precision solo se aplica con value
     }
-    if (Math.abs(Number(v.toFixed(dec))) >= 1000) return fmt(v / 1e3) + "K";
-    return fmt(v);
+    const clave = JSON.stringify([opts.format, opts.precision, opts.value === undefined ? "-" : Math.floor(Math.log10(Math.max(1, opts.value as number)) / 3)]);
+    try {
+      let f = this.fmtCache.get(clave);
+      if (!f) { f = valueFormatter.create(opts as valueFormatter.ValueFormatterOptions); this.fmtCache.set(clave, f); }
+      return f.format(v);
+    } catch (_) {
+      return v.toLocaleString(this.locale, { maximumFractionDigits: dec });
+    }
   }
+  private fmtCache = new Map<string, valueFormatter.IValueFormatter>();
 
   private contrastColor(hex: string): string {
     const [r, g, b] = hexToRgb(hex);
