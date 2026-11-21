@@ -7,7 +7,6 @@ import { valueFormatter } from "powerbi-visuals-utils-formattingutils";
 import { VisualFormattingSettingsModel } from "./settings";
 import { COUNTRY_GRIDS, CountryGrid, locateCell, isInMask, MAX_SNAP_CELLS } from "./countryGrids";
 import {
-  FREE_STOPS,
   ColorStop,
   buildStopScale,
   categoricalColorFor,
@@ -107,6 +106,34 @@ function esPorcentaje(fmt: string | null | undefined): boolean {
   return !!fmt && /%/.test(fmt.replace(/"[^"]*"|\\./g, ""));
 }
 
+/**
+ * ESTILOS DE LA COLECCIÓN (1.3), con los mismos tokens que Waterfall, KPI Card o Bullet para que una página en
+ * Boardroom se lea como un solo informe. Para un mapa: rampa secuencial (lo → hi), divergente (down · mid · up),
+ * casillas sin dato, tinta de la leyenda, bordes y anillo de selección, y el fondo del visual.
+ */
+interface MapTokens { bg?: string; grad?: string; text: string; axis: string; grid: string; lo: string; hi: string;
+  down: string; mid: string; up: string; empty: string; ring: string; font?: string; }
+const PRO_STYLES = ["boardroom", "ledger", "editorial", "signal", "aurora", "terrace"];
+const STYLE_NAMES: Record<string, string> = { boardroom: "Boardroom", ledger: "Ledger", editorial: "Editorial",
+  signal: "Signal", aurora: "Aurora", terrace: "Terrace" };
+function mixHex(a: string, b: string, t: number): string {
+  return buildStopScale([{ value: 0, color: a }, { value: 1, color: b }])(t);
+}
+function estilo(bg: string, text: string, axis: string, grid: string, acento: string, down: string, up: string,
+                oscuro: boolean, extra: Partial<MapTokens> = {}): MapTokens {
+  return { bg, text, axis, grid, lo: mixHex(bg, acento, oscuro ? 0.32 : 0.14), hi: acento, down, up,
+    mid: mixHex(bg, text, oscuro ? 0.22 : 0.06), empty: mixHex(bg, text, oscuro ? 0.12 : 0.08), ring: text, ...extra };
+}
+const STYLE_TOKENS: Record<string, MapTokens> = {
+  boardroom: estilo("#16263D", "#F2F0E8", "#9FB0C6", "#2A3E5C", "#C9A45C", "#EB8A7B", "#6FCF97", true),
+  ledger:    estilo("#FBF8EF", "#231F16", "#6E6652", "#D9D2BE", "#2F6B3B", "#A32A2A", "#2F6B3B", false, { font: "Georgia, serif" }),
+  editorial: estilo("#FFFFFF", "#111111", "#5F5F5F", "#E2E2E2", "#111111", "#D7263D", "#111111", false, { font: "Georgia, serif" }),
+  signal:    estilo("#FFFFFF", "#14202B", "#566472", "#D9DEE4", "#1F5F8B", "#C0392B", "#1F7A4D", false),
+  aurora:    estilo("#10395E", "#FFFFFF", "#C5D3E3", "#3A5C7E", "#7CE7D0", "#FF9DB0", "#7CE7D0", true,
+                    { grad: "linear-gradient(135deg, #1B1147, #10395E 50%, #0B5A5E)" }),
+  terrace:   estilo("#FBF5EC", "#3A2A1E", "#7A6450", "#E5D6C2", "#5E7128", "#B5372A", "#5E7128", false),
+};
+
 export class Visual implements IVisual {
   private host!: IVisualHost;
   private selectionManager!: ISelectionManager;
@@ -165,6 +192,8 @@ export class Visual implements IVisual {
 
   // TopoJSON
   private _topoFeatures: TopoFeature[] | null = null;
+  private tk!: MapTokens;                 // tokens del estilo en vigor (1.3)
+  private tplVisto: string | null = null;  // última plantilla vista: al cambiarla se borran los colores que define
   private _topoSource = "";   // file name + length, part of the scan key
   private _topoError = "";
 
@@ -250,10 +279,6 @@ export class Visual implements IVisual {
   }
 
   /** Pro features the user is actually trying to use. */
-  /** Colores que da el tier gratuito. Tienen que coincidir con settings.ts. */
-  private static readonly COLORES_POR_DEFECTO: Record<string, string> = {
-    colorMin: "#d0e4f7", colorMid: "#f7f7f7", colorMax: "#1a5276",
-  };
 
   private attemptedProFeatures(dataView: DataView | undefined): { labels: string[]; signature: string; keys: Set<string> } {
     const labels: string[] = [];
@@ -263,16 +288,22 @@ export class Visual implements IVisual {
     const country = String(this.settings.mapSettings.country.value);
     const scale = String(this.settings.colorScale.scaleType.value);
 
+    const tplPedida = String((objs as Record<string, Record<string, unknown> | undefined>).style?.template ?? "classic");
+    if (PRO_STYLES.indexOf(tplPedida) >= 0) { labels.push(`the ${STYLE_NAMES[tplPedida]} style`); parts.push(`style=${tplPedida}`); keys.add("style"); }
     const custom = country === "custom";
     if (custom) { labels.push("custom TopoJSON regions"); parts.push("custom"); keys.add("custom"); }
     if (scale === "diverging" || scale === "categorical") { labels.push(`the ${scale} colour scale`); parts.push(scale); keys.add("scale"); }
     // Por VALOR, no por presencia: Power BI deja la propiedad escrita para siempre una vez
     // tocada, asi que mirar si existe dejaba la marca de agua puesta aunque el usuario
     // devolviera el color a su valor de origen.
+    // Por defecto ya no hay un color fijo: es el del estilo en vigor (1.3). Cuenta como color propio el que está
+    // guardado y es distinto del que pondría el estilo.
     const csAj = this.settings.colorScale;
+    const guardados = (objs as Record<string, Record<string, unknown> | undefined>).colorScale ?? {};
     const colours = (["colorMin", "colorMid", "colorMax"] as const).filter(p => {
+      if (guardados[p] === undefined) return false;
       const actual = String(csAj[p].value?.value ?? "").toLowerCase();
-      return actual !== "" && actual !== Visual.COLORES_POR_DEFECTO[p];
+      return actual !== "" && actual !== this.colorPorDefecto(p).toLowerCase();
     });
     if (colours.length) {
       labels.push("custom scale colours");
@@ -289,6 +320,74 @@ export class Visual implements IVisual {
       keys.add("rows");
     }
     return { labels, signature: parts.join("|"), keys };
+  }
+
+  /** Plantilla que se dibuja: un estilo Pro sin licencia (ni vista previa) se dibuja como Report theme. */
+  private plantillaEfectiva(dataView: DataView | undefined): string {
+    const pedida = String(((dataView?.metadata?.objects ?? {}) as Record<string, Record<string, unknown> | undefined>).style?.template ?? "classic");
+    if (PRO_STYLES.indexOf(pedida) < 0) return "classic";
+    return this.isPro || (this.proPreview && this.estiloIntentado(pedida)) ? pedida : "classic";
+  }
+  private estiloIntentado(t: string): boolean { return PRO_STYLES.indexOf(t) >= 0; }
+
+  /**
+   * "Report theme" (valor interno "classic"): la rampa sale del primer color de datos del tema del informe, la
+   * divergente de su sentimiento malo/bueno y la tinta de su gris secundario. Lo que el host no dé, los de siempre.
+   */
+  private tokensTema(): MapTokens {
+    const pal = this.host.colorPalette as unknown as Record<string, { value?: string } | undefined> & { getColor?: (k: string) => { value: string } };
+    const ok = (c?: string) => typeof c === "string" && /^#[0-9a-fA-F]{6}$/.test(c) ? c : undefined;
+    let hi: string | undefined;
+    try { hi = ok(pal.getColor?.("tgm-sequential")?.value); } catch (_) { hi = undefined; }
+    hi = hi ?? "#1A5276";
+    return { text: ok(pal.foreground?.value) ?? "#252423", axis: ok(pal.foregroundNeutralSecondary?.value) ?? "#555555",
+      grid: "#CCCCCC", lo: mixHex("#FFFFFF", hi, 0.15), hi, down: ok(pal.negative?.value) ?? "#C0392B", mid: "#F2F2F2",
+      up: ok(pal.positive?.value) ?? hi, empty: "#E8E8E8", ring: "#2980B9" };
+  }
+
+  /** Color que pone el estilo en vigor en una propiedad de la escala (la divergente usa down · mid · up). */
+  private colorPorDefecto(p: "colorMin" | "colorMid" | "colorMax"): string {
+    const div = String(this.settings.colorScale.scaleType.value) === "diverging";
+    return p === "colorMid" ? this.tk.mid : p === "colorMin" ? (div ? this.tk.down : this.tk.lo) : (div ? this.tk.up : this.tk.hi);
+  }
+
+  /**
+   * Pone los colores del estilo donde el autor no ha fijado nada, también en el panel, que así enseña los que se ven.
+   * Lo que el autor fija siempre gana.
+   */
+  private aplicarEstilo(dataView: DataView | undefined): void {
+    const tpl = this.plantillaEfectiva(dataView);
+    this.tk = tpl === "classic" ? this.tokensTema() : STYLE_TOKENS[tpl];
+    const objs = (dataView?.metadata?.objects ?? {}) as Record<string, Record<string, unknown> | undefined>;
+    const pon = (card: string, slice: { value: unknown }, prop: string, valor: string | undefined, color = true) => {
+      if (valor === undefined || objs[card]?.[prop] !== undefined) return;
+      slice.value = color ? { value: valor } : valor;
+    };
+    const cs = this.settings.colorScale, lg = this.settings.legend, ac = this.settings.accessibility;
+    pon("colorScale", cs.colorMin, "colorMin", this.colorPorDefecto("colorMin"));
+    pon("colorScale", cs.colorMid, "colorMid", this.colorPorDefecto("colorMid"));
+    pon("colorScale", cs.colorMax, "colorMax", this.colorPorDefecto("colorMax"));
+    pon("colorScale", cs.noDataColor, "noDataColor", this.tk.empty);
+    pon("legend", lg.fontColor, "fontColor", this.tk.axis);
+    pon("legend", lg.fontFamily, "fontFamily", this.tk.font, false);
+    pon("accessibility", ac.borderColor, "borderColor", this.tk.grid);
+    pon("accessibility", ac.selectedRingColor, "selectedRingColor", this.tk.ring);
+    // Fondo del visual: el del estilo (oscuro en Boardroom y Aurora); con Report theme, transparente como siempre.
+    this.container.style.background = this.isHCActivo() ? "" : (this.tk.grad ?? this.tk.bg ?? "");
+  }
+  private isHCActivo(): boolean { return !!this.host.colorPalette?.isHighContrast; }
+
+  /** Propiedades que define una plantilla: se borran al elegir otra para que se vea. */
+  private aplicarPlantilla(): void {
+    const quita = (objectName: string, props: string[]) => ({ objectName, selector: null as unknown as powerbi.data.Selector,
+      properties: props.reduce((acc: Record<string, null>, k) => { acc[k] = null; return acc; }, {}) });
+    try {
+      this.host.persistProperties({ remove: [
+        quita("colorScale", ["colorMin", "colorMid", "colorMax", "noDataColor"]),
+        quita("legend", ["fontColor", "fontFamily"]),
+        quita("accessibility", ["borderColor", "selectedRingColor"]),
+      ] } as unknown as powerbi.VisualObjectInstancesToPersist);
+    } catch (_) { /* best-effort */ }
   }
 
   /**
@@ -376,6 +475,13 @@ export class Visual implements IVisual {
   public update(options: VisualUpdateOptions): void {
     this.events.renderingStarted(options);
     try {
+      // Al ELEGIR una plantilla se borran los colores guardados que ella define, para que se vea. Aquí, en un update
+      // del host, nunca en un repintado ni en el callback de selección (persistProperties no puede salir de ahí).
+      const objsU = (options?.dataViews?.[0]?.metadata?.objects ?? {}) as Record<string, Record<string, unknown> | undefined>;
+      const tplU = String(objsU.style?.template ?? "classic");
+      const editando = (options as unknown as { viewMode?: number }).viewMode !== 0;
+      if (editando && this.tplVisto !== null && this.tplVisto !== tplU) this.aplicarPlantilla();
+      this.tplVisto = tplU;
       this.render(options);
       this.events.renderingFinished(options);
     } catch (e) {
@@ -416,6 +522,7 @@ export class Visual implements IVisual {
     {
       const dataView = options?.dataViews?.[0];
       this.settings = this.formattingService.populateFormattingSettingsModel(VisualFormattingSettingsModel, dataView);
+      this.aplicarEstilo(dataView);
 
       // Las claves se calculan ANTES de pintar: el render pregunta por ellas en cada
       // punto de bloqueo, asi que no pueden salir del aviso, que va despues.
@@ -644,8 +751,10 @@ export class Visual implements IVisual {
       };
     }
     if (!this.allow("scale") && !this.allow("colours")) {
-      const fn = buildStopScale(FREE_STOPS);
-      return { kind: "free", min, max, colorFor: v => fn(normalise(v, min, max)), opacityFor: () => 1, legendStops: FREE_STOPS };
+      // La rampa gratuita es la del estilo en vigor (Report theme por defecto); antes, un azul fijo.
+      const stops = [{ value: 0, color: this.tk.lo }, { value: 1, color: this.tk.hi }];
+      const fn = buildStopScale(stops);
+      return { kind: "free", min, max, colorFor: v => fn(normalise(v, min, max)), opacityFor: () => 1, legendStops: stops };
     }
     const cMin = cs.colorMin.value?.value ?? "#d0e4f7";
     const cMid = cs.colorMid.value?.value ?? "#f7f7f7";

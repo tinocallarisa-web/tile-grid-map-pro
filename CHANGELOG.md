@@ -9,7 +9,18 @@ This project follows the Power BI custom visual four-part versioning scheme
 
 ## [1.3.0.0] — unreleased
 
+### Added
+- **Style template**, the first card of the format pane, as in the rest of the TCViz collection. *Report theme* (the
+  default) takes the colour ramp from the first data colour of the report theme, the diverging ends from its good/bad
+  sentiment colours and the legend ink from its secondary text colour. Six collection styles (Pro): Boardroom, Ledger,
+  Editorial, Signal, Aurora and Terrace, each with its own ramp, empty-tile colour, legend ink and font, tile borders,
+  selection ring and visual background (dark in Boardroom and Aurora). A colour you set yourself still wins, and
+  choosing a style clears the saved colours it defines. Without a licence, choosing one draws it under the Pro preview
+  watermark; reading view shows Report theme.
+
 ### Changed
+- **The free colour ramp follows the report theme** instead of a fixed blue, also in published reports that never set
+  a colour.
 - **Numbers use your model's format and the report language.** Tiles, legend, colour-rule legend and tooltips now
   show each measure with its own format string (currency, percentage, decimals) and the report's locale, like the
   built-in visuals, with automatic units (K, M, bn). Percentages are never scaled. *Decimal Places* in Map Settings

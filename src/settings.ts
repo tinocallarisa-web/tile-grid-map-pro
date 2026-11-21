@@ -4,6 +4,23 @@ const { AutoDropdown, ToggleSwitch, NumUpDown, ColorPicker } = formattingSetting
 type SimpleSlice = formattingSettings.SimpleSlice;
 type FormattingSettingsCard = formattingSettings.SimpleCard;
 
+// ─── Style template (1.3) ─────────────────────────────────────────────────────
+// Siempre la primera tarjeta (estándar del panel de la cartera). "classic" es el valor interno de Report theme.
+export class StyleCard extends formattingSettings.SimpleCard {
+  name = "style";
+  displayName = "Style template";
+  displayNameKey = "Visual_Style";
+
+  template = new AutoDropdown({
+    name: "template",
+    displayName: "Template",
+    displayNameKey: "Visual_Template",
+    value: "classic",
+  });
+
+  slices: SimpleSlice[] = [this.template];
+}
+
 // ─── Map Settings Card ────────────────────────────────────────────────────────
 export class MapSettingsCard extends formattingSettings.SimpleCard {
   name = "mapSettings";
@@ -314,6 +331,7 @@ export class ConditionalFormattingCard extends formattingSettings.SimpleCard {
 // The persisted TopoJSON lives in the "proSettings" object (capabilities.json). It has
 // no card: it is set by dropping a file on the visual, never typed in the pane.
 export class VisualFormattingSettingsModel extends formattingSettings.Model {
+  style                 = new StyleCard();
   mapSettings           = new MapSettingsCard();
   colorScale            = new ColorScaleCard();
   conditionalFormatting = new ConditionalFormattingCard();
@@ -321,6 +339,7 @@ export class VisualFormattingSettingsModel extends formattingSettings.Model {
   legend                = new LegendCard();
 
   cards: FormattingSettingsCard[] = [
+    this.style,
     this.mapSettings,
     this.colorScale,
     this.conditionalFormatting,

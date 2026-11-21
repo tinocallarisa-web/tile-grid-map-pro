@@ -98,5 +98,8 @@
   "Visual_Top": "Arriba",
   "Visual_UK": "Reino Unido",
   "Visual_USA": "Estados Unidos",
-  "Visual_Value": "Valor"
+  "Visual_Value": "Valor",
+  "Visual_Style": "Plantilla de estilo",
+  "Visual_Template": "Plantilla",
+  "Enum_reportTheme": "Tema del informe"
 }

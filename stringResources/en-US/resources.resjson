@@ -98,5 +98,8 @@
   "Visual_Top": "Top",
   "Visual_UK": "United Kingdom",
   "Visual_USA": "United States",
-  "Visual_Value": "Value"
+  "Visual_Value": "Value",
+  "Visual_Style": "Style template",
+  "Visual_Template": "Template",
+  "Enum_reportTheme": "Report theme"
 }

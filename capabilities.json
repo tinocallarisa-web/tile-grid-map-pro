@@ -119,6 +119,23 @@
     }
   ],
   "objects": {
+    "style": {
+      "properties": {
+        "template": {
+          "type": {
+            "enumeration": [
+              { "value": "classic", "displayName": "Report theme", "displayNameKey": "Enum_reportTheme" },
+              { "value": "boardroom", "displayName": "Boardroom" },
+              { "value": "ledger", "displayName": "Ledger" },
+              { "value": "editorial", "displayName": "Editorial" },
+              { "value": "signal", "displayName": "Signal" },
+              { "value": "aurora", "displayName": "Aurora" },
+              { "value": "terrace", "displayName": "Terrace" }
+            ]
+          }
+        }
+      }
+    },
     "mapSettings": {
       "properties": {
         "country": {

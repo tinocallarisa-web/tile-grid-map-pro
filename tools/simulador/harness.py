@@ -136,6 +136,24 @@ async def main():
         check("Idioma del informe (es-ES): coma decimal", "," in tip and tip.strip().endswith(("K", "50", "5")) or "," in tip, tip)
         await pg.close()
 
+        print("Estilos de la colección (build Pro): fondo, leyenda y rampa; lo que fija el autor gana")
+        for tpl in ("classic", "boardroom", "ledger", "editorial", "signal", "aurora", "terrace"):
+            pg = await page(b, dv(objects={"style": {"template": tpl}}), 470, 380, name=f"06_estilo_{tpl}")
+            r = await pg.evaluate("""() => ({ fondo: getComputedStyle(document.getElementById('host')).backgroundImage + ' ' + getComputedStyle(document.getElementById('host')).backgroundColor,
+                leyenda: Array.from(document.querySelectorAll('svg text')).filter(e => !e.closest('.tgm-watermark')).map(e => e.getAttribute('fill'))[0],
+                teselas: [...new Set(Array.from(document.querySelectorAll('[data-key]')).map(e => e.getAttribute('fill')))].length })""")
+            oscuro = tpl in ("boardroom", "aurora")
+            check(f"Estilo {tpl}: se dibuja sin errores", not pg.__errs and r["teselas"] > 2, f"{r} {pg.__errs[:1]}")
+            if tpl == "classic":
+                check("Report theme: sin fondo propio (transparente)", "rgba(0, 0, 0, 0)" in r["fondo"] and "none" in r["fondo"], r["fondo"])
+            if oscuro:
+                check(f"Estilo {tpl}: fondo oscuro del estilo", "rgb(22, 38, 61)" in r["fondo"] or "gradient" in r["fondo"], r["fondo"])
+            await pg.close()
+        pg = await page(b, dv(objects={"style": {"template": "boardroom"}, "legend": {"fontColor": {"solid": {"color": "#FF0000"}}}}), 470, 380)
+        r = await pg.evaluate("() => Array.from(document.querySelectorAll('svg text')).filter(e => !e.closest('.tgm-watermark')).map(e => e.getAttribute('fill'))")
+        check("Un color que fija el autor gana al estilo", "#FF0000" in r, str(r[:3]))
+        await pg.close()
+
         print("Sin datos: pantalla de inicio que encoge sin bajar de 8 px")
         for (W, H) in ((300, 200), (900, 500)):
             pg = await page(b, {"metadata": {"columns": []}}, W, H, name=f"05_inicio_{W}x{H}")
