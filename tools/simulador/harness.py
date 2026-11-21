@@ -154,6 +154,25 @@ async def main():
         check("Un color que fija el autor gana al estilo", "#FF0000" in r, str(r[:3]))
         await pg.close()
 
+        guid = json.load(io.open(os.path.join(DROP, "pbiviz.json"), encoding="utf-8"))["visual"]["guid"]
+        if guid.endswith("_testfree"):
+            print("Build Free: marca de agua común (src/comun) solo con una función Pro en uso, editando")
+            WM = "() => { const w = document.querySelector('.tcviz-wm'); return w ? { ver: getComputedStyle(w).display !== 'none', texto: w.textContent } : null; }"
+            pg = await page(b, dv(objects={"style": {"template": "terrace"}}), 470, 380, name="07_marca_terrace")
+            await pg.wait_for_timeout(200)
+            r = await pg.evaluate(WM)
+            check("Estilo Pro sin licencia: marca común visible y nombra el estilo", bool(r) and r["ver"] and "Pro preview" in r["texto"] and "Terrace" in r["texto"], str(r))
+            await pg.close()
+            pg = await page(b, dv(), 470, 380)
+            r = await pg.evaluate(WM)
+            check("Report theme (gratis): sin marca de agua", bool(r) and not r["ver"], str(r))
+            await pg.close()
+            pg = await page(b, dv(objects={"style": {"template": "terrace"}}), 470, 380)
+            await pg.evaluate("() => __v.update({ dataViews: [__v._lastOptions.dataViews[0]], viewport: {width: 470, height: 380}, type: 2, viewMode: 0 })")
+            r = await pg.evaluate(WM)
+            check("Vista de lectura: sin marca de agua", bool(r) and not r["ver"], str(r))
+            await pg.close()
+
         print("Sin datos: pantalla de inicio que encoge sin bajar de 8 px")
         for (W, H) in ((300, 200), (900, 500)):
             pg = await page(b, {"metadata": {"columns": []}}, W, H, name=f"05_inicio_{W}x{H}")

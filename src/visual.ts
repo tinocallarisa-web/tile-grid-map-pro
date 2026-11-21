@@ -1,8 +1,10 @@
 "use strict";
+import "./../style/visual.less";
 
 import powerbi from "powerbi-visuals-api";
 import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
 import { valueFormatter } from "powerbi-visuals-utils-formattingutils";
+import { createProWatermark, renderProWatermark } from "./comun/watermark";
 
 import { VisualFormattingSettingsModel } from "./settings";
 import { COUNTRY_GRIDS, CountryGrid, locateCell, isInMask, MAX_SNAP_CELLS } from "./countryGrids";
@@ -192,6 +194,7 @@ export class Visual implements IVisual {
 
   // TopoJSON
   private _topoFeatures: TopoFeature[] | null = null;
+  private wm!: HTMLDivElement;           // marca de agua común (1.3)
   private tk!: MapTokens;                 // tokens del estilo en vigor (1.3)
   private tplVisto: string | null = null;  // última plantilla vista: al cambiarla se borran los colores que define
   private _topoSource = "";   // file name + length, part of the scan key
@@ -228,6 +231,7 @@ export class Visual implements IVisual {
     this.svg.style.height  = "100%";
     this.svg.style.display = "block";
     this.container.appendChild(this.svg);
+    this.wm = createProWatermark(this.container);
 
     this.bindPointerEvents();
     this.bindKeyboard();
@@ -1372,58 +1376,16 @@ export class Visual implements IVisual {
   }
 
   /**
-   * "Pro preview" sobre el lienzo, y debajo las funciones que lo han encendido.
-   *
-   * Solo mientras se edita sin licencia y con alguna funcion Pro activa: en vista de
-   * lectura no se dibuja, porque ahi tampoco se dibuja la funcion. Blanco con contorno
-   * oscuro -SVG no tiene text-shadow, se hace con stroke y paint-order- para que se lea
-   * igual sobre teselas claras y oscuras. Todo con createElementNS y textContent, nunca
-   * innerHTML.
+   * "Pro preview" sobre el lienzo y las funciones que lo han encendido: la PIEZA COMÚN de la cartera (src/comun, 1.3),
+   * la misma en todos los visuales. Antes era un SVG propio girado, hueco y grande que tapaba el mapa. Solo editando
+   * sin licencia y con alguna función Pro en uso; nunca sobre la pantalla de inicio.
    */
   private renderWatermark(vp: powerbi.IViewport): void {
-    if (!this.proPreview || this.attemptedLabels.length === 0) return;
-    // Nunca sobre la pagina de bienvenida: ahi no se esta dibujando ninguna funcion Pro,
-    // asi que no hay nada que marcar.
-    if (!this._lastOptions?.dataViews?.[0]?.table) return;
-
-    const cx = vp.width / 2, cy = vp.height / 2;
-    const fs = Math.round(Math.max(24, Math.min(88, vp.width / 7.5, vp.height / 3.5)));
-    const NS = "http://www.w3.org/2000/svg";
-
-    const g = document.createElementNS(NS, "g");
-    g.setAttribute("class", "tgm-watermark");
-    g.setAttribute("transform", `rotate(-20 ${cx} ${cy})`);
-    g.setAttribute("aria-hidden", "true");
-    g.setAttribute("opacity", "0.72");
-    g.style.pointerEvents = "none";
-
-    const linea = (texto: string, y: number, size: number, peso: string) => {
-      const el = document.createElementNS(NS, "text");
-      el.setAttribute("x", String(cx));
-      el.setAttribute("y", String(y));
-      el.setAttribute("text-anchor", "middle");
-      el.setAttribute("dominant-baseline", "middle");
-      el.setAttribute("font-family", "'Segoe UI', sans-serif");
-      el.setAttribute("font-size", String(size));
-      el.setAttribute("font-weight", peso);
-      el.setAttribute("letter-spacing", "0.06em");
-      el.setAttribute("fill", "#FFFFFF");
-      el.setAttribute("stroke", "#1B2A41");
-      el.setAttribute("stroke-width", String(Math.max(2, size / 14)));
-      el.setAttribute("paint-order", "stroke");
-      el.textContent = texto;
-      g.appendChild(el);
-    };
-
-    // Con mas de dos, la lista tapa el mapa que se quiere ensenar.
-    const etiquetas = this.attemptedLabels.length <= 2
-      ? this.attemptedLabels
-      : this.attemptedLabels.slice(0, 2).concat([`+${this.attemptedLabels.length - 2}`]);
-
-    linea("Pro preview", cy - fs * 0.22, fs, "700");
-    linea(etiquetas.join(" \u00b7 "), cy + fs * 0.45, Math.round(fs * 0.32), "600");
-
-    this.svg.appendChild(g);
+    const ver = this.proPreview && this.attemptedLabels.length > 0 && !!this._lastOptions?.dataViews?.[0]?.table;
+    renderProWatermark(this.wm, ver ? {
+      width: vp.width, height: vp.height, title: "Pro preview", features: this.attemptedLabels,
+      highContrast: this.isHC ? { foreground: this.hcFg, background: this.hcBg } : null,
+    } : null);
   }
 
   private renderStatus(vp: powerbi.IViewport, lines: string[]): void {

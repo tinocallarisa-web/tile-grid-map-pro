@@ -18,6 +18,9 @@ This project follows the Power BI custom visual four-part versioning scheme
   choosing a style clears the saved colours it defines. Without a licence, choosing one draws it under the Pro preview
   watermark; reading view shows Report theme.
 
+- **The Pro preview watermark is the one of the whole TCViz collection**: a centred notice with a light band that
+  names the Pro features in use, instead of a large rotated outline over the map.
+
 ### Changed
 - **The free colour ramp follows the report theme** instead of a fixed blue, also in published reports that never set
   a colour.
@@ -32,6 +35,8 @@ This project follows the Power BI custom visual four-part versioning scheme
   drawn. The default label size is now 8 px.
 
 ### Fixed
+- The visual's stylesheet was never packaged (it imported a file that no longer exists in the Power BI API), so the
+  package shipped without CSS. It did not show because everything else is styled inline.
 - Resolving the licence or dropping a TopoJSON file repainted the visual through a second update, which sent Power BI
   an extra rendering event. Each update now reports exactly one start and one finish.
 
