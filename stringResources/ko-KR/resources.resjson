@@ -164,5 +164,6 @@
   "UI_TtTarget": "목표",
   "UI_TtVariance": "목표 대비 차이",
   "UI_Blank": "(비어 있음)",
-  "UI_Other": "기타"
+  "UI_Other": "기타",
+  "Visual_Desc_Category": "범주형 색 눈금(Pro)에 쓰는 그룹: 각 타일은 행이 가장 많은 범주를 사용합니다"
 }

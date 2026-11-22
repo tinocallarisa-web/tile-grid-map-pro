@@ -267,6 +267,11 @@ async def main():
         r = await pg.evaluate(OP)
         check("Sin resaltado: ninguna atenuada", r["tenues"] == 0, str(r))
         await pg.close()
+        d["categorical"]["values"][0]["highlights"] = [None] * len(d["table"]["rows"])
+        pg = await page(b, d, 760, 440)
+        r = await pg.evaluate(OP)
+        check("Resaltado sin ninguna coincidencia en el mapa: todo atenuado", r["plenas"] == 0 and r["tenues"] > 10, str(r))
+        await pg.close()
 
         print("Bordes: el grosor elegido es un máximo; en teselas pequeñas adelgaza")
         pg = await page(b, dv(objects={"mapSettings": {"tileShape": "hexagon"}, "accessibility": {"showBorders": True, "borderWidth": 0.5}}), 220, 160)

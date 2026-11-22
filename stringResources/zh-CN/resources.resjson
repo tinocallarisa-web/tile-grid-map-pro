@@ -164,5 +164,6 @@
   "UI_TtTarget": "目标",
   "UI_TtVariance": "与目标的差异",
   "UI_Blank": "(空白)",
-  "UI_Other": "其他"
+  "UI_Other": "其他",
+  "Visual_Desc_Category": "分类色阶 (Pro) 使用的分组：每个图块取行数最多的类别"
 }

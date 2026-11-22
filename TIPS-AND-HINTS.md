@@ -39,7 +39,7 @@ Notes under the map tell you how many rows were not shown and why.
 | Field well | What it does |
 |---|---|
 | Latitude / Longitude | Required. Decimal degrees, WGS84. |
-| Value | Number that colours each tile. Needed for highlighting and Target. |
+| Value | Number that colours each tile. Needed for Target. |
 | Size (Pro) | Second measure: bigger value, bigger tile. Not used with Custom TopoJSON. |
 | Target (Pro) | Budget or plan: each tile is coloured by its variance against it. |
 | Tooltips | Up to 10 extra fields on hover. Report page tooltips work too. |

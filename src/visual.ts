@@ -775,20 +775,19 @@ export class Visual implements IVisual {
    */
   private filasResaltadas(dataView: DataView): Set<string> | null {
     const cat = dataView.categorical;
-    const vals = cat?.values?.[0];
-    const hl = vals?.highlights;
-    if (!cat?.categories?.length || !hl) return null;
+    // Cualquier medida trae los resaltados (Value, Size, Target, Tooltips): sin Value el mapa también reacciona.
+    const hls = (cat?.values ?? []).map(v => v.highlights).filter((h): h is powerbi.PrimitiveValue[] => !!h);
+    if (!cat?.categories?.length || hls.length === 0) return null;
     const porRol = (rol: string) => cat.categories!.find(c => c.source.roles?.[rol]);
     const cols = ["latitude", "longitude", "label", "category"].map(porRol);
     const n = cat.categories[0].values.length;
     const out = new Set<string>();
-    let alguna = false;
     for (let i = 0; i < n; i++) {
-      if (hl[i] === null || hl[i] === undefined) continue;
-      alguna = true;
+      if (!hls.some(h => h[i] !== null && h[i] !== undefined)) continue;
       out.add(cols.map(c => c ? String(c.values[i] ?? "") : "").join("|"));
     }
-    return alguna ? out : null;
+    // Un resaltado que no coincide con ninguna fila del mapa lo atenúa entero (antes salía todo a color).
+    return out;
   }
 
   /** Aggregation implied by the field well ("Sum of", "Average of", …). */
@@ -1791,7 +1790,7 @@ export class Visual implements IVisual {
 
     let lastKey = "";
     this.svg.addEventListener("mousemove", (e: MouseEvent) => {
-      const p = this._points.get(this.keyFromEvent(e));
+      const p = this.formatMode ? undefined : this._points.get(this.keyFromEvent(e));   // en modo formato, sin tooltip
       if (!p) {
         if (lastKey) { this.tooltipSvc.hide({ immediately: false, isTouchEvent: false }); lastKey = ""; }
         return;
@@ -1874,7 +1873,7 @@ export class Visual implements IVisual {
 
   private bindDrop(): void {
     const canDrop = () => this.allow("custom") && String(this.settings.mapSettings.country.value) === "custom"
-      && this.host.hostCapabilities.allowInteractions;
+      && this.host.hostCapabilities.allowInteractions && !this.formatMode;
     this.container.addEventListener("dragover", (e: DragEvent) => {
       if (!canDrop()) return;
       e.preventDefault();

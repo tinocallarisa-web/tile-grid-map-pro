@@ -164,5 +164,6 @@
   "UI_TtTarget": "Doel",
   "UI_TtVariance": "Afwijking van doel",
   "UI_Blank": "(Leeg)",
-  "UI_Other": "Overig"
+  "UI_Other": "Overig",
+  "Visual_Desc_Category": "Groep voor de categorische kleurenschaal (Pro): elke tegel krijgt de categorie met de meeste rijen"
 }

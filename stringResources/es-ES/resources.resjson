@@ -164,5 +164,6 @@
   "UI_TtTarget": "Objetivo",
   "UI_TtVariance": "Desviación respecto al objetivo",
   "UI_Blank": "(En blanco)",
-  "UI_Other": "Otros"
+  "UI_Other": "Otros",
+  "Visual_Desc_Category": "Grupo usado por la escala de color Categórica (Pro): cada tesela toma la categoría con más filas"
 }

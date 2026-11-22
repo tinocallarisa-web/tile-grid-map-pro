@@ -46,7 +46,7 @@
       "name": "category",
       "kind": "Grouping",
       "displayName": "Category", "displayNameKey": "Visual_Category",
-      "description": "Group used by the Categorical colour scale (Pro): each tile takes the category with most rows"
+      "description": "Group used by the Categorical colour scale (Pro): each tile takes the category with most rows", "descriptionKey": "Visual_Desc_Category"
     }
   ],
   "dataViewMappings": [
@@ -142,7 +142,10 @@
         },
         "values": {
           "select": [
-            { "bind": { "to": "value" } }
+            { "bind": { "to": "value" } },
+            { "bind": { "to": "size" } },
+            { "bind": { "to": "target" } },
+            { "bind": { "to": "tooltips" } }
           ]
         }
       }

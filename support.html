@@ -271,8 +271,8 @@
         click the background, to clear.</li>
     <li>Ctrl+click adds or removes tiles. Right-click opens the Power BI context menu.</li>
     <li><strong>Highlighting:</strong> click a bar or a slice in another visual and the map keeps every tile in place,
-        showing the matching ones in full colour and dimming the rest, like the built-in visuals. It needs a field in
-        <em>Value</em>.</li>
+        showing the matching ones in full colour and dimming the rest, like the built-in visuals. It needs a measure in
+        Value, Size, Target or Tooltips. A highlight that matches no tile dims the whole map.</li>
     <li>Keyboard: arrow keys move focus, Enter / Space select, Ctrl+Enter adds to the selection,
         Esc clears, Shift+F10 or the context-menu key opens the context menu.</li>
     <li>Selections from bookmarks and other visuals are shown on the tiles.</li>
@@ -331,7 +331,7 @@
     <tr><th>Field well</th><th>Required</th><th>Max</th><th>Description</th></tr>
     <tr><td><strong>Latitude</strong></td><td>Yes</td><td>1</td><td>Decimal degrees</td></tr>
     <tr><td><strong>Longitude</strong></td><td>Yes</td><td>1</td><td>Decimal degrees</td></tr>
-    <tr><td><strong>Value</strong></td><td>Recommended</td><td>1</td><td>Numeric value used for colouring. Needed for highlighting and Target.</td></tr>
+    <tr><td><strong>Value</strong></td><td>Recommended</td><td>1</td><td>Numeric value used for colouring. Needed for Target.</td></tr>
     <tr><td><strong>Size</strong> <span class="badge">Pro</span></td><td>No</td><td>1</td><td>Second measure that scales each tile's area (colour = Value, size = Size). Shown in the tooltip. Not applied in Custom TopoJSON mode.</td></tr>
     <tr><td><strong>Target</strong> <span class="badge">Pro</span></td><td>No</td><td>1</td><td>Target measure: each tile is coloured by its variance against it.</td></tr>
     <tr><td><strong>Tooltips</strong></td><td>No</td><td>10</td><td>Extra fields shown on hover</td></tr>

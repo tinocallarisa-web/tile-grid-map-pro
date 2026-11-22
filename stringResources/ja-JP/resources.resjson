@@ -164,5 +164,6 @@
   "UI_TtTarget": "目標",
   "UI_TtVariance": "目標との差異",
   "UI_Blank": "(空白)",
-  "UI_Other": "その他"
+  "UI_Other": "その他",
+  "Visual_Desc_Category": "カテゴリ別カラー スケール (Pro) で使うグループ: 各タイルは行が最も多いカテゴリになります"
 }

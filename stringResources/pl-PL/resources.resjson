@@ -164,5 +164,6 @@
   "UI_TtTarget": "Cel",
   "UI_TtVariance": "Odchylenie od celu",
   "UI_Blank": "(Puste)",
-  "UI_Other": "Inne"
+  "UI_Other": "Inne",
+  "Visual_Desc_Category": "Grupa dla kategorycznej skali kolorów (Pro): każdy kafelek przyjmuje kategorię z największą liczbą wierszy"
 }

@@ -1,8 +1,8 @@
 # Certification Notes — Tile Grid Map Pro
 
-> Copiar el bloque de abajo en el campo **Notes for certification** de Partner Center.
-> Ese campo se borra en cada reenvío — por eso está guardado aquí.
-> Si el campo tiene límite de caracteres, usar `docs/CERTIFICATION-NOTES-SHORT.txt`.
+> **Lo que se pega en Partner Center es `docs/CERTIFICATION-NOTES-SHORT.txt`** (límite 2.500 caracteres contando CRLF;
+> el bloque de abajo pasa de 11.000 y se cortaría). Este fichero es la versión larga, de referencia.
+> El campo se borra en cada reenvío: hay que volver a pegarlo.
 
 **Visual GUID:** `tileGridMapProTCViz1234567890`
 **Version:** 1.3.0.0
@@ -48,8 +48,9 @@ collection styles (Pro). A colour set by the author always wins.
 
 5. HIGHLIGHT. supportsHighlight: true. The mapping declares both table (used to
 build the map) and categorical (latitude, longitude, label, category; value).
-Highlighted rows are read from categorical.values[0].highlights and matched to
-table rows by their grouping values, not by position.
+Highlighted rows are read from the highlights of any measure in categorical
+(Value, Size, Target or Tooltips) and matched to table rows by their grouping
+values, not by position. A highlight that matches no row dims the whole map.
 
 6. ON-OBJECT FORMATTING. supportsOnObjectFormatting and
 enablePointerEventsFormatMode, with powerbi-visuals-utils-onobjectutils
@@ -168,7 +169,9 @@ CERTIFICATION REQUIREMENTS
 - Keyboard: arrows move focus, Enter/Space select, Ctrl+Enter multi-select,
   Esc clears.
 - Bookmarks and external selections are reflected on the tiles.
-- No innerHTML, no eval, no external scripts at runtime. ESLint with
+- No innerHTML in the visual's own code (the bundle contains d3-selection's
+  .html() through powerbi-visuals-utils-onobjectutils), no eval, no external
+  scripts at runtime. ESLint with
   eslint-plugin-powerbi-visuals is clean.
 
 ------------------------------------------------------------------

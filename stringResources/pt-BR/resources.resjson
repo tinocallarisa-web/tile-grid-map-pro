@@ -164,5 +164,6 @@
   "UI_TtTarget": "Meta",
   "UI_TtVariance": "Desvio da meta",
   "UI_Blank": "(Em branco)",
-  "UI_Other": "Outros"
+  "UI_Other": "Outros",
+  "Visual_Desc_Category": "Grupo usado pela escala de cores Categórica (Pro): cada bloco assume a categoria com mais linhas"
 }

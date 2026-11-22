@@ -164,5 +164,6 @@
   "UI_TtTarget": "Obiettivo",
   "UI_TtVariance": "Scostamento dall'obiettivo",
   "UI_Blank": "(Vuoto)",
-  "UI_Other": "Altro"
+  "UI_Other": "Altro",
+  "Visual_Desc_Category": "Gruppo usato dalla scala di colori categorica (Pro): ogni tessera prende la categoria con più righe"
 }

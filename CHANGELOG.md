@@ -7,7 +7,7 @@ This project follows the Power BI custom visual four-part versioning scheme
 
 ---
 
-## [1.3.0.0] — unreleased
+## [1.3.0.0] — 2026-11-22
 
 ### Added
 - **Style template**, the first card of the format pane, as in the rest of the TCViz collection. *Report theme* (the
@@ -39,7 +39,8 @@ This project follows the Power BI custom visual four-part versioning scheme
 
 - **Highlighting from other visuals.** Click a bar or a slice in another visual and the map keeps every tile in
   place, showing the matching ones in full colour and dimming the rest, like the built-in visuals, instead of
-  filtering the map down. Needs a field in *Value*.
+  filtering the map down. Needs a measure in Value, Size, Target or Tooltips; a highlight that matches no tile dims
+  the whole map.
 
 - **On-object formatting.** With *On-object interaction* on in Power BI Desktop, select the tiles, the tile labels or
   the legend on the canvas and format them there: tile shape, labels, empty tiles and borders, empty-tile and border

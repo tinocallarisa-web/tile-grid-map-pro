@@ -164,5 +164,6 @@
   "UI_TtTarget": "Ziel",
   "UI_TtVariance": "Abweichung vom Ziel",
   "UI_Blank": "(Leer)",
-  "UI_Other": "Sonstige"
+  "UI_Other": "Sonstige",
+  "Visual_Desc_Category": "Gruppe für die kategorische Farbskala (Pro): jede Kachel übernimmt die häufigste Kategorie"
 }

@@ -164,5 +164,6 @@
   "UI_TtTarget": "Target",
   "UI_TtVariance": "Variance vs target",
   "UI_Blank": "(Blank)",
-  "UI_Other": "Other"
+  "UI_Other": "Other",
+  "Visual_Desc_Category": "Group used by the Categorical colour scale (Pro): each tile takes the category with most rows"
 }

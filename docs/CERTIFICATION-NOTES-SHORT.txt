@@ -7,13 +7,13 @@ WHAT CHANGED IN 1.3.0.0
    Map only: no filter, not persisted.
 2. Target role (Pro): tile colour = (Value-Target)/|Target|, symmetric diverging scale.
 3. Label Content: value, name, or name and value. Style template: Report theme + 6 Pro.
-4. supportsHighlight: table + categorical in one mapping; highlights from categorical.
+4. supportsHighlight: table + categorical in one mapping.
 5. On-object formatting (onobjectutils): tiles, labels, legend. In format mode a click
    selects what to format and never filters.
 6. 12 languages; on-canvas text also in the bundle.
 7. Model format strings. Fixed: internal repaints sent extra rendering events; now
    exactly one start/finish per update.
-8. ESLint 10, tools 7.2.1, API 5.11.1, npm audit 0.
+8. ESLint 10, tools 7.2.1, API 5.11.1, audit 0.
 
 TESTING FREE (no licence)
 1. Sample .pbix: Latitude, Longitude, Value (Label, Tooltips, Category optional).
@@ -30,7 +30,7 @@ All rows up to 30,000; Pro options apply with no notice; Custom TopoJSON: drop a
 (lon/lat WGS84, max 5 MB), it renders and persists on reopen.
 
 PRIVACY: no network calls, telemetry or storage. privileges []. TopoJSON only by drag &
-drop (FileReader). No innerHTML. Interactions gated on hostCapabilities.allowInteractions.
+drop (FileReader). No innerHTML in own code. Interactions gated on hostCapabilities.allowInteractions.
 
 LICENSING: getAvailableServicePlans. Pro when spIdentifier (full Service ID) ends with
 ".tile-grid-map-pro-tcviz" and state is Active or Warning. isLicenseUnsupportedEnv and

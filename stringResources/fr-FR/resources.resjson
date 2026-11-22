@@ -164,5 +164,6 @@
   "UI_TtTarget": "Objectif",
   "UI_TtVariance": "Écart à l'objectif",
   "UI_Blank": "(Vide)",
-  "UI_Other": "Autres"
+  "UI_Other": "Autres",
+  "Visual_Desc_Category": "Groupe utilisé par l'échelle de couleurs catégorielle (Pro) : chaque tuile prend la catégorie la plus fréquente"
 }

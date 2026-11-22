@@ -57,7 +57,9 @@ def main():
     pb = json.load(io.open(pj, encoding="utf-8"))
     pb["stringResources"] = [f"stringResources/{lg}/resources.resjson" for lg in TODOS]
     io.open(pj, "w", encoding="utf-8", newline="\n").write(json.dumps(pb, indent=2, ensure_ascii=False) + "\n")
-    runtime = sorted(k for k in en if k in rt and f'"{k}"' not in caps)
+    # Al bundle: lo que pasa por t()/tf() y cualquier clave citada en el código (menús del formato sobre el lienzo, que
+    # llaman a t() con la clave en una variable) que Desktop no resolvería por no estar en capabilities.json.
+    runtime = sorted(k for k in en if (k in rt or f'"{k}"' in src) and f'"{k}"' not in caps)
     tabla = {lg: {k: out[lg][k] for k in runtime if out[lg].get(k) and out[lg][k] != en[k]} for lg in TODOS if lg != "en-US"}
     ts = ["/**",
           " * Textos que escribe el propio visual, por idioma. Power BI Desktop solo traduce con getDisplayName las claves",
