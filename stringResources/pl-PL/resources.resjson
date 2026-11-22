@@ -162,5 +162,7 @@
   "UI_RangeSummary": "{0} z {1} kafelków w zakresie · {2} sumy",
   "UI_RangeSummaryN": "{0} z {1} kafelków w zakresie",
   "UI_TtTarget": "Cel",
-  "UI_TtVariance": "Odchylenie od celu"
+  "UI_TtVariance": "Odchylenie od celu",
+  "UI_Blank": "(Puste)",
+  "UI_Other": "Inne"
 }

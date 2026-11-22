@@ -162,5 +162,7 @@
   "UI_RangeSummary": "{0} tuiles sur {1} dans la plage · {2} du total",
   "UI_RangeSummaryN": "{0} tuiles sur {1} dans la plage",
   "UI_TtTarget": "Objectif",
-  "UI_TtVariance": "Écart à l'objectif"
+  "UI_TtVariance": "Écart à l'objectif",
+  "UI_Blank": "(Vide)",
+  "UI_Other": "Autres"
 }

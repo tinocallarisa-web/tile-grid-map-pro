@@ -162,5 +162,7 @@
   "UI_RangeSummary": "{0} di {1} tessere nell'intervallo · {2} del totale",
   "UI_RangeSummaryN": "{0} di {1} tessere nell'intervallo",
   "UI_TtTarget": "Obiettivo",
-  "UI_TtVariance": "Scostamento dall'obiettivo"
+  "UI_TtVariance": "Scostamento dall'obiettivo",
+  "UI_Blank": "(Vuoto)",
+  "UI_Other": "Altro"
 }

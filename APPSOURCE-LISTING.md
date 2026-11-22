@@ -28,7 +28,7 @@ Tile Grid Map Pro
 ## Search results summary
 
 ```
-Tile grid maps for Power BI: every region the same size, so none of them can hide.
+Tile grid maps for Power BI from latitude and longitude: equal tiles, no map service needed.
 ```
 
 ---
@@ -36,13 +36,13 @@ Tile grid maps for Power BI: every region the same size, so none of them can hid
 ## Description
 
 ```
-On a normal map, the regions that matter least take up the most room. A province with forty thousand people and a lot of countryside dominates the screen; the city district with two million is a dot you cannot click. You are reading acreage, not data.
+On a filled map, every province gets one colour, however different the towns inside it are. A busy coast and an empty interior read as one average, and the largest regions take the eye whether or not anything happens there. You are reading boundaries, not data.
 
-A tile grid map gives every region the same square, arranged so the shape is still recognisable. Madrid is as big as Castilla y León. Rhode Island is as big as Texas. The colour is the only thing carrying information, which is what you wanted in the first place.
+A tile grid map lays the country out as a grid of equal tiles and colours each tile by the rows that fall in it. Where your outlets, sales or customers actually are shows up tile by tile, at the same resolution everywhere, in a shape you still recognise — with no boundary files, no region codes and no map service.
 
 TWENTY-SEVEN GRIDS, READY TO USE
 
-Spain (and the Canaries separately), Portugal, France, Germany, Italy (plus Sardinia and the smaller islands), the United Kingdom, the Netherlands, Belgium, Poland, Sweden, Norway, Switzerland, Austria, the United States (plus Alaska and Hawaii), Canada, Mexico, Brazil, Argentina, Colombia, Australia, India and Japan.
+Spain (and the Canaries separately), Portugal, France, Germany, Italy (plus Sicily and Sardinia), the United Kingdom, the Netherlands, Belgium, Poland, Sweden, Norway, Switzerland, Austria, the United States (plus Alaska and Hawaii), Canada, Mexico, Brazil, Argentina, Colombia, Australia, India and Japan.
 
 Bind latitude, longitude and a value. Each row snaps to its nearest tile — no region codes to look up, no join to maintain, no name spelling to get right.
 
@@ -54,7 +54,7 @@ READING THE MAP
 • Labels on the tiles: the value, the name, or both on two lines, like a newspaper tile map
 • Your measure's own number format, and colours that follow the report theme
 • Tooltips with up to ten fields, or a report page as the tooltip
-• Correct latitude distortion, so northern regions stop looking larger than they are
+• Correct latitude distortion, so northern countries are no longer stretched
 
 PRO
 
@@ -63,7 +63,7 @@ PRO
 • Six collection styles, from a dark boardroom look to a printed ledger
 • Circle and hexagon tiles as well as squares
 • Your own colours on the sequential scale
-• Quantile, diverging and categorical scales — diverging for anything with a meaningful centre, categorical to colour by a category field rather than by value
+• Quantile, diverging and categorical scales — diverging around zero for gains, losses and variances, categorical to colour by a category field rather than by value
 • A Size field: the tile keeps its place in the grid and changes area, so you can read two measures at once
 • Custom TopoJSON: drop in your own regions — sales territories, health districts, franchise areas — and they are saved inside the report
 
@@ -89,7 +89,7 @@ GETTING STARTED
 2. Pick your country under Format → Map Settings.
 3. Pro: add a Target or a Size measure, or drop in your own TopoJSON for territories that are not a country.
 
-Documentation and sample data: https://tinocallarisa-web.github.io/tile-grid-map-pro/support.html
+Documentation: https://tinocallarisa-web.github.io/tile-grid-map-pro/support.html
 Support: support@tcviz.com
 
 WHAT'S NEW IN 1.3.0.0
@@ -146,6 +146,6 @@ does not do.
 
 | Asset | File |
 |---|---|
-| Offer screenshot | `docs/infographic.html` → *Download PNG*, 1366×768. **`docs/infographic.png` is the exported copy and has to be regenerated when the HTML changes** |
+| Offer screenshots (1366×768, in this order) | `assets/infographic.png` (from `docs/infographic.html`), `assets/Screenshot_1.png` (Target vs last year), `assets/Screenshot_2.png` (legend range), `assets/Screenshot_3.png` (styles). Rendered with the real visual on Begudes Nord data: `node build-test.js && python tools/simulador/imagenes.py`, then re-embed `.tmp/mapa_objetivo.jpg` in the infographic and export it |
 | Offer icon | 300×300, uploaded by hand: it does not travel inside the package |
 | Package icon | `assets/icon.png`, embedded as `content.iconBase64` |

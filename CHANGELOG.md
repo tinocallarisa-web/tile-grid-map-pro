@@ -13,8 +13,8 @@ This project follows the Power BI custom visual four-part versioning scheme
 - **Style template**, the first card of the format pane, as in the rest of the TCViz collection. *Report theme* (the
   default) takes the colour ramp from the first data colour of the report theme, the diverging ends from its good/bad
   sentiment colours and the legend ink from its secondary text colour. Six collection styles (Pro): Boardroom, Ledger,
-  Editorial, Signal, Aurora and Terrace, each with its own ramp, empty-tile colour, legend ink and font, tile borders,
-  selection ring and visual background (dark in Boardroom and Aurora), with a small margin so the map does not touch
+  Editorial, Signal, Aurora and Terrace, each with its own ramp, empty-tile colour, legend ink (serif font in Ledger and
+  Editorial), border colour, selection ring and visual background (dark in Boardroom and Aurora), with a small margin so the map does not touch
   its edge. A colour you set yourself still wins, and
   choosing a style clears the saved colours it defines. Without a licence, choosing one draws it under the Pro preview
   watermark; reading view shows Report theme.
@@ -29,7 +29,8 @@ This project follows the Power BI custom visual four-part versioning scheme
 
 - **Target (Pro).** A new *Target* field well: each tile is coloured by its variance against the target, on a
   diverging scale centred on 0 % (below target / on target / above target) and symmetric, so +10 % and −10 % weigh the
-  same. The legend, tile labels and colour rules read in variance (rule thresholds typed as shown: 10 means +10 %); the tooltip shows the actual value, the target and
+  same. The scale ends at the 95th percentile of the variances, so one tile with a tiny target does not wash out
+  the rest; tiles beyond it saturate and the legend says so (≤ / ≥). The legend, tile labels and colour rules read in variance (rule thresholds typed as shown: 10 means +10 %); the tooltip shows the actual value, the target and
   the variance. Without a licence it is drawn under the Pro preview watermark.
 
 - **Label content.** *Map Settings → Label Content*: Auto (as before), Value, Name, or Name and value in two lines,
@@ -66,6 +67,8 @@ This project follows the Power BI custom visual four-part versioning scheme
   drawn. The default label size is now 8 px.
 
 ### Fixed
+- "Other" in the legend and "(Blank)" for an empty category were always in English; they follow the language now.
+- Esc cleared the selection even where the report does not allow interaction.
 - The visual's stylesheet was never packaged (it imported a file that no longer exists in the Power BI API), so the
   package shipped without CSS. It did not show because everything else is styled inline.
 - Resolving the licence or dropping a TopoJSON file repainted the visual through a second update, which sent Power BI

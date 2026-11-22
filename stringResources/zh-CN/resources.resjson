@@ -162,5 +162,7 @@
   "UI_RangeSummary": "范围内 {0}/{1} 个图块 · 占总计 {2}",
   "UI_RangeSummaryN": "范围内 {0}/{1} 个图块",
   "UI_TtTarget": "目标",
-  "UI_TtVariance": "与目标的差异"
+  "UI_TtVariance": "与目标的差异",
+  "UI_Blank": "(空白)",
+  "UI_Other": "其他"
 }

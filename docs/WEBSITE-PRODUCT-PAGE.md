@@ -12,14 +12,9 @@ Versión 1.3.0.0 · Actualizado 22 noviembre 2026 (publicar en la web solo cuand
 
 **Regional maps for Power BI, without the GIS detour.**
 
-On a real map, area lies. Madrid is a dot and Castilla is a continent, so the
-regions that matter most to your business are often the hardest to see. Sparse
-rural areas dominate the screen while dense urban ones vanish into a pixel.
+On a filled map, every province gets one colour, however different the towns inside it are. A busy coast and an empty interior read as one average, and the largest regions take the eye whether or not anything happens there. You are reading boundaries, not data.
 
-Tile Grid Map Pro gives every region the same visual weight. Each area becomes an
-equally sized tile, positioned to keep the country recognisable, and coloured by
-your data. Comparison becomes honest: what stands out is the number, not the
-square kilometres.
+Tile Grid Map Pro lays the country out as a grid of equal tiles and colours each tile by the rows that fall in it. Where your outlets, sales or customers actually are shows up tile by tile, at the same resolution everywhere, in a shape you still recognise — with no boundary files, no region codes and no map service.
 
 ### How it works
 
@@ -116,7 +111,7 @@ decimal places (0–6) can be overridden.
 
 **Style template** — *Report theme* (Free) takes the colours from your report
 theme; six collection styles (Pro) — Boardroom, Ledger, Editorial, Signal, Aurora,
-Terrace — set the ramp, fonts, borders and background. A colour you set always wins.
+Terrace — set the ramp, legend colour, border colour and background. A colour you set always wins.
 
 **Sequential scale** — the ramp of the style in Free; your own colours in Pro.
 
@@ -186,7 +181,6 @@ rule with its condition. For percent fields, type thresholds as shown (25 = 25%)
 | **Diverging scale** | — | ✅ |
 | **Categorical scale** | — | ✅ |
 | **Custom TopoJSON (saved in the .pbix)** | — | ✅ |
-| **Pro preview while editing** | ✅ | — |
 
 ### See it before you buy it
 

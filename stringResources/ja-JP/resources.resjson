@@ -162,5 +162,7 @@
   "UI_RangeSummary": "範囲内のタイル {0}/{1} · 合計の {2}",
   "UI_RangeSummaryN": "範囲内のタイル {0}/{1}",
   "UI_TtTarget": "目標",
-  "UI_TtVariance": "目標との差異"
+  "UI_TtVariance": "目標との差異",
+  "UI_Blank": "(空白)",
+  "UI_Other": "その他"
 }

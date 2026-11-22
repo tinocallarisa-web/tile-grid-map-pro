@@ -162,5 +162,7 @@
   "UI_RangeSummary": "{0} de {1} blocos no intervalo · {2} do total",
   "UI_RangeSummaryN": "{0} de {1} blocos no intervalo",
   "UI_TtTarget": "Meta",
-  "UI_TtVariance": "Desvio da meta"
+  "UI_TtVariance": "Desvio da meta",
+  "UI_Blank": "(Em branco)",
+  "UI_Other": "Outros"
 }

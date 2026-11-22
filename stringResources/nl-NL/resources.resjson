@@ -162,5 +162,7 @@
   "UI_RangeSummary": "{0} van {1} tegels in het bereik · {2} van het totaal",
   "UI_RangeSummaryN": "{0} van {1} tegels in het bereik",
   "UI_TtTarget": "Doel",
-  "UI_TtVariance": "Afwijking van doel"
+  "UI_TtVariance": "Afwijking van doel",
+  "UI_Blank": "(Leeg)",
+  "UI_Other": "Overig"
 }

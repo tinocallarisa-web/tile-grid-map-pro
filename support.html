@@ -190,8 +190,9 @@
         report theme, the diverging ends from its good/bad sentiment colours and the legend text from its secondary
         text colour. The visual has no background of its own.</li>
     <li><strong>Boardroom, Ledger, Editorial, Signal, Aurora and Terrace</strong> <span class="badge">Pro</span>:
-        each sets the ramp, empty-tile colour, legend font and colour, tile borders, selection ring and the visual's
-        background (dark in Boardroom and Aurora), with a small margin around the map.</li>
+        each sets the ramp, empty-tile colour, legend colour, border colour (visible with Show Cell Borders on),
+        selection ring and the visual's background (dark in Boardroom and Aurora), with a small margin around the map.
+        Ledger and Editorial also use a serif legend font.</li>
     <li>A colour you set yourself always wins over the style. Choosing a style clears the saved colours it defines,
         so you see it as designed.</li>
   </ul>
@@ -201,7 +202,8 @@
     <li>Drop a measure (budget, plan, last year) into <strong>Target</strong>, with your actuals in <strong>Value</strong>.
         Each tile is then coloured by its variance: (Value − Target) ÷ |Target|.</li>
     <li>The scale is diverging and centred on 0%: below target, on target, above target. It is symmetric, so +10%
-        and −10% weigh the same. The colours are the style's negative and positive colours (with Report theme,
+        and −10% weigh the same. Its ends are the 95th percentile of the variances, so one extreme tile does not wash
+        out the rest: tiles beyond it take the full colour and the legend shows ≤ / ≥. The colours are the style's negative and positive colours (with Report theme,
         your theme's sentiment colours).</li>
     <li>The legend and tile labels read in variance (<code>+12.5%</code>); colour rules compare against the variance, typed as shown (<code>10</code> means +10%).
         The tooltip shows the actual value, the target and the variance.</li>
@@ -254,11 +256,13 @@
         <li><em>Name and value</em>: the name above (slightly smaller) and the value below, like the tile maps in
             newspapers. When both lines do not fit, the value is kept (or the name, if the value does not fit).</li>
         <li>The name is the tile's first <strong>Label</strong>. Labels are never smaller than 8 px (Label Font Size
-            8–14) and never wider than their tile: what does not fit is not drawn.</li>
+            8–14) and never wider than their tile: what does not fit is not drawn. Tile labels are not drawn on
+            Custom TopoJSON regions.</li>
       </ul>
     </li>
     <li><strong>Borders</strong>: <em>Border Width</em> (0.1–3) is a maximum. On small tiles the border thins with them
-        (2% of the tile, never below 0.15 px) so it does not eat the colour.</li>
+        (2% of the tile, never below 0.15 px) so it does not eat the colour. Custom TopoJSON regions keep a fixed
+        0.5 px white outline.</li>
   </ul>
 
   <h3>12. Interaction</h3>
@@ -273,7 +277,8 @@
         Esc clears, Shift+F10 or the context-menu key opens the context menu.</li>
     <li>Selections from bookmarks and other visuals are shown on the tiles.</li>
     <li>Tooltip: region name (TopoJSON), up to 3 labels (+N more), the aggregated value (with Target: actual, target
-        and variance), Size, Category (+N more), row count, cell centre coordinates and your tooltip fields.</li>
+        and variance), Size, Category (+N more), the colour rule that coloured the tile (when rules are on), row count,
+        cell centre coordinates and your tooltip fields.</li>
     <li><strong>Report page tooltips</strong> are supported: set a tooltip page in Format → General → Tooltips, and it is
         filtered to the rows of the tile under the pointer.</li>
     <li>Where the report does not allow interaction, clicks, the legend range and the keyboard selection are off.</li>
@@ -284,7 +289,8 @@
     <li>Turn on <em>On-object interaction</em> in Power BI Desktop (Options → Preview features), then select the
         <strong>tiles</strong>, the <strong>tile labels</strong> or the <strong>legend</strong> on the canvas.</li>
     <li>Tiles: tile shape, labels, empty cells, borders, empty-tile colour and border colour. Labels: label size.
-        Legend: position, font, size and colour. Each one links to its card in the format pane.</li>
+        Legend: position, font, size and colour. Tiles and labels link to the Map Settings card, the legend to the
+        Legend card.</li>
     <li>While formatting, a click selects what to format and does not filter the report.</li>
   </ul>
 
@@ -310,7 +316,8 @@
         the purchase path.</li>
     <li>In reading view, and wherever the licence cannot be read (Publish to Web, embedded reports, exports), the
         free result is shown with no notice, so a published report never uses a feature nobody paid for.</li>
-    <li>Custom TopoJSON without a licence shows "Custom TopoJSON regions are not available".</li>
+    <li>Custom TopoJSON without a licence: while editing, the drop zone appears and the regions are drawn under the
+        preview notice; in reading view the visual shows "Custom TopoJSON regions are not available".</li>
     <li>The 30-day trial and the payment grace period count as Pro.</li>
   </ul>
 
@@ -417,10 +424,10 @@
   <table>
     <tr><th>Section</th><th>Options</th></tr>
     <tr><td><strong>Style template</strong></td><td>Template (Report theme · Boardroom · Ledger · Editorial · Signal · Aurora · Terrace — the six styles are Pro)</td></tr>
-    <tr><td><strong>Map Settings</strong></td><td>Country / Region · Tile Shape · Correct Latitude Distortion · Value Aggregation · Show Empty Cells · Show Cell Labels · Label Content · Label Font Size · Label Min Tile Size · Decimal Places</td></tr>
+    <tr><td><strong>Map Settings</strong></td><td>Country / Region · Tile Shape · Correct Latitude Distortion · Value Aggregation · Show Empty Cells · Show Cell Labels · Label Content · Label Font Size (8–14) · Label Min Tile Size (8–60 px) · Decimal Places (0–6)</td></tr>
     <tr><td><strong>Color Scale</strong></td><td>Scale Type (Sequential · Quantile (Pro) · Diverging (Pro) · Categorical (Pro)) · Color Min / Mid / Max (Pro) · No Data Color</td></tr>
     <tr><td><strong>Conditional Formatting</strong></td><td>Enable Rules (switch in the card header) · Rule 1 (operator) · Rule 2 (between range) · Rule 3 (operator, default &gt; 100)</td></tr>
-    <tr><td><strong>Accessibility</strong></td><td>Show Cell Borders · Border Color · Border Width · Selected Ring Color · Selected Ring Width</td></tr>
+    <tr><td><strong>Accessibility</strong></td><td>Show Cell Borders · Border Color · Border Width (0.1–3, a maximum) · Selected Ring Color · Selected Ring Width (1–5)</td></tr>
     <tr><td><strong>Legend</strong></td><td>Show Legend · Position (Bottom / Top) · Font · Text Size · Text Color</td></tr>
   </table>
   <p><strong>Conditional Formatting</strong> is the visual's own card of three rule-based
@@ -517,7 +524,7 @@
 
   <div class="faq">
     <p class="q">My TopoJSON is not loading.</p>
-    <p>You need Pro and <em>Custom TopoJSON (Pro)</em> selected before dropping. The file must be a
+    <p>You need Pro (or the Pro preview while editing) and <em>Custom TopoJSON (Pro)</em> selected before dropping. The file must be a
        TopoJSON topology (not GeoJSON) with polygons, up to 5 MB, in longitude/latitude. Read the
        note under the map: it says which of these failed.</p>
   </div>

@@ -162,5 +162,7 @@
   "UI_RangeSummary": "{0} of {1} tiles in the range · {2} of the total",
   "UI_RangeSummaryN": "{0} of {1} tiles in the range",
   "UI_TtTarget": "Target",
-  "UI_TtVariance": "Variance vs target"
+  "UI_TtVariance": "Variance vs target",
+  "UI_Blank": "(Blank)",
+  "UI_Other": "Other"
 }

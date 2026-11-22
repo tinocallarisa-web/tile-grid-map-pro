@@ -1,6 +1,6 @@
 # Tile Grid Map Pro — TCViz
 
-> Regional maps for Power BI without the GIS detour. Bind latitude and longitude, pick one of 27 bundled square tile grids, and every region gets the same visual weight.
+> Tile grid maps for Power BI without the GIS detour. Bind latitude and longitude, pick one of 27 bundled grids, and each equal tile is coloured by the rows that fall in it — no boundary files, region codes or map service.
 
 [![Version](https://img.shields.io/badge/version-1.3.0.0-2980b9)](CHANGELOG.md)
 [![AppSource](https://img.shields.io/badge/Microsoft_AppSource-Available-0078D4?logo=microsoft)](https://appsource.microsoft.com)

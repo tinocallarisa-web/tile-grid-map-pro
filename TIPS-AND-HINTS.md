@@ -171,7 +171,7 @@ No network requests. Simplify big files at mapshaper.org first.
 
 **Most of the map is dimmed** — a range is picked in the legend (click it again), a tile is selected (click the background) or another visual is highlighting the map.
 
-**TopoJSON not loading** — needs Pro, a TopoJSON (not GeoJSON) file with polygons, under 5 MB, in longitude/latitude. The note under the map says what failed.
+**TopoJSON not loading** — needs Pro (or the Pro preview while editing), a TopoJSON (not GeoJSON) file with polygons, under 5 MB, in longitude/latitude. The note under the map says what failed.
 
 ---
 

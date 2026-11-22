@@ -162,5 +162,7 @@
   "UI_RangeSummary": "범위 내 타일 {0}/{1}개 · 합계의 {2}",
   "UI_RangeSummaryN": "범위 내 타일 {0}/{1}개",
   "UI_TtTarget": "목표",
-  "UI_TtVariance": "목표 대비 차이"
+  "UI_TtVariance": "목표 대비 차이",
+  "UI_Blank": "(비어 있음)",
+  "UI_Other": "기타"
 }

@@ -102,6 +102,7 @@ interface ColorModel {
   colorFor(value: number, bucket: Bucket): string;
   opacityFor(value: number): number;
   legendStops: ColorStop[] | null;   // null = no gradient legend
+  recortada?: boolean;               // hay valores más allá de min/max: la leyenda dice ≤ / ≥
   classes?: { color: string; from: number }[];  // quantile legend
   categories?: { color: string; text: string }[]; // categorical legend
 }
@@ -209,6 +210,9 @@ export class Visual implements IVisual {
   private _topoSource = "";   // file name + length, part of the scan key
   private _topoError = "";
   private _hayResaltado = false;
+  // Id único del degradado de la leyenda: con un id fijo, dos mapas en el mismo documento compartían el primero.
+  private static instancias = 0;
+  private readonly idDegradado = "tgmLegendGrad-" + (++Visual.instancias);
   // Objetivo (Pro, 1.3): con un campo en Target, cada tesela se colorea por su desviación contra él.
   private _hasTarget = false;
   private _targetAggType = "sum";
@@ -736,7 +740,7 @@ export class Visual implements IVisual {
         }
         if (catIdx >= 0) {
           const cv = row[catIdx];
-          const cat = cv === null || cv === undefined || cv === "" ? "(Blank)" : String(cv);
+          const cat = cv === null || cv === undefined || cv === "" ? this.t("UI_Blank", "(Blank)") : String(cv);
           b.cats.set(cat, (b.cats.get(cat) ?? 0) + 1);
         }
         if (labelIdx >= 0) {
@@ -911,10 +915,17 @@ export class Visual implements IVisual {
     if (this.modoObjetivo()) {
       // Desviación contra el objetivo: divergente y SIMÉTRICA alrededor de 0, para que un +10 % y un −10 % pesen igual;
       // rojo/verde del estilo (en Report theme, los colores de sentimiento del tema).
-      const m = Math.max(Math.abs(min), Math.abs(max)) || 1;
+      // El extremo es el PERCENTIL 95 de |desviación|, no el máximo: una tesela con un objetivo diminuto (+140 %) dejaba
+      // el resto del mapa casi blanco (visto el 22-11-2026 con Begudes Nord). Lo que pasa del extremo se satura y la
+      // leyenda lo dice con ≤ / ≥.
+      const abs = values.map(v => Math.abs(v)).sort((a, b) => a - b);
+      const maxAbs = abs.length ? abs[abs.length - 1] : 0;
+      const p95 = abs.length ? abs[Math.min(abs.length - 1, Math.floor(abs.length * 0.95))] : 0;
+      const m = (p95 > 0 ? p95 : maxAbs) || 1;
       const stops = [{ value: 0, color: this.tk.down }, { value: 0.5, color: this.tk.mid }, { value: 1, color: this.tk.up }];
       const fn = buildStopScale(stops);
-      return { kind: "diverging", min: -m, max: m, colorFor: v => fn(normaliseDiverging(v, -m, m)), opacityFor: () => 1, legendStops: stops };
+      return { kind: "diverging", min: -m, max: m, colorFor: v => fn(normaliseDiverging(v, -m, m)), opacityFor: () => 1, legendStops: stops,
+        recortada: maxAbs > m * 1.0001 };
     }
     if (!this.allow("scale") && !this.allow("colours")) {
       // La rampa gratuita es la del estilo en vigor (Report theme por defecto); antes, un azul fijo.
@@ -939,7 +950,7 @@ export class Visual implements IVisual {
       const top = new Set(ranked.slice(0, MAX_CATEGORIES).map(e => e[0]));
       const colorOf = (c: string) => top.has(c) ? this.host.colorPalette.getColor(c).value : OTHER_CATEGORY_COLOR;
       const categories = ranked.slice(0, MAX_CATEGORIES).map(([c]) => ({ color: colorOf(c), text: c }));
-      if (ranked.length > MAX_CATEGORIES) categories.push({ color: OTHER_CATEGORY_COLOR, text: "Other" });
+      if (ranked.length > MAX_CATEGORIES) categories.push({ color: OTHER_CATEGORY_COLOR, text: this.t("UI_Other", "Other") });
       return {
         kind: "categorical", min, max, opacityFor: () => 1, legendStops: null, categories,
         colorFor: (_v, b) => { const c = this.majorityCategory(b); return c === null ? OTHER_CATEGORY_COLOR : colorOf(c); },
@@ -1437,7 +1448,7 @@ export class Visual implements IVisual {
 
     const defs = document.createElementNS(ns, "defs");
     const grad = document.createElementNS(ns, "linearGradient");
-    grad.setAttribute("id", "tgmLegendGrad");
+    grad.setAttribute("id", this.idDegradado);
     for (const s of model.legendStops) {
       const stop = document.createElementNS(ns, "stop");
       stop.setAttribute("offset", `${Math.round(s.value * 100)}%`);
@@ -1450,12 +1461,13 @@ export class Visual implements IVisual {
     const bar = document.createElementNS(ns, "rect");
     bar.setAttribute("x", String(x)); bar.setAttribute("y", String(y + 6));
     bar.setAttribute("width", String(gradW)); bar.setAttribute("height", String(barH));
-    bar.setAttribute("rx", "4"); bar.setAttribute("fill", "url(#tgmLegendGrad)");
+    bar.setAttribute("rx", "4"); bar.setAttribute("fill", `url(#${this.idDegradado})`);
     if (this.isHC) { bar.setAttribute("stroke", this.hcFg); bar.setAttribute("stroke-width", "1"); }
     this.svg.appendChild(bar);
     this.hacerArrastrable(bar, model, x, y + 6, gradW, barH);
-    this.addText(this.formatValue(model.min, p), x, ty, "start", lc, fs, ff);
-    this.addText(this.formatValue(model.max, p), x + gradW, ty, "end", lc, fs, ff);
+    const lim = model.recortada ? ["≤ ", "≥ "] : ["", ""];
+    this.addText(lim[0] + this.formatValue(model.min, p), x, ty, "start", lc, fs, ff);
+    this.addText(lim[1] + this.formatValue(model.max, p), x + gradW, ty, "end", lc, fs, ff);
     if (model.kind === "diverging" && model.min < 0 && model.max > 0) this.addText(this.formatValue(0, p), x + gradW / 2, ty, "middle", lc, fs, ff);
   }
 
@@ -1521,8 +1533,8 @@ export class Visual implements IVisual {
       return model.min + t * (model.max - model.min);
     };
     const aT = (v: number) => {
-      if (model.kind === "diverging" && model.min < 0 && model.max > 0) return normaliseDiverging(v, model.min, model.max);
-      return model.max === model.min ? 0 : (v - model.min) / (model.max - model.min);
+      if (model.kind === "diverging" && model.min < 0 && model.max > 0) return normaliseDiverging(Math.max(model.min, Math.min(model.max, v)), model.min, model.max);
+      return model.max === model.min ? 0 : Math.max(0, Math.min(1, (v - model.min) / (model.max - model.min)));
     };
     const banda = document.createElementNS(ns, "rect");
     banda.setAttribute("y", String(y - 2)); banda.setAttribute("height", String(h + 4)); banda.setAttribute("rx", "3");
@@ -1552,7 +1564,12 @@ export class Visual implements IVisual {
         window.removeEventListener("mousemove", mover);
         window.removeEventListener("mouseup", soltar);
         if (Math.abs(t1 - t0) * caja.width < 3) this._rango = null;
-        else this._rango = { lo: aValor(Math.min(t0, t1)), hi: aValor(Math.max(t0, t1)) };
+        else {
+          // Llegar al borde de la barra es "y todo lo que hay más allá": con la escala recortada (objetivo) hay teselas
+          // saturadas fuera de min/max que si no se quedarían fuera del tramo.
+          const a = Math.min(t0, t1), z = Math.max(t0, t1);
+          this._rango = { lo: a <= 0.01 ? -Infinity : aValor(a), hi: z >= 0.99 ? Infinity : aValor(z) };
+        }
         this._rangoKind = `${model.kind}|${this.settings.conditionalFormatting.cfEnabled.value}`;
         this.repaint();
       };
@@ -1641,7 +1658,7 @@ export class Visual implements IVisual {
 
     const other = model.classes ? model.classes[Math.floor(model.classes.length / 2)].color
       : model.legendStops ? buildStopScale(model.legendStops)(0.5) : null;
-    if (other) items.push({ color: other, text: "Other" });
+    if (other) items.push({ color: other, text: this.t("UI_Other", "Other") });
     return items;
   }
 
@@ -1829,6 +1846,7 @@ export class Visual implements IVisual {
           return;
         case "Escape":
           e.preventDefault();
+          if (this.formatMode || !this.host.hostCapabilities.allowInteractions) return;   // como Enter y Shift+F10
           this.clearSelection();
           return;
         case "ContextMenu":

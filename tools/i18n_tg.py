@@ -117,6 +117,8 @@ P = {
     "{0} of {1} tiles in the range · {2} of the total": ["{0} de {1} blocos no intervalo · {2} do total", "{0} tuiles sur {1} dans la plage · {2} du total", "{0} von {1} Kacheln im Bereich · {2} der Summe", "{0} di {1} tessere nell'intervallo · {2} del totale", "{0} van {1} tegels in het bereik · {2} van het totaal", "{0} z {1} kafelków w zakresie · {2} sumy", "範囲内のタイル {0}/{1} · 合計の {2}", "范围内 {0}/{1} 个图块 · 占总计 {2}", "범위 내 타일 {0}/{1}개 · 합계의 {2}", "{0} de {1} teselas en el tramo · {2} del total"],
     "{0} of {1} tiles in the range": ["{0} de {1} blocos no intervalo", "{0} tuiles sur {1} dans la plage", "{0} von {1} Kacheln im Bereich", "{0} di {1} tessere nell'intervallo", "{0} van {1} tegels in het bereik", "{0} z {1} kafelków w zakresie", "範囲内のタイル {0}/{1}", "范围内 {0}/{1} 个图块", "범위 내 타일 {0}/{1}개", "{0} de {1} teselas en el tramo"],
     "Template": ["Modelo","Modèle", "Vorlage", "Modello", "Sjabloon", "Szablon", "テンプレート", "模板", "템플릿", "Plantilla"],
+    "Other": ["Outros", "Autres", "Sonstige", "Altro", "Overig", "Inne", "その他", "其他", "기타", "Otros"],
+    "(Blank)": ["(Em branco)", "(Vide)", "(Leer)", "(Vuoto)", "(Leeg)", "(Puste)", "(空白)", "(空白)", "(비어 있음)", "(En blanco)"],
     "Report theme": ["Tema do relatório", "Thème du rapport", "Berichtsdesign", "Tema del report", "Rapportthema", "Motyw raportu", "レポートのテーマ", "报表主题", "보고서 테마", "Tema del informe"],
 
     # ── Textos del lienzo, avisos, marca de agua y tooltips (viajan además en src/strings.ts) ──

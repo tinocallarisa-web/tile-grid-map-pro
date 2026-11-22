@@ -162,5 +162,7 @@
   "UI_RangeSummary": "{0} von {1} Kacheln im Bereich · {2} der Summe",
   "UI_RangeSummaryN": "{0} von {1} Kacheln im Bereich",
   "UI_TtTarget": "Ziel",
-  "UI_TtVariance": "Abweichung vom Ziel"
+  "UI_TtVariance": "Abweichung vom Ziel",
+  "UI_Blank": "(Leer)",
+  "UI_Other": "Sonstige"
 }

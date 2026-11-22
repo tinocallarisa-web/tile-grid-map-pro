@@ -84,10 +84,13 @@ server is contacted and no licence data leaves the Power BI environment.
 - isLicenseUnsupportedEnv and isLicenseInfoAvailable are honoured: where
   licensing is unsupported (Publish to Web, embed, export) or the licence
   cannot be read, the visual stays Free and shows no licence notification.
-- No own licensing UI (no upgrade text, badge or pill). When a Free user uses
-  a Pro feature the visual calls notifyLicenseRequired (icon) and
-  notifyFeatureBlocked (banner naming the features); clearLicenseNotification
-  is called when the feature is no longer used or the licence becomes Pro.
+- No own purchase UI (no upgrade text, badge or pill); the only notice of its
+  own is the Pro preview watermark while editing. When a Free user uses a Pro
+  feature the visual calls clearLicenseNotification, then notifyFeatureBlocked
+  (banner naming the features), then notifyLicenseRequired (icon) 10.5 s later,
+  once the banner has gone; the timer is cancelled in destroy().
+  clearLicenseNotification is called again when the feature is no longer used
+  or the licence becomes Pro.
 - If the licensing call fails, the visual stays Free and renders normally.
 
 ------------------------------------------------------------------
@@ -189,8 +192,10 @@ TESTING INSTRUCTIONS
      click the gradient to clear. Label Content > Name and value.
    - Click a bar in another visual: the map highlights instead of filtering.
    - Correct Latitude Distortion on/off changes tile proportions (e.g. Norway).
-   - Country/Region = "Custom TopoJSON (Pro)" shows "Custom TopoJSON regions
-     are not available" and no drop zone.
+   - Country/Region = "Custom TopoJSON (Pro)": while EDITING, the drop zone
+     appears and a dropped file is drawn under the Pro preview notice; in
+     reading view it shows "Custom TopoJSON regions are not available" and no
+     drop zone.
    - Click cross-filters; click again or click the background clears;
      Ctrl+click multi-selects; right-click opens the context menu.
    - Keyboard: Tab into the visual, arrows, Enter/Space, Ctrl+Enter, Esc,
