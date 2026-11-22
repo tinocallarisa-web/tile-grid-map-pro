@@ -22,6 +22,10 @@ This project follows the Power BI custom visual four-part versioning scheme
 - **The Pro preview watermark is the one of the whole TCViz collection**: a centred notice with a light band that
   names the Pro features in use, instead of a large rotated outline over the map.
 
+- **Highlighting from other visuals.** Click a bar or a slice in another visual and the map keeps every tile in
+  place, showing the matching ones in full colour and dimming the rest, like the built-in visuals, instead of
+  filtering the map down. Needs a field in *Value*.
+
 - **On-object formatting.** With *On-object interaction* on in Power BI Desktop, select the tiles, the tile labels or
   the legend on the canvas and format them there: tile shape, labels, empty tiles and borders, empty-tile and border
   colour; label size; legend position, font, size and colour. Each one links to its card in the format pane. While
@@ -33,6 +37,8 @@ This project follows the Power BI custom visual four-part versioning scheme
   Until now only the format pane was translated, and only into Spanish.
 
 ### Changed
+- **Thinner borders on small tiles.** *Border Width* is now a maximum: on small tiles the border thins with them (2 % of
+  the tile, never below 0.15 px) so it no longer eats the colour, and the setting goes down to 0.1.
 - **The free colour ramp follows the report theme** instead of a fixed blue, also in published reports that never set
   a colour.
 - **Numbers use your model's format and the report language.** Tiles, legend, colour-rule legend and tooltips now
