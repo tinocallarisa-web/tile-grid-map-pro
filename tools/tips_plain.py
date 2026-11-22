@@ -1,43 +1,64 @@
 # -*- coding: utf-8 -*-
-"""TIPS-AND-HINTS-PLAIN.txt a partir de TIPS-AND-HINTS.md: sin markdown ni tablas (los text boxes de Power BI no las
-admiten). Ejecutar desde la raíz:  python tools/tips_plain.py"""
-import io, os, re
+"""TIPS-AND-HINTS-PLAIN.txt a partir de TIPS-AND-HINTS.md, listo para pegar en un cuadro de texto de Power BI: sin
+markdown ni tablas, con el formato del resto de la cartera (Chip Slicer, Waterfall). Ejecutar desde la raíz:
+    python tools/tips_plain.py
+"""
+import io, os, re, textwrap
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 md = io.open(os.path.join(ROOT, "TIPS-AND-HINTS.md"), encoding="utf-8").read().replace("\r\n", "\n")
-version = re.search(r"Versión del visual: ([\d.]+)", md).group(1)
-SEP = "─" * 64
-out = ["=" * 64, "TIPS & HINTS — versión texto plano para text boxes de Power BI", "=" * 64,
-       "Los text boxes de Power BI no soportan tablas markdown. Este archivo",
-       "usa solo texto plano y viñetas, así que se pega sin perder formato.", "",
-       "Copia cada bloque (entre las líneas ─────) en un text box distinto.",
-       "Sugerencia: fuente Segoe UI 10-11pt, títulos en 14pt negrita.",
-       f"Versión del visual: {version}  (generado desde TIPS-AND-HINTS.md con tools/tips_plain.py)", "=" * 64, ""]
-limpia = lambda t: re.sub(r"\*\*|`|(?<!\w)\*(?!\s)|(?<!\s)\*(?!\w)", "", t).strip()
+ANCHO = 95
+RAYA = "_" * 40
+limpia = lambda t: re.sub(r"\*\*|`|(?<![\w*])\*(?=\S)|(?<=\S)\*(?![\w*])", "", t).strip()
+
+
+def parrafo(t, sangria=""):
+    return textwrap.fill(t, ANCHO, initial_indent=sangria, subsequent_indent=" " * len(sangria))
+
+
+out = []
+lineas = md.split("\n")
+titulo = limpia(lineas[0].lstrip("# "))
+out += [titulo.upper().replace("TIPS & HINTS", "TIPS & HINTS"), limpia(lineas[1]), RAYA, ""]
 cab = None
-for linea in md.split("\n")[1:]:
-    m = re.match(r"## \S+ Text box (\d+) — (.+)", linea)
-    if m:
-        out += ["", SEP, f"TEXT BOX {m.group(1)} — {m.group(2).upper()}", SEP, ""]
+primera = True
+for linea in lineas[2:]:
+    s = linea.rstrip()
+    if s.strip() == "---":
+        continue
+    if s.startswith("## "):
+        if not primera:
+            out += ["", RAYA, ""]
+        primera = False
+        t = limpia(s[3:]).upper()
+        out += [t, "-" * len(t)]
         cab = None
         continue
-    if out[-1:] == [""] and not linea.strip() or linea.startswith(">") or linea.strip() == "---":
-        continue
-    if linea.startswith("|"):
-        celdas = [limpia(c) for c in linea.strip().strip("|").split("|")]
+    if s.startswith("|"):
+        celdas = [limpia(c) for c in s.strip().strip("|").split("|")]
         if all(re.fullmatch(r":?-+:?", c) for c in celdas):
             continue
         if cab is None:
             cab = celdas
             continue
         if len(celdas) == 2:
-            out.append(f"•  {celdas[0]}: {celdas[1]}")
+            out.append(parrafo(f"{celdas[0]} {'.' * max(3, 22 - len(celdas[0]))} {celdas[1]}", "· "))
         else:
-            out.append(f"•  {celdas[0]} — " + " · ".join(f"{h}: {c}" for h, c in zip(cab[1:], celdas[1:])))
+            out.append(parrafo(f"{celdas[0]} — " + " · ".join(f"{h}: {c}" for h, c in zip(cab[1:], celdas[1:])), "· "))
         continue
     cab = None
-    out.append(limpia(linea).replace("✅", "yes").replace("❌", "no") if not linea.startswith("**") else limpia(linea))
-txt = "\n".join(out).replace("✅", "yes").replace("❌", "no")
-txt = re.sub(r"\n{3,}", "\n\n", txt).rstrip() + "\n"
+    if not s.strip():
+        if out and out[-1] != "":
+            out.append("")
+        continue
+    m = re.match(r"- (.*)", s)
+    n = re.match(r"(\d+)\. (.*)", s)
+    if m:
+        out.append(parrafo(limpia(m.group(1)), "· "))
+    elif n:
+        out.append(parrafo(limpia(n.group(2)), f"{n.group(1)}. "))
+    else:
+        out.append(parrafo(limpia(s)))
+txt = re.sub(r"\n{3,}", "\n\n", "\n".join(out)).strip() + "\n"
 io.open(os.path.join(ROOT, "TIPS-AND-HINTS-PLAIN.txt"), "w", encoding="utf-8", newline="\r\n").write(txt)
 print(len(txt.splitlines()), "líneas")

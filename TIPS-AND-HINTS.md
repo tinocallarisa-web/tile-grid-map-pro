@@ -1,30 +1,31 @@
-# Tips & Hints — página para el .pbix de muestra
-
-> Microsoft marca como *soft failure* los envíos cuyo `.pbix` de muestra no incluye
-> orientación de uso. Crea una página nueva llamada **"Tips & Hints"** en Power BI Desktop
-> y copia cada bloque de abajo en un **text box** independiente.
-> Versión del visual: 1.3.0.0
+# Tile Grid Map Pro — Tips & Hints
+**Version 1.3.0.0 · Free and Pro · tcviz.com**
 
 ---
 
-## 📦 Text box 1 — Getting Started
+## What's new in 1.3.0.0
 
-**GETTING STARTED**
+- **Pick a range in the legend** — click a class, rule or category, or drag across the colour bar. Only the tiles in that range stay in full colour, and the note under the map says how many they are and their share of the total. Click again to clear. The report is not filtered.
+- **Target (Pro)** — drop your budget into Target. Tiles below plan take the negative colour of the theme (red in most), the others the positive one; the tooltip shows actual, target and variance. There is no switch: remove the field to go back.
+- **Label Content** — Name and value puts the name above and the value below, like a newspaper tile map.
+- **Style template** — Report theme (free) follows your report theme; six collection styles (Pro).
+- **Highlighting** — click another visual: the map keeps every tile and dims the ones that do not match.
+- **On the canvas** — with On-object interaction on in Desktop, click the tiles, the labels or the legend to format them right there.
+
+**Updating from 1.2:** reports keep their settings. The free colour ramp now follows the report theme instead of a fixed blue.
+
+## Getting started
 
 1. Add **Tile Grid Map Pro** from the Visualizations pane.
-2. Put a latitude column in **Latitude** and a longitude column in **Longitude** (decimal degrees, e.g. `40.4168`, `-3.7038`).
+2. Put a latitude column in **Latitude** and a longitude column in **Longitude** (decimal degrees, e.g. 40.4168 and -3.7038).
 3. Put a number in **Value** — it colours each tile.
-4. Format pane → **Map Settings** → **Country / Region**.
+4. Format pane > **Map Settings** > **Country / Region**.
 
 No shapefiles, no GIS setup, no code.
 
-📺 Walkthrough: https://www.youtube.com/watch?v=iCXAk3kI9nE
+Walkthrough video: https://www.youtube.com/watch?v=iCXAk3kI9nE
 
----
-
-## 🧭 Text box 2 — How the map is built
-
-**HOW THE MAP IS BUILT**
+## How the map is built
 
 1. **Coordinates** — rows with a blank latitude or longitude are skipped ("without coordinates").
 2. **Tile** — each point goes to its map cell. A coastal point that lands in the sea moves to the nearest land cell within 3 cells. Farther points count as "outside the map" — filter other countries out with a slicer.
@@ -33,145 +34,81 @@ No shapefiles, no GIS setup, no code.
 
 Notes under the map tell you how many rows were not shown and why.
 
----
-
-## 🎯 Text box 3 — Field Wells
-
-**FIELD WELLS**
+## Field wells
 
 | Field well | What it does |
 |---|---|
-| **Latitude / Longitude** | Required. Decimal degrees, WGS84. |
-| **Value** | Number that colours each tile. |
-| **Size (Pro)** | Second measure: bigger value, bigger tile. Not used with Custom TopoJSON. |
-| **Target (Pro)** | Budget or plan: each tile is coloured by its variance against it. |
-| **Tooltips** | Up to 10 extra fields on hover. Report page tooltips work too. |
-| **Label** | City or region name, shown in tooltips and on the tiles (see Label Content). |
-| **Category** | Group for the Categorical (Pro) scale: each tile takes its most frequent category. |
+| Latitude / Longitude | Required. Decimal degrees, WGS84. |
+| Value | Number that colours each tile. Needed for highlighting and Target. |
+| Size (Pro) | Second measure: bigger value, bigger tile. Not used with Custom TopoJSON. |
+| Target (Pro) | Budget or plan: each tile is coloured by its variance against it. |
+| Tooltips | Up to 10 extra fields on hover. Report page tooltips work too. |
+| Label | City or region name, shown in tooltips and on the tiles (see Label Content). |
+| Category | Group for the Categorical (Pro) scale: each tile takes its most frequent category. |
 
-**Rows:** Free uses the first **500 rows**; Pro uses all rows up to **30,000** (Power BI's limit).
+**Rows:** Free uses the first 500 rows; Pro uses all rows up to 30,000 (Power BI's limit).
 
----
+## Format pane
 
-## ⚙️ Text box 4 — Format Pane
+- **Style template** — Report theme (follows your report theme) · Boardroom, Ledger, Editorial, Signal, Aurora, Terrace (Pro)
+- **Map Settings** — Country / Region (27 maps + Custom TopoJSON Pro) · Tile Shape (Square; Circle, Hexagon Pro) · Correct Latitude Distortion · Value Aggregation (Auto, Sum, Average, Count, Min, Max) · Show Empty Cells · Show Cell Labels · Label Content (Auto, Value, Name, Name and value) · Label Font Size · Label Min Tile Size · Decimal Places
+- **Color Scale** — Sequential · Quantile (Pro) · Diverging (Pro) · Categorical (Pro) · Color Min / Mid / Max (Pro) · No Data Color
+- **Conditional Formatting** — the visual's own 3 colour rules. Turn on Enable Rules in the card header. For a percent field (or with Target) type 25 for 25%.
+- **Accessibility** — cell borders (Border Width is a maximum: thinner on small tiles), selection ring colour and width
+- **Legend** — Show Legend · Position (Bottom / Top) · Font · Text Size · Text Color
 
-**FORMAT PANE**
-
-**Style template** — Report theme (follows your report theme) · Boardroom, Ledger, Editorial, Signal, Aurora, Terrace (Pro)
-
-**Map Settings** — Country / Region (27 maps + Custom TopoJSON Pro) · Tile Shape (Square; Circle, Hexagon Pro) · Correct Latitude Distortion · Value Aggregation (Auto, Sum, Average, Count, Min, Max) · Show Empty Cells · Show Cell Labels · Label Content (Auto, Value, Name, Name and value) · Label Font Size · Label Min Tile Size · Decimal Places
-
-**Color Scale** — Sequential · Quantile (Pro) · Diverging (Pro) · Categorical (Pro) · Color Min / Mid / Max (Pro) · No Data Color
-
-**Legend** — Show Legend · Position (Bottom / Top) · Font · Text Size · Text Color
-
-**Accessibility** — cell borders (Border Width is a maximum: thinner on small tiles), selection ring colour and width
-
-**Conditional Formatting** — the visual's own 3 colour rules. Turn on **Enable Rules** in the card header. For a percent field (or with Target) type `25` for 25%.
-
-**On the canvas** — with *On-object interaction* on in Desktop, click the tiles, the labels or the legend to format them right there.
-
----
-
-## 🔓 Text box 5 — Free vs Pro
-
-**FREE VS PRO**
+## Free vs Pro
 
 | Feature | Free | Pro |
-|---|:---:|:---:|
-| 27 built-in maps | ✅ | ✅ |
-| Rows used | First 500 | Up to 30,000 |
+|---|---|---|
+| 27 built-in maps | yes | yes |
+| Rows used | first 500 | up to 30,000 |
 | Style template | Report theme | + 6 styles |
-| Tile shape | Square | Square · Circle · Hexagon |
-| Pick a range in the legend | ✅ | ✅ |
-| Label content (value, name, both) | ✅ | ✅ |
-| Highlighting, on-object formatting, 12 languages | ✅ | ✅ |
-| Latitude distortion correction | ✅ | ✅ |
-| Aggregation, labels, legend, tooltips | ✅ | ✅ |
-| Colour rules (3) with legend | ✅ | ✅ |
-| Keyboard, high contrast, cross-filter | ✅ | ✅ |
-| Sequential colours | Report theme ramp | Your colours |
-| Target (variance against a target) | ❌ | ✅ |
-| Quantile scale | ❌ | ✅ |
-| Diverging scale | ❌ | ✅ |
-| Categorical scale (by Category field) | ❌ | ✅ |
-| Size role | ❌ | ✅ |
-| Custom TopoJSON regions | ❌ | ✅ |
+| Tile shape | square | + circle, hexagon |
+| Pick a range in the legend | yes | yes |
+| Label content (value, name, both) | yes | yes |
+| Colour rules (3) with legend | yes | yes |
+| Aggregation, labels, legend, tooltips | yes | yes |
+| Highlighting, on-object formatting, 12 languages | yes | yes |
+| Keyboard, high contrast, cross-filter | yes | yes |
+| Sequential colours | report theme ramp | your colours |
+| Target (variance against a target) | no | yes |
+| Quantile, diverging, categorical scales | no | yes |
+| Size role | no | yes |
+| Custom TopoJSON regions | no | yes |
 
-**TRY PRO BEFORE YOU BUY**
+**Try Pro before you buy:** while you edit a report without a licence, a Pro feature you turn on is drawn working, under a "Pro preview" notice that names it, and Power BI shows its own notice with the Upgrade option. Turn the setting off and the notice goes with it. In reading view — and wherever Power BI cannot check licences, such as Publish to Web, embedding or export — the free result is drawn with no notice, so a published report never uses a feature you have not paid for.
 
-While you are editing a report WITHOUT a licence, a Pro feature you turn on is drawn
-WORKING, under a "Pro preview" watermark that names it, and Power BI shows its own notice
-with the Upgrade option. Turn the setting off and the watermark goes with it.
+## Tips
 
-In READING VIEW — and anywhere Power BI cannot check licences, such as Publish to Web,
-embedding or export — the free result is drawn with no watermark and no prompt, so a
-published report never uses a feature you have not paid for. The preview applies only to the
-setting you actually changed, not to every Pro option at once.
+1. **Plan vs actual** — actuals in Value, budget in Target (Pro), Label Content > Name and value.
+2. **Where are we strongest?** — drag across the right end of the legend bar: the note gives the count of tiles and their share of the total.
+3. **Averages** — a model measure is summed per tile. Choose Average in Value Aggregation for ratios.
+4. **Pick the scale** — Sequential for volume · Quantile (Pro) when one outlier washes out the rest · Diverging (Pro) for values around zero · Categorical (Pro) for groups.
+5. **Colour rules win** — rules are tested 1 > 2 > 3; the first match colours the tile. The legend lists each rule plus "Other".
+6. **Volume and rate** — rate in Value (colour), volume in Size (Pro).
+7. **Labels** appear only where they fit (8 px or more) — enlarge the visual, lower Label Min Tile Size or choose Name.
+8. **Drill-down without building one** — a report page tooltip (Format > General > Tooltips) is filtered to the tile under the pointer.
+9. **Keyboard** — arrows move, Enter/Space select, Ctrl+Enter adds, Esc clears, Shift+F10 context menu.
 
-30-day free trial on Microsoft AppSource.
+## Your own regions (Pro)
 
----
-
-## ✨ Text box 6 — New in 1.3
-
-**NEW IN 1.3**
-
-**Pick a range in the legend** — click a class, rule or category, or drag across the colour bar. Only the tiles in that range stay in full colour, and the note under the map says how many they are and their share of the total. Click again to clear. The report is not filtered.
-
-**Target (Pro)** — drop your budget into *Target*. Tiles below plan take the negative colour of the theme (red in most), the others the positive one; the tooltip shows actual, target and variance. There is no switch: remove the field to go back.
-
-**Label Content** — *Name and value* puts the name above and the value below, like a newspaper tile map.
-
-**Highlighting** — click another visual: the map keeps every tile and dims the ones that do not match.
-
----
-
-## 💡 Text box 7 — Tips
-
-**TIPS**
-
-1. **Averages:** a model measure is summed per tile. Choose *Average* in Value Aggregation for ratios.
-2. **Pick the scale:** Sequential for volume · Quantile (Pro) when one outlier washes out the rest · Diverging (Pro) for values around zero · Categorical (Pro) for groups.
-3. **Colour rules win:** rules are tested 1 → 2 → 3; the first match colours the tile. The legend lists each rule plus "Other".
-4. **Volume and rate:** rate in Value (colour), volume in Size (Pro).
-5. **Labels** appear only where they fit (8 px or more) — enlarge the visual, lower Label Min Tile Size or choose *Name*.
-6. **Plan vs actual:** actuals in Value, budget in Target (Pro), Label Content → *Name and value*.
-7. **Drill-down without building one:** a report page tooltip (Format → General → Tooltips) is filtered to the tile under the pointer.
-8. **Keyboard:** arrows move, Enter/Space select, Ctrl+Enter adds, Esc clears, Shift+F10 context menu.
-
----
-
-## 🗺️ Text box 8 — Custom TopoJSON (Pro)
-
-**YOUR OWN REGIONS (PRO)**
-
-1. Country / Region → *Custom TopoJSON (Pro)*.
+1. Country / Region > Custom TopoJSON (Pro).
 2. Drag a TopoJSON file onto the visual (longitude/latitude, WGS84, max 5 MB).
-3. Each polygon or multipolygon is one region; its name comes from the file's *name* property.
+3. Each polygon or multipolygon is one region; its name comes from the file's name property.
 4. The file is saved in the report — save the .pbix after dropping it.
 
 No network requests. Simplify big files at mapshaper.org first.
 
----
+## Troubleshooting
 
-## ❓ Text box 9 — Troubleshooting
-
-**TROUBLESHOOTING**
-
-**Rows "outside the map"** — wrong Country / Region, Latitude and Longitude swapped, or rows from other countries (filter them).
-
-**All tiles the same colour / rules not applying** — check *Enable Rules* in the card header; for percent fields type 25, not 0.25; Rule 2's range may catch everything first.
-
-**Legend missing** — *Show Legend* off, no tile has a value, or Categorical without a Category field.
-
-**Average looks like a sum** — set Value Aggregation to Average.
-
-**Labels not showing** — turn on Show Cell Labels; labels only appear where they fit.
-
-**Most of the map is dimmed** — a range is picked in the legend (click it again), a tile is selected (click the background) or another visual is highlighting the map.
-
-**TopoJSON not loading** — needs Pro (or the Pro preview while editing), a TopoJSON (not GeoJSON) file with polygons, under 5 MB, in longitude/latitude. The note under the map says what failed.
+- **Rows "outside the map"** — wrong Country / Region, Latitude and Longitude swapped, or rows from other countries (filter them).
+- **Most of the map is dimmed** — a range is picked in the legend (click it again), a tile is selected (click the background) or another visual is highlighting the map.
+- **All tiles the same colour / rules not applying** — check Enable Rules in the card header; for percent fields type 25, not 0.25; Rule 2's range may catch everything first.
+- **Legend missing** — Show Legend off, no tile has a value, or Categorical without a Category field.
+- **Average looks like a sum** — set Value Aggregation to Average.
+- **Labels not showing** — turn on Show Cell Labels; labels only appear where they fit.
+- **TopoJSON not loading** — needs Pro (or the Pro preview while editing), a TopoJSON (not GeoJSON) file with polygons, under 5 MB, in longitude/latitude. The note under the map says what failed.
 
 ---
 
