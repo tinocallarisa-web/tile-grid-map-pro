@@ -1,8 +1,9 @@
 ================================================================
-DESCRIPCIÓN PARA YOUTUBE — Tile Grid Map Pro v1.1.0.0
+DESCRIPCIÓN PARA YOUTUBE — Tile Grid Map Pro v1.3.0.0
 ================================================================
-Copia desde la línea de abajo. Los capítulos siguen el guion
-(GUION-VIDEO-v1.1.0.0.md): ajústalos a los tiempos reales del vídeo.
+Copia desde la línea de abajo. El vídeo publicado es el de la 1.1:
+los capítulos siguen ese vídeo; las listas Free / Pro están al día
+con la 1.3. Si se graba un vídeo nuevo, rehacer los capítulos.
 ================================================================
 
 TÍTULO:
@@ -40,16 +41,22 @@ https://marketplace.microsoft.com/en-us/product/tino_callarisa.tile-grid-map-pro
 • 27 built-in maps: Spain, Canarias, Portugal, France, Germany, Italy, Sicily, Sardinia, United Kingdom, Netherlands, Belgium, Poland, Sweden, Norway, Switzerland, Austria, United States, Alaska, Hawaii, Canada, Mexico, Brazil, Argentina, Colombia, Australia, India, Japan
 • The first 500 rows of data
 • Square tiles, latitude distortion correction
+• Colours that follow your report theme, and your measure's own number format
+• Pick a range in the legend: only the tiles in it stay lit, with their count and share of the total
+• Labels with the value, the name, or both on two lines
 • Coastal points snapped to the nearest land tile; rows outside the map counted on screen
 • Aggregation that follows your field: Auto, Sum, Average, Count, Min, Max
 • Colour rules (3 rules) with a legend that lists them
 • Legend font, size and colour; labels, borders, no-data colour
-• Tooltips with up to 10 extra fields
-• Cross-filter, Ctrl multi-select, context menu, keyboard navigation, high contrast
+• Tooltips with up to 10 extra fields, or a report page as the tooltip
+• Cross-filter, highlighting from other visuals, Ctrl multi-select, context menu, keyboard navigation, high contrast
+• On-object formatting and 12 languages
 
 ⭐ PRO ADDS
 
+• Target — colour each tile by its variance against a budget or plan
 • All rows up to 30,000 (the most Power BI sends to a visual)
+• Six collection styles
 • Circle and hexagon tiles
 • Size — tile area from a second measure
 • Quantile, diverging (neutral at zero) and categorical colour scales (by a Category field, with legend)
@@ -91,7 +98,7 @@ VERSIÓN CORTA  (Shorts, LinkedIn o descripción reducida)
 
 A tile grid map in Power BI from just latitude and longitude. Pick one of 27 built-in countries, add a measure, done — no map service, no shapefiles.
 
-Pro adds circle and hexagon tiles, sizing by a second measure, quantile and categorical scales, and your own TopoJSON regions.
+Pro adds a Target to see every region against plan, six styles, circle and hexagon tiles, sizing by a second measure, quantile and categorical scales, and your own TopoJSON regions.
 
 Get it on AppSource → https://marketplace.microsoft.com/en-us/product/tino_callarisa.tile-grid-map-pro?tab=Overview
 

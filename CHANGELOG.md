@@ -29,7 +29,7 @@ This project follows the Power BI custom visual four-part versioning scheme
 
 - **Target (Pro).** A new *Target* field well: each tile is coloured by its variance against the target, on a
   diverging scale centred on 0 % (below target / on target / above target) and symmetric, so +10 % and −10 % weigh the
-  same. The legend, tile labels and colour rules read in variance; the tooltip shows the actual value, the target and
+  same. The legend, tile labels and colour rules read in variance (rule thresholds typed as shown: 10 means +10 %); the tooltip shows the actual value, the target and
   the variance. Without a licence it is drawn under the Pro preview watermark.
 
 - **Label content.** *Map Settings → Label Content*: Auto (as before), Value, Name, or Name and value in two lines,

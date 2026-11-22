@@ -864,6 +864,11 @@ export class Visual implements IVisual {
     return this._hasTarget && this.allow("target");
   }
 
+  /** Las reglas se escriben como se ven: con un campo en % o en modo objetivo, 25 es 25 %. */
+  private umbralEnPorcentaje(): boolean {
+    return this._valuePercent || this.modoObjetivo();
+  }
+
   /** Objetivo agregado de una tesela, o NaN. */
   private objetivoTesela(b: Bucket): number {
     return this.aggregate(b.targets, this._targetAggType);
@@ -1623,7 +1628,7 @@ export class Visual implements IVisual {
     const cf = this.settings.conditionalFormatting;
     const num = (x: unknown) => (x === null || x === undefined || x === "") ? NaN : Number(x);
     // Thresholds are typed as shown (25 for 25%); formatValue expects the raw value.
-    const shown = (t: number) => this.formatValue(this._valuePercent ? t / 100 : t, this.fmtValor());
+    const shown = (t: number) => this.formatValue(this.umbralEnPorcentaje() ? t / 100 : t, this.fmtValor());
     const sym: Record<string, string> = { lt: "<", lte: "≤", gt: ">", gte: "≥", eq: "=" };
 
     const items: { color: string; text: string }[] = [];
@@ -2033,7 +2038,7 @@ export class Visual implements IVisual {
     const cf = this.settings.conditionalFormatting;
     if (!cf.cfEnabled.value) return null;
     // Thresholds are typed as the user reads the value: 25 for a field shown as 25%.
-    if (this._valuePercent) value = value * 100;
+    if (this.umbralEnPorcentaje()) value = value * 100;
     const num = (x: unknown) => (x === null || x === undefined || x === "") ? NaN : Number(x);
     const test = (op: string, threshold: number, v: number): boolean =>
       !isNaN(threshold) && (

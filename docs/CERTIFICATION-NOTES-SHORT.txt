@@ -1,42 +1,42 @@
-Tile Grid Map Pro v1.2.0.0 - GUID tileGridMapProTCViz1234567890
-Source: github.com/tinocallarisa-web/tile-grid-map-pro
-Support: tinocallarisa-web.github.io/tile-grid-map-pro/
+Tile Grid Map Pro v1.3.0.0 - GUID tileGridMapProTCViz1234567890
+Source: github.com/tinocallarisa-web/tile-grid-map-pro/tree/certification
+Support: tinocallarisa-web.github.io/tile-grid-map-pro/support.html
 
-WHAT CHANGED IN 1.2.0.0
-1. THE PURCHASE PATH WAS BROKEN. notifyLicenseRequired went before notifyFeatureBlocked,
-   and Power BI shows one notification at a time: the banner wiped out the Upgrade bar and,
-   once it faded, a free user had no way to buy. Now: clear, banner, Upgrade bar 10.5 s
-   later, cancelled in destroy().
-2. PRO PREVIEW. A free user who picked a hexagon tile or a diverging scale saw it silently
-   reverted: a broken visual, not something to buy. Editing without a licence, once
-   resolved, it draws WORKING under a "Pro preview" watermark naming it, per feature. In
-   reading view, or with an unreadable licence: free result.
-3. FORMAT PANE IN SPANISH. No displayNameKey anywhere, stringResources empty and
-   FormattingSettingsService built without a localization manager. 100 keys in en-US/es-ES.
-4. Toolchain current (tools 7.2.1, API 5.11.1), npm audit 0, cert-audit clean.
+WHAT CHANGED IN 1.3.0.0
+1. Legend range: click a legend entry or drag on the gradient; tiles outside dim.
+   Map only: no filter, not persisted.
+2. Target role (Pro): tile colour = (Value-Target)/|Target|, symmetric diverging scale.
+3. Label Content: value, name, or name and value. Style template: Report theme + 6 Pro.
+4. supportsHighlight: table + categorical in one mapping; highlights from categorical.
+5. On-object formatting (onobjectutils): tiles, labels, legend. In format mode a click
+   selects what to format and never filters.
+6. 12 languages; on-canvas text also in the bundle.
+7. Model format strings. Fixed: internal repaints sent extra rendering events; now
+   exactly one start/finish per update.
+8. ESLint 10, tools 7.2.1, API 5.11.1, npm audit 0.
 
 TESTING FREE (no licence)
-1. Sample .pbix: bind Latitude, Longitude, Value (Label, Tooltips, Category optional).
-2. Map Settings: switch the grids. Report in Spanish: the pane is in Spanish.
-3. Over 500 rows: "Showing the first 500 of N rows".
-4. Quantile/Diverging/Categorical, Color Min/Max, Circle/Hexagon, Size: while EDITING each
-   draws under a "Pro preview" watermark, a banner names it, the Upgrade bar follows.
-5. Click, Ctrl+click, background click, right-click, keyboard.
+1. Sample .pbix: Latitude, Longitude, Value (Label, Tooltips, Category optional).
+2. Map Settings: switch grids. Over 500 rows: "Showing the first 500 of N rows".
+3. Legend: drag on the gradient, then click it to clear. Label Content: Name and value.
+4. Click a bar in the other visual on the page: the map highlights, nothing is removed.
+5. While EDITING, a style, Quantile/Diverging/Categorical, Circle/Hexagon, Size or Target
+   draws under a "Pro preview" notice; Power BI shows the banner, then the Upgrade bar.
+   Reading view: free result, no notice.
+6. Click, Ctrl+click, right-click, keyboard. On-object: select tiles/labels/legend.
 
 TESTING PRO (licence or trial)
-1. All rows up to 30,000. 2. Quantile, Diverging, own colours, Circle/Hexagon and Size
-apply, no watermark. 3. Custom TopoJSON: drop a file (lon/lat WGS84, max 5 MB); it renders
-and persists on reopen.
+All rows up to 30,000; Pro options apply with no notice; Custom TopoJSON: drop a file
+(lon/lat WGS84, max 5 MB), it renders and persists on reopen.
 
-PRIVACY: no network calls, no telemetry, no storage. privileges []. TopoJSON only by drag
-& drop (FileReader). No innerHTML, lint clean.
+PRIVACY: no network calls, telemetry or storage. privileges []. TopoJSON only by drag &
+drop (FileReader). No innerHTML. Interactions gated on hostCapabilities.allowInteractions.
 
-LICENSING: getAvailableServicePlans. Pro when spIdentifier (the full Service ID) ends with
-".tile-grid-map-pro-tcviz" and the state is Active or Warning. isLicenseUnsupportedEnv and
+LICENSING: getAvailableServicePlans. Pro when spIdentifier (full Service ID) ends with
+".tile-grid-map-pro-tcviz" and state is Active or Warning. isLicenseUnsupportedEnv and
 isLicenseInfoAvailable honoured.
 
-FREE vs PRO
-Free: the maps, first 500 rows, square tiles, latitude correction, blue palette, labels,
-legend, colour rules, tooltips, cross-filtering, high contrast, Spanish pane.
-Pro: 30,000 rows, Custom TopoJSON, circle/hexagon, Size role, quantile/diverging/
-categorical scales, own colours.
+FREE: maps, 500 rows, square tiles, Report theme, legend range, label content, rules,
+tooltips, highlight, on-object.
+PRO: 30,000 rows, 6 styles, Target, Size, circle/hexagon, quantile/diverging/categorical,
+own colours, Custom TopoJSON.

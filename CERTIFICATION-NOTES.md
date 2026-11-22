@@ -5,14 +5,14 @@
 > Si el campo tiene límite de caracteres, usar `docs/CERTIFICATION-NOTES-SHORT.txt`.
 
 **Visual GUID:** `tileGridMapProTCViz1234567890`
-**Version:** 1.2.0.0
+**Version:** 1.3.0.0
 **Plan ID / spIdentifier:** `tile-grid-map-pro-tcviz` (Service ID completo `publisher.offer.plan`, se acepta por sufijo)
 **Demo video:** https://www.youtube.com/watch?v=iCXAk3kI9nE
 
 ---
 
 ```
-Tile Grid Map Pro v1.2.0.0 - GUID tileGridMapProTCViz1234567890
+Tile Grid Map Pro v1.3.0.0 - GUID tileGridMapProTCViz1234567890
 
 Source code (certification branch):
 https://github.com/tinocallarisa-web/tile-grid-map-pro/tree/certification
@@ -25,41 +25,49 @@ Demo / onboarding video:
 https://www.youtube.com/watch?v=iCXAk3kI9nE
 
 ------------------------------------------------------------------
-WHAT CHANGED IN 1.2.0.0
+WHAT CHANGED IN 1.3.0.0
 ------------------------------------------------------------------
-Two things, and the first one is the reason this release exists.
+1. PICK A RANGE IN THE LEGEND. Click a class, colour rule or category in the
+legend, or drag across the gradient: tiles in the range stay in full colour,
+the rest dim, and a note under the map gives the count and share of the total.
+It only affects the visual: no selection is sent to the report, nothing is
+persisted, and it repaints without extra rendering events. Disabled in format
+mode and when allowInteractions is false.
 
-1. THE PURCHASE PATH WAS BROKEN. notifyLicenseRequired was raised before
-notifyFeatureBlocked in the same update. Power BI shows one notification at a
-time and the last call replaces the previous one, so the banner wiped out the
-persistent Upgrade bar; when the banner faded some ten seconds later, a free
-user who had just reached for a Pro feature was left with no way to buy at all.
-The sequence is now: clear any standing notice, raise the banner naming the
-feature, and raise the Upgrade bar 10.5 s later, once the banner has gone. The
-timer is cancelled in destroy(), because Power BI recreates the visual on every
-page change and a live timer would notify for a map that no longer exists.
+2. TARGET ROLE (PRO). A new measure role. Tile colour = (Value - Target) /
+|Target| on a diverging scale symmetric around 0. Legend, labels and rules read
+in variance; tooltip shows actual, target and variance. Without a licence it is
+drawn under the Pro preview notice while editing (same per-feature preview as
+1.2).
 
-2. PRO PREVIEW. A free user who chose a hexagon tile, a diverging scale, custom
-colours or a size measure saw the setting silently reverted - the map simply
-carried on as before, which reads as a visual that ignores you rather than as
-something to buy. Those features are now drawn WORKING, under a "Pro preview"
-watermark that names them, while the user edits a report without a licence.
+3. LABEL CONTENT. Auto / Value / Name / Name and value (two lines). Never below
+8 px and never wider than the tile.
 
-The preview is granted PER FEATURE, never in bulk: inserting the visual hands
-out nothing, because nothing has been asked for yet. It requires the licence to
-have RESOLVED and the environment to support licensing - at start-up isPro is
-false for a paying customer too, and where the licence cannot be read (Publish
-to Web, embedding, export) a Pro customer reads as Free. Drawing the watermark
-there would put it in front of someone who already paid.
+4. STYLE TEMPLATE. Report theme (free; colours from host.colorPalette) and six
+collection styles (Pro). A colour set by the author always wins.
 
-In reading view the free result renders with no watermark and no prompt, so a
-published report never uses a feature nobody paid for.
+5. HIGHLIGHT. supportsHighlight: true. The mapping declares both table (used to
+build the map) and categorical (latitude, longitude, label, category; value).
+Highlighted rows are read from categorical.values[0].highlights and matched to
+table rows by their grouping values, not by position.
 
-The watermark is built with createElementNS and textContent. No innerHTML.
+6. ON-OBJECT FORMATTING. supportsOnObjectFormatting and
+enablePointerEventsFormatMode, with powerbi-visuals-utils-onobjectutils
+(HtmlSubSelectionHelper). Tiles, labels and legend have styles, shortcuts and a
+link to their card. In format mode a click selects what to format and never
+filters; keyboard selection is off too.
 
-3. Toolchain on current versions: tools 7.2.1, API 5.11.1 (the manifest still
-declared 5.10.0), TypeScript 5.5.4. npm audit reports 0 vulnerabilities and
-`pbiviz package --certification-audit` finds no external requests.
+7. LANGUAGES. 12 stringResources. Desktop only resolves keys declared in
+capabilities.json, so on-canvas texts (start screen, notes, tooltips, licence
+banner) also ship in the bundle (src/strings.ts).
+
+8. FORMAT AND RENDERING. Values use the model's format string and locale via
+powerbi-visuals-utils-formattingutils. Fixed: licence resolution and TopoJSON
+drop repainted through update(), sending extra rendering events; internal
+repaints now draw without events, so each update reports one start and one
+finish. Fixed: the stylesheet was not packaged.
+
+9. Toolchain: ESLint 10, TypeScript 5.9, tools 7.2.1, API 5.11.1, npm audit 0.
 
 ------------------------------------------------------------------
 LICENSE VALIDATION
@@ -86,9 +94,9 @@ server is contacted and no licence data leaves the Power BI environment.
 DATA ROLES
 ------------------------------------------------------------------
 Latitude (Grouping, max 1), Longitude (Grouping, max 1), Value (Measure,
-max 1), Size (Pro) (Measure, max 1), Tooltips (Measure, max 10),
-Label (Grouping, max 1), Category (Grouping, max 1).
-Table mapping, dataReductionAlgorithm top 30000.
+max 1), Size (Pro) (Measure, max 1), Target (Pro) (Measure, max 1),
+Tooltips (Measure, max 10), Label (Grouping, max 1), Category (Grouping, max 1).
+Table mapping (top 30000) plus categorical mapping (top 30000) for highlights.
 
 ------------------------------------------------------------------
 FREE TIER (no license required)
@@ -101,20 +109,24 @@ FREE TIER (no license required)
 - Square tiles
 - Legend Font, Text Size and Text Color
 - Correct Latitude Distortion (on by default)
-- Fixed blue sequential palette
+- Style template Report theme: sequential ramp from the report theme
 - Aggregation: Auto (from field), Sum, Average, Count, Min, Max
 - Rule-based colour rules (the visual's own 3-rule card, not fx formatting),
   labels, legend (top or bottom), decimals. Enable Rules switch in the card
   header; percent thresholds typed as shown (25 = 25%); with rules on the
   legend shows one swatch per active rule with its condition plus "Other"
 - Borders, selection ring, no-data colour, show/hide empty cells
-- Tooltips (up to 10 fields), cross-filtering, Ctrl multi-select, context menu
+- Tooltips (up to 10 fields) and report page tooltips, cross-filtering,
+  highlighting, Ctrl multi-select, context menu
+- Legend range, Label Content, on-object formatting, 12 languages
 - Keyboard navigation, high contrast (value encoded by opacity)
 
 ------------------------------------------------------------------
 PRO TIER (active AppSource licence, trial or Warning state)
 ------------------------------------------------------------------
 - All rows up to 30,000 (Power BI data reduction limit)
+- Six collection styles (Boardroom, Ledger, Editorial, Signal, Aurora, Terrace)
+- Target role: colour by variance against a target
 - Tile Shape Circle / Hexagon (offset rows)
 - Size role: a second measure scales each tile's area (not in TopoJSON mode)
 - Quantile scale: 5 equal-count classes, legend shows break values
@@ -143,8 +155,9 @@ CERTIFICATION REQUIREMENTS
 - renderingStarted / renderingFinished / renderingFailed in every code path
   of update(), wrapped in try/catch.
 - capabilities.json declares supportsLandingPage, supportsEmptyDataView,
-  supportsKeyboardFocus and supportsMultiVisualSelection. supportsHighlight and
-  supportsSynchronizingFilterState were removed (not implemented).
+  supportsKeyboardFocus, supportsMultiVisualSelection, supportsHighlight,
+  supportsOnObjectFormatting and enablePointerEventsFormatMode.
+  supportsSynchronizingFilterState is not declared (not implemented).
 - Interactions gated on host.hostCapabilities.allowInteractions.
 - High contrast via host.colorPalette.isHighContrast.
 - Tooltips via host.tooltipService; context menu via
@@ -167,10 +180,14 @@ TESTING INSTRUCTIONS
    - Map Settings > Country/Region switches between the 27 grids.
    - With more than 500 rows: "Showing the first 500 of N rows". Rows outside
      the map or without coordinates are counted on screen.
-   - Scale Type "Quantile/Diverging/Categorical (Pro)" or changed Color
-     Min/Max keep the free blue palette; Tile Shape Circle/Hexagon
-     and a field in Size (Pro) are not applied. In
-     each case Power BI shows its feature-blocked banner and licence icon.
+   - While EDITING, a Pro style, Scale Type "Quantile/Diverging/Categorical
+     (Pro)", changed Color Min/Max, Tile Shape Circle/Hexagon, a field in
+     Size (Pro) or Target (Pro) is drawn under a "Pro preview" notice naming
+     it; Power BI shows the banner, then the Upgrade bar. In reading view the
+     free result is shown with no notice.
+   - Legend: drag across the gradient (tiles outside dim, note under the map);
+     click the gradient to clear. Label Content > Name and value.
+   - Click a bar in another visual: the map highlights instead of filtering.
    - Correct Latitude Distortion on/off changes tile proportions (e.g. Norway).
    - Country/Region = "Custom TopoJSON (Pro)" shows "Custom TopoJSON regions
      are not available" and no drop zone.
@@ -181,7 +198,8 @@ TESTING INSTRUCTIONS
 
 4. With an active Pro licence or during the 30-day trial, verify:
    - All rows up to 30,000 are used.
-   - Quantile, diverging, categorical and Color Min/Mid/Max take effect.
+   - Styles, Target, quantile, diverging, categorical and Color Min/Mid/Max
+     take effect with no notice.
    - Circle and Hexagon shapes apply.
    - A measure in Size scales tile area and appears in the tooltip.
    - Country/Region = "Custom TopoJSON (Pro)" shows a drop zone. Dropping a
@@ -195,12 +213,12 @@ TESTING INSTRUCTIONS
 
 ## Checklist antes de enviar
 
-- [ ] Versión `1.2.0.0` en `pbiviz.json` y `1.2.0` en `package.json` (3 dígitos)
+- [ ] Versión `1.3.0.0` en `pbiviz.json` y `1.3.0` en `package.json` (3 dígitos)
 - [ ] GUID `tileGridMapProTCViz1234567890` (sin sufijo)
 - [ ] `isPro` resuelto por `licenseManager` (no forzado a `true`)
 - [ ] Sin instrumentación de debug ni marcadores de build
 - [ ] Rama `certification` actualizada, sin `node_modules`, `.tmp` ni `dist`
 - [ ] `.gitignore` incluye esas tres rutas
 - [ ] URLs de privacy, terms y support activas en GitHub Pages
-- [ ] `.pbix` de muestra con página "Tips & Hints"
+- [ ] `.pbix` de muestra con página "Tips & Hints", solo con la build de producción y con otro visual en la página (para probar el resaltado)
 - [ ] Estas notas (o `docs/CERTIFICATION-NOTES-SHORT.txt`) copiadas en Partner Center
