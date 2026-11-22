@@ -187,6 +187,11 @@ async def main():
             r = await pg.evaluate(WM)
             check("Vista de lectura: sin marca de agua", bool(r) and not r["ver"], str(r))
             await pg.close()
+            pg = await page(b, dv(objects={"style": {"template": "terrace"}}), 470, 380, name="07_marca_es", locale="es-ES")
+            await pg.wait_for_timeout(200)
+            r = await pg.evaluate(WM)
+            check("Marca de agua en español (es-ES)", bool(r) and "Vista previa Pro" in r["texto"] and "el estilo Terrace" in r["texto"], str(r))
+            await pg.close()
 
         print("Sin datos: pantalla de inicio que encoge sin bajar de 8 px")
         for (W, H) in ((300, 200), (900, 500)):
@@ -194,6 +199,17 @@ async def main():
             r = await pg.evaluate(TEXTOS)
             check(f"Inicio {W}×{H}: textos ≥ 8 px y dentro", r["n"] > 0 and r["min"] >= 8 and not r["fuera"], str({k: r[k] for k in ('n', 'min', 'max', 'fuera')}))
             await pg.close()
+
+        print("Idioma de Desktop: los textos propios salen del bundle (el gestor solo devuelve la clave)")
+        for loc, esperado in (("es-ES", "Añade los campos Latitud y Longitud"), ("ja-JP", "緯度と経度"), ("en-US", "Add Latitude and Longitude")):
+            pg = await page(b, {"metadata": {"columns": []}}, 600, 400, name=f"09_inicio_{loc}", locale=loc)
+            r = await pg.evaluate(TEXTOS)
+            check(f"Pantalla de inicio en {loc}", any(esperado in x for x in r["textos"]), str(r["textos"][:3]))
+            await pg.close()
+        pg = await page(b, dv(), 470, 380, locale="es-ES")
+        tt = await pg.evaluate("() => { const k = [...__v._points.keys()][0]; return __v.tooltipItems(__v._points.get(k)).map(i => i.displayName); }")
+        check("Tooltip en español", "Filas" in tt and not "Rows" in tt, str(tt))
+        await pg.close()
 
         await b.close()
     print(f"\n{len(FALLOS)} fallos" + (": " + ", ".join(FALLOS) if FALLOS else ""))

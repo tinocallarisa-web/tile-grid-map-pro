@@ -5,6 +5,7 @@ import powerbi from "powerbi-visuals-api";
 import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
 import { valueFormatter } from "powerbi-visuals-utils-formattingutils";
 import { createProWatermark, renderProWatermark } from "./comun/watermark";
+import { STRINGS } from "./strings";
 
 import { VisualFormattingSettingsModel } from "./settings";
 import { COUNTRY_GRIDS, CountryGrid, locateCell, isInMask, MAX_SNAP_CELLS } from "./countryGrids";
@@ -199,6 +200,7 @@ export class Visual implements IVisual {
   private tplVisto: string | null = null;  // última plantilla vista: al cambiarla se borran los colores que define
   private _topoSource = "";   // file name + length, part of the scan key
   private _topoError = "";
+  private localizationManager: powerbi.extensibility.ILocalizationManager | null = null;
 
   constructor(options: VisualConstructorOptions | undefined) {
     if (!options) { return; }
@@ -207,7 +209,8 @@ export class Visual implements IVisual {
     this.selectionManager  = this.host.createSelectionManager();
     // CON el gestor de localizacion. Sin el, los displayNameKey de settings.ts no se
     // resuelven y el panel sale en ingles aunque existan las traducciones.
-    this.formattingService = new FormattingSettingsService(this.host.createLocalizationManager());
+    this.localizationManager = this.host.createLocalizationManager();
+    this.formattingService = new FormattingSettingsService(this.localizationManager);
     this.events            = this.host.eventService;
     this.tooltipSvc        = this.host.tooltipService;
     this.locale            = this.host.locale || "en-US";
@@ -293,10 +296,10 @@ export class Visual implements IVisual {
     const scale = String(this.settings.colorScale.scaleType.value);
 
     const tplPedida = String((objs as Record<string, Record<string, unknown> | undefined>).style?.template ?? "classic");
-    if (PRO_STYLES.indexOf(tplPedida) >= 0) { labels.push(`the ${STYLE_NAMES[tplPedida]} style`); parts.push(`style=${tplPedida}`); keys.add("style"); }
+    if (PRO_STYLES.indexOf(tplPedida) >= 0) { labels.push(this.tf("UI_WmStyle", "the {0} style", STYLE_NAMES[tplPedida])); parts.push(`style=${tplPedida}`); keys.add("style"); }
     const custom = country === "custom";
-    if (custom) { labels.push("custom TopoJSON regions"); parts.push("custom"); keys.add("custom"); }
-    if (scale === "diverging" || scale === "categorical") { labels.push(`the ${scale} colour scale`); parts.push(scale); keys.add("scale"); }
+    if (custom) { labels.push(this.t("UI_WmCustom", "custom TopoJSON regions")); parts.push("custom"); keys.add("custom"); }
+    if (scale === "diverging" || scale === "categorical") { labels.push(this.t(scale === "diverging" ? "UI_WmDiverging" : "UI_WmCategorical", scale === "diverging" ? "the diverging colour scale" : "the categorical colour scale")); parts.push(scale); keys.add("scale"); }
     // Por VALOR, no por presencia: Power BI deja la propiedad escrita para siempre una vez
     // tocada, asi que mirar si existe dejaba la marca de agua puesta aunque el usuario
     // devolviera el color a su valor de origen.
@@ -310,16 +313,16 @@ export class Visual implements IVisual {
       return actual !== "" && actual !== this.colorPorDefecto(p).toLowerCase();
     });
     if (colours.length) {
-      labels.push("custom scale colours");
+      labels.push(this.t("UI_WmColours", "custom scale colours"));
       parts.push(colours.map(p => `${p}=${String(csAj[p].value?.value ?? "")}`).join(","));
       keys.add("colours");
     }
     const ms = this.settings.mapSettings;
-    if (!custom && String(ms.tileShape.value) !== "square") { labels.push(`${String(ms.tileShape.value)} tiles`); parts.push(`shape=${String(ms.tileShape.value)}`); keys.add("shape"); }
-    if (scale === "quantile") { labels.push("the quantile colour scale"); parts.push("quantile"); keys.add("scale"); }
-    if (this._hasSize && !custom) { labels.push("sizing tiles by a second measure"); parts.push("size"); keys.add("size"); }
+    if (!custom && String(ms.tileShape.value) !== "square") { labels.push(this.t(String(ms.tileShape.value) === "circle" ? "UI_WmCircle" : "UI_WmHex", String(ms.tileShape.value) === "circle" ? "circle tiles" : "hexagon tiles")); parts.push(`shape=${String(ms.tileShape.value)}`); keys.add("shape"); }
+    if (scale === "quantile") { labels.push(this.t("UI_WmQuantile", "the quantile colour scale")); parts.push("quantile"); keys.add("scale"); }
+    if (this._hasSize && !custom) { labels.push(this.t("UI_WmSize", "sizing tiles by a second measure")); parts.push("size"); keys.add("size"); }
     if (this._stats.total > FREE_ROW_LIMIT) {
-      labels.push(`more than ${FREE_ROW_LIMIT} rows (this report has ${this._stats.total.toLocaleString(this.locale)})`);
+      labels.push(this.tf("UI_WmRows", "more than {0} rows (this report has {1})", String(FREE_ROW_LIMIT), this._stats.total.toLocaleString(this.locale)));
       parts.push(`rows>${FREE_ROW_LIMIT}`);
       keys.add("rows");
     }
@@ -434,9 +437,11 @@ export class Visual implements IVisual {
     try { lm.clearLicenseNotification?.(); } catch (_) { /* best-effort */ }
     this.licenseIconShown = false;
 
-    const list = labels.length === 1 ? labels[0] : labels.slice(0, -1).join(", ") + " and " + labels[labels.length - 1];
+    const list = labels.length === 1 ? labels[0] : this.tf("UI_ListAnd", "{0} and {1}", labels.slice(0, -1).join(", "), labels[labels.length - 1]);
     try {
-      lm.notifyFeatureBlocked(`Tile Grid Map Pro: ${list} ${labels.length === 1 ? "is" : "are"} part of the Pro plan. Get a licence to enable ${labels.length === 1 ? "it" : "them"}.`);
+      lm.notifyFeatureBlocked(labels.length === 1
+        ? this.tf("UI_BlockedOne", "Tile Grid Map Pro: {0} is part of the Pro plan. Get a licence to enable it.", list)
+        : this.tf("UI_BlockedMany", "Tile Grid Map Pro: {0} are part of the Pro plan. Get a licence to enable them.", list));
     } catch (_) { /* best-effort */ }
 
     // La barra de Upgrade, cuando el banner ya se ha ido. 10,5 s es lo que dura.
@@ -575,7 +580,7 @@ export class Visual implements IVisual {
         // Gated where it is drawn. The purchase path is Power BI's notification.
         this._stats = { total: dataView.table.rows?.length ?? 0, used: 0, blankCoords: 0, outside: 0, snapped: 0, capped: false };
         this._scanDataView = null; // these stats are not a scan: force the next one
-        this.renderCentredText(vp, ["Custom TopoJSON regions are not available.", "Choose a country in Format → Map Settings."]);
+        this.renderCentredText(vp, [this.t("UI_CustomNA", "Custom TopoJSON regions are not available."), this.t("UI_ChooseCountry", "Choose a country in Format → Map Settings.")]);
       } else if (custom) {
         this.restorePersistedTopo(dataView);
         if (this._topoFeatures && this._topoFeatures.length > 0) {
@@ -840,14 +845,14 @@ export class Visual implements IVisual {
     const s = this._stats;
     const out: string[] = [];
     const n = (x: number) => x.toLocaleString(this.locale);
-    if (!this.allow("rows") && s.total > FREE_ROW_LIMIT) out.push(`Showing the first ${n(FREE_ROW_LIMIT)} of ${n(s.total)} rows.`);
-    else if (s.capped) out.push(`Power BI sent the first ${n(ROW_CAP)} rows; further rows are not shown.`);
+    if (!this.allow("rows") && s.total > FREE_ROW_LIMIT) out.push(this.tf("UI_ShowingFirst", "Showing the first {0} of {1} rows.", n(FREE_ROW_LIMIT), n(s.total)));
+    else if (s.capped) out.push(this.tf("UI_RowCap", "Power BI sent the first {0} rows; further rows are not shown.", n(ROW_CAP)));
     const missing = s.outside + s.blankCoords;
     if (missing > 0) {
       const parts: string[] = [];
-      if (s.outside) parts.push(`${n(s.outside)} outside the map`);
-      if (s.blankCoords) parts.push(`${n(s.blankCoords)} without coordinates`);
-      out.push(`${n(missing)} rows not shown: ${parts.join(", ")}.`);
+      if (s.outside) parts.push(this.tf("UI_Outside", "{0} outside the map", n(s.outside)));
+      if (s.blankCoords) parts.push(this.tf("UI_NoCoords", "{0} without coordinates", n(s.blankCoords)));
+      out.push(this.tf("UI_NotShown", "{0} rows not shown: {1}.", n(missing), parts.join(", ")));
     }
     if (this._topoError) out.push(this._topoError);
     return out.slice(0, 2);
@@ -893,7 +898,7 @@ export class Visual implements IVisual {
     const pitchY = pitchX * ratio;
 
     if (pitchX < 2 || pitchY < 2) {
-      this.renderStatus(vp, status.length ? status : ["Enlarge the visual to see the map."]);
+      this.renderStatus(vp, status.length ? status : [this.t("UI_Enlarge", "Enlarge the visual to see the map.")]);
       return;
     }
     const offX = (vp.width - colSpan * pitchX) / 2;
@@ -1017,7 +1022,7 @@ export class Visual implements IVisual {
     this.svg.appendChild(labels);
 
     if (this._buckets.size === 0) {
-      this.renderCentredText(vp, [`No rows fall inside ${grid.name}.`, "Check the country and that Latitude and Longitude are not swapped."]);
+      this.renderCentredText(vp, [this.tf("UI_NoRowsInside", "No rows fall inside {0}.", grid.name), this.t("UI_CheckCountry", "Check the country and that Latitude and Longitude are not swapped.")]);
     }
     if (showLegend) {
       const legendY = legendTop ? 4 : vp.height - legendH - statusH;
@@ -1059,7 +1064,7 @@ export class Visual implements IVisual {
       if (f.bbox[3] > maxY) maxY = f.bbox[3];
     }
     if (minX < -180.5 || maxX > 180.5 || minY < -90.5 || maxY > 90.5) {
-      status.unshift("The TopoJSON uses projected coordinates; rows cannot be matched to its regions. Export it in longitude/latitude (WGS84).");
+      status.unshift(this.t("UI_Projected", "The TopoJSON uses projected coordinates; rows cannot be matched to its regions. Export it in longitude/latitude (WGS84)."));
     }
 
     const legendH = showLegend ? this.legendHeight(model, vp.width) : 0;
@@ -1130,16 +1135,16 @@ export class Visual implements IVisual {
     try {
       this._topoFeatures = this.decodeTopoJson(JSON.parse(content));
       this._topoSource = source;
-      this._topoError = this._topoFeatures.length ? "" : `"${fileName}" contains no polygons.`;
+      this._topoError = this._topoFeatures.length ? "" : this.tf("UI_TopoNoPolygons", "\"{0}\" contains no polygons.", fileName);
     } catch (_) {
       this._topoFeatures = null;
-      this._topoError = `"${fileName}" could not be read as TopoJSON.`;
+      this._topoError = this.tf("UI_TopoUnreadable", "\"{0}\" could not be read as TopoJSON.", fileName);
     }
   }
 
   private loadDroppedFile(file: File): void {
     if (file.size > MAX_TOPO_CHARS) {
-      this._topoError = `"${file.name}" is ${(file.size / 1048576).toFixed(1)} MB; the limit is 5 MB. Simplify it (e.g. mapshaper.org) and try again.`;
+      this._topoError = this.tf("UI_TopoTooBig", "\"{0}\" is {1} MB; the limit is 5 MB. Simplify it (e.g. mapshaper.org) and try again.", file.name, (file.size / 1048576).toLocaleString(this.locale, { maximumFractionDigits: 1 }));
       this.repaint();
       return;
     }
@@ -1157,7 +1162,7 @@ export class Visual implements IVisual {
           merge: [{ objectName: "proSettings", selector: {}, properties: { topoJsonContent: content, topoJsonFileName: file.name } }],
         });
       } catch (_) {
-        this._topoError = `"${file.name}" is not a TopoJSON file with polygons.`;
+        this._topoError = this.tf("UI_TopoNotTopo", "\"{0}\" is not a TopoJSON file with polygons.", file.name);
       }
       this.repaint();
     };
@@ -1391,9 +1396,25 @@ export class Visual implements IVisual {
   private renderWatermark(vp: powerbi.IViewport): void {
     const ver = this.proPreview && this.attemptedLabels.length > 0 && !!this._lastOptions?.dataViews?.[0]?.table;
     renderProWatermark(this.wm, ver ? {
-      width: vp.width, height: vp.height, title: "Pro preview", features: this.attemptedLabels,
+      width: vp.width, height: vp.height, title: this.t("UI_ProPreview", "Pro preview"), features: this.attemptedLabels,
       highContrast: this.isHC ? { foreground: this.hcFg, background: this.hcBg } : null,
     } : null);
+  }
+
+  /** Texto por clave: primero la tabla del bundle (Desktop no traduce claves que no estén en capabilities). */
+  private t(key: string, fallback: string): string {
+    const loc = String(this.host?.locale || "");
+    const tabla = STRINGS[loc] || STRINGS[Object.keys(STRINGS).find(l => l.slice(0, 2) === loc.slice(0, 2)) || ""];
+    if (tabla && tabla[key]) return tabla[key];
+    try {
+      const s = this.localizationManager?.getDisplayName(key);
+      return s && s !== key ? s : fallback;
+    } catch { return fallback; }
+  }
+
+  /** Plantillas con "{0}", "{1}"… */
+  private tf(key: string, fallback: string, ...args: string[]): string {
+    return this.t(key, fallback).replace(/\{(\d+)\}/g, (_m, i) => args[Number(i)] ?? "");
   }
 
   private renderStatus(vp: powerbi.IViewport, lines: string[]): void {
@@ -1430,8 +1451,8 @@ export class Visual implements IVisual {
     zone.setAttribute("rx", "8"); zone.setAttribute("fill", "none");
     zone.setAttribute("stroke", accent); zone.setAttribute("stroke-width", "2"); zone.setAttribute("stroke-dasharray", "6 4");
     this.svg.appendChild(zone);
-    this.addText("Drag & drop a TopoJSON file here", vp.width / 2, zy + 44, "middle", fg, this.fz(11));
-    this.addText(".json / .topojson in longitude/latitude, up to 5 MB", vp.width / 2, zy + 62, "middle", fg, this.fz(9));
+    this.addText(this.t("UI_DropHere", "Drag & drop a TopoJSON file here"), vp.width / 2, zy + 44, "middle", fg, this.fz(11));
+    this.addText(this.t("UI_DropHint", ".json / .topojson in longitude/latitude, up to 5 MB"), vp.width / 2, zy + 62, "middle", fg, this.fz(9));
     this.renderStatus(vp, this.statusLines());
   }
 
@@ -1451,7 +1472,7 @@ export class Visual implements IVisual {
       }
     }
     this.addText("Tile Grid Map Pro", vp.width / 2, vp.height / 2 + 4, "middle", accent, this.fz(14));
-    this.addText("Add Latitude and Longitude fields to start.", vp.width / 2, vp.height / 2 + 4 + this.fz(18), "middle", fg, this.fz(11));
+    this.addText(this.t("UI_Landing", "Add Latitude and Longitude fields to start."), vp.width / 2, vp.height / 2 + 4 + this.fz(18), "middle", fg, this.fz(11));
   }
 
   // ── Interaction ───────────────────────────────────────────────────────────
@@ -1557,9 +1578,9 @@ export class Visual implements IVisual {
   private announceFocus(): void {
     const p = this._points.get(this._focusKey);
     if (!p) return;
-    const name = p.name || p.bucket.labels.slice(0, 3).join(", ") || "Cell";
-    const value = p.value === null ? "no value" : this.formatValue(p.value, this.fmtValor());
-    this.container.setAttribute("aria-label", `${name}: ${value}, ${p.bucket.rowCount} rows`);
+    const name = p.name || p.bucket.labels.slice(0, 3).join(", ") || this.t("UI_Cell", "Cell");
+    const value = p.value === null ? this.t("UI_NoValueLc", "no value") : this.formatValue(p.value, this.fmtValor());
+    this.container.setAttribute("aria-label", this.tf("UI_AriaPoint", "{0}: {1}, {2} rows", name, value, String(p.bucket.rowCount)));
   }
 
   private bindDrop(): void {
@@ -1643,35 +1664,35 @@ export class Visual implements IVisual {
   private tooltipItems(p: Point): VisualTooltipDataItem[] {
     const b = p.bucket;
     const type = this.aggType();
-    const aggLabels: Record<string, string> = { sum: "Sum", average: "Average", count: "Count", min: "Min", max: "Max" };
+    const aggLabels: Record<string, string> = { sum: this.t("UI_TtSum", "Sum"), average: this.t("UI_TtAverage", "Average"), count: this.t("UI_TtCount", "Count"), min: this.t("UI_TtMin", "Min"), max: this.t("UI_TtMax", "Max") };
     const items: VisualTooltipDataItem[] = [];
 
-    if (p.name) items.push({ displayName: "Region", value: p.name });
+    if (p.name) items.push({ displayName: this.t("UI_TtRegion", "Region"), value: p.name });
     if (b.labels.length > 0) {
-      const extra = b.labels.length > 3 ? ` (+${b.labels.length - 3} more)` : "";
-      items.push({ displayName: "Location", value: b.labels.slice(0, 3).join(", ") + extra });
+      const extra = b.labels.length > 3 ? " " + this.tf("UI_TtMore", "(+{0} more)", String(b.labels.length - 3)) : "";
+      items.push({ displayName: this.t("UI_TtLocation", "Location"), value: b.labels.slice(0, 3).join(", ") + extra });
     }
-    items.push({ displayName: aggLabels[type] ?? "Value", value: p.value === null ? "No value" : this.formatValue(p.value, this.fmtValor()) });
+    items.push({ displayName: aggLabels[type] ?? this.t("UI_TtValue", "Value"), value: p.value === null ? this.t("UI_TtNoValue", "No value") : this.formatValue(p.value, this.fmtValor()) });
     if (this._hasSize && b.sizes.length > 0) {
-      items.push({ displayName: "Size", value: this.formatValue(this.aggregate(b.sizes, this._sizeAggType), this._sizeFmt) });
+      items.push({ displayName: this.t("UI_TtSize", "Size"), value: this.formatValue(this.aggregate(b.sizes, this._sizeAggType), this._sizeFmt) });
     }
     if (this._hasCategory && b.cats.size > 0) {
       const main = this.majorityCategory(b);
-      const extra = b.cats.size > 1 ? ` (+${b.cats.size - 1} more)` : "";
-      items.push({ displayName: "Category", value: `${main}${extra}` });
+      const extra = b.cats.size > 1 ? " " + this.tf("UI_TtMore", "(+{0} more)", String(b.cats.size - 1)) : "";
+      items.push({ displayName: this.t("UI_TtCategory", "Category"), value: `${main}${extra}` });
     }
     if (this.settings.conditionalFormatting.cfEnabled.value && !this.isHC && p.value !== null) {
       // Says which rule coloured the tile, so a rule that never matches is visible.
       const m = this.matchedRule(p.value);
-      items.push({ displayName: "Colour rule", value: m ? `Rule ${m.rule}` : "None (scale colour)" });
+      items.push({ displayName: this.t("UI_TtRule", "Colour rule"), value: m ? this.tf("UI_TtRuleN", "Rule {0}", String(m.rule)) : this.t("UI_TtRuleNone", "None (scale colour)") });
     }
-    items.push({ displayName: "Rows", value: b.values.length < b.rowCount && type !== "count" ? `${b.rowCount} (${b.values.length} with a value)` : String(b.rowCount) });
+    items.push({ displayName: this.t("UI_TtRows", "Rows"), value: b.values.length < b.rowCount && type !== "count" ? this.tf("UI_TtRowsWith", "{0} ({1} with a value)", String(b.rowCount), String(b.values.length)) : String(b.rowCount) });
 
     if (!p.name && this.grid) {
       const g = this.grid;
       const lat = g.bbox.maxLat - (b.row + 0.5) * g.bbox.cell_h;
       const lng = g.bbox.minLng + (b.col + 0.5) * g.bbox.cell_w;
-      items.push({ displayName: "Cell centre", value: `${lat.toFixed(2)}°, ${lng.toFixed(2)}°` });
+      items.push({ displayName: this.t("UI_TtCentre", "Cell centre"), value: `${lat.toFixed(2)}°, ${lng.toFixed(2)}°` });
     }
     b.tooltips.forEach((td, name) => {
       const v = td.nums.length > 0 ? this.formatValue(this.aggregate(td.nums, td.aggType), td.aggType === "count" ? null : td.fmt) : td.firstText;

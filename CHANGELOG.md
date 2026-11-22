@@ -22,6 +22,11 @@ This project follows the Power BI custom visual four-part versioning scheme
 - **The Pro preview watermark is the one of the whole TCViz collection**: a centred notice with a light band that
   names the Pro features in use, instead of a large rotated outline over the map.
 
+- **Twelve languages.** The format pane, the start screen, the on-canvas messages (rows not shown, file errors), the
+  tooltips, the Pro preview watermark and the licence notice follow the language of Power BI: English, Spanish,
+  Portuguese (Brazil and Portugal), French, German, Italian, Dutch, Polish, Japanese, Chinese (Simplified) and Korean.
+  Until now only the format pane was translated, and only into Spanish.
+
 ### Changed
 - **The free colour ramp follows the report theme** instead of a fixed blue, also in published reports that never set
   a colour.
