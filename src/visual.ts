@@ -6,6 +6,10 @@ import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel
 import { valueFormatter } from "powerbi-visuals-utils-formattingutils";
 import { createProWatermark, renderProWatermark } from "./comun/watermark";
 import { STRINGS } from "./strings";
+import {
+  HtmlSubSelectableClass, HtmlSubSelectionHelper, SubSelectableDisplayNameAttribute,
+  SubSelectableObjectNameAttribute, SubSelectableTypeAttribute,
+} from "powerbi-visuals-utils-onobjectutils";
 
 import { VisualFormattingSettingsModel } from "./settings";
 import { COUNTRY_GRIDS, CountryGrid, locateCell, isInMask, MAX_SNAP_CELLS } from "./countryGrids";
@@ -201,6 +205,10 @@ export class Visual implements IVisual {
   private _topoSource = "";   // file name + length, part of the scan key
   private _topoError = "";
   private localizationManager: powerbi.extensibility.ILocalizationManager | null = null;
+  // Formato sobre el lienzo (1.3, receta de Waterfall): en modo formato el clic elige qué formatear, no filtra.
+  private subSelectionHelper!: HtmlSubSelectionHelper;
+  public visualOnObjectFormatting?: powerbi.extensibility.visual.VisualOnObjectFormatting;
+  private formatMode = false;
 
   constructor(options: VisualConstructorOptions | undefined) {
     if (!options) { return; }
@@ -235,6 +243,17 @@ export class Visual implements IVisual {
     this.svg.style.display = "block";
     this.container.appendChild(this.svg);
     this.wm = createProWatermark(this.container);
+
+    this.subSelectionHelper = HtmlSubSelectionHelper.createHtmlSubselectionHelper({
+      hostElement: options.element,
+      subSelectionService: options.host.subSelectionService,
+      selectionIdCallback: () => undefined as unknown as powerbi.visuals.ISelectionId,
+    });
+    this.visualOnObjectFormatting = {
+      getSubSelectionStyles: (subs) => this.getSubSelectionStyles(subs),
+      getSubSelectionShortcuts: (subs) => this.getSubSelectionShortcuts(subs),
+      getSubSelectables: (filter) => this.subSelectionHelper.getAllSubSelectables(filter),
+    };
 
     this.bindPointerEvents();
     this.bindKeyboard();
@@ -491,7 +510,15 @@ export class Visual implements IVisual {
       const editando = (options as unknown as { viewMode?: number }).viewMode !== 0;
       if (editando && this.tplVisto !== null && this.tplVisto !== tplU) this.aplicarPlantilla();
       this.tplVisto = tplU;
+      this.formatMode = !!(options as unknown as { formatMode?: boolean }).formatMode;
+      this.subSelectionHelper.setFormatMode(this.formatMode);
+      if (this.formatMode) this.tooltipSvc.hide({ immediately: true, isTouchEvent: false });
       this.render(options);
+      this.marcarSubseleccionables();
+      if (this.formatMode) {
+        const subs = (options as unknown as { subSelections?: powerbi.visuals.CustomVisualSubSelection[] }).subSelections ?? [];
+        this.subSelectionHelper.updateOutlinesFromSubSelections(subs, true);
+      }
       this.events.renderingFinished(options);
     } catch (e) {
       this.events.renderingFailed(options, String(e));
@@ -933,8 +960,9 @@ export class Visual implements IVisual {
     const baseSw = this.isHC ? "0.5" : (acc.showBorders.value ? String(Number(acc.borderWidth.value) || 0.5) : "0");
 
     const ns = "http://www.w3.org/2000/svg";
-    const rects = document.createDocumentFragment();
-    const labels = document.createDocumentFragment();
+    const rects = document.createElementNS(ns, "g");
+    const labels = document.createElementNS(ns, "g");
+    labels.setAttribute("data-o", "labels");
     const makeShape = (cx: number, cy: number, w: number, h: number, fill: string): SVGElement => {
       let el: SVGElement;
       if (shape === "circle") {
@@ -1018,6 +1046,7 @@ export class Visual implements IVisual {
       }
     }
 
+    rects.setAttribute("data-o", "tiles");
     this.svg.appendChild(rects);
     this.svg.appendChild(labels);
 
@@ -1083,7 +1112,8 @@ export class Visual implements IVisual {
     const py = (y: number) => offY + (maxY - y) * scale;
 
     const strokeClr = this.isHC ? this.hcFg : "#ffffff";
-    const frag = document.createDocumentFragment();
+    const frag = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    frag.setAttribute("data-o", "tiles");
 
     features.forEach((f, fi) => {
       const key = `t${fi}`;
@@ -1236,7 +1266,17 @@ export class Visual implements IVisual {
   }
 
   // ── Legend, status, empty states ──────────────────────────────────────────
+  /** La leyenda entera en un grupo, para poder elegirla en el formato sobre el lienzo. */
   private renderLegend(vp: powerbi.IViewport, model: ColorModel, y: number): void {
+    const antes = this.svg.childNodes.length;
+    this.renderLegendPiezas(vp, model, y);
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.setAttribute("data-o", "legend");
+    Array.from(this.svg.childNodes).slice(antes).forEach(n => g.appendChild(n));
+    this.svg.appendChild(g);
+  }
+
+  private renderLegendPiezas(vp: powerbi.IViewport, model: ColorModel, y: number): void {
     // Rules on, or categories: a gradient would not describe the tiles, so use swatches.
     const swatches = this.swatchItems(model);
     if (swatches) {
@@ -1483,7 +1523,7 @@ export class Visual implements IVisual {
 
   private bindPointerEvents(): void {
     this.svg.addEventListener("click", (e: MouseEvent) => {
-      if (!this.host.hostCapabilities.allowInteractions) return;
+      if (this.formatMode || !this.host.hostCapabilities.allowInteractions) return;   // en modo formato el clic elige qué formatear
       const key = this.keyFromEvent(e);
       if (key) {
         e.stopPropagation();
@@ -1495,7 +1535,7 @@ export class Visual implements IVisual {
     });
 
     this.svg.addEventListener("contextmenu", (e: MouseEvent) => {
-      if (!this.host.hostCapabilities.allowInteractions) return;
+      if (this.formatMode || !this.host.hostCapabilities.allowInteractions) return;   // en modo formato el clic elige qué formatear
       e.preventDefault();
       const p = this._points.get(this.keyFromEvent(e));
       this.selectionManager.showContextMenu(p?.bucket.selIds[0] ?? ({} as ISelectionId), { x: e.clientX, y: e.clientY });
@@ -1552,7 +1592,7 @@ export class Visual implements IVisual {
         }
         case "Enter":
         case " ":
-          if (idx < 0 || !this.host.hostCapabilities.allowInteractions) return;
+          if (idx < 0 || this.formatMode || !this.host.hostCapabilities.allowInteractions) return;
           e.preventDefault();
           this.selectPoint(keys[idx], e.ctrlKey || e.metaKey);
           return;
@@ -1563,7 +1603,7 @@ export class Visual implements IVisual {
         case "ContextMenu":
         case "F10": {
           if (e.key === "F10" && !e.shiftKey) return;
-          if (idx < 0 || !this.host.hostCapabilities.allowInteractions) return;
+          if (idx < 0 || this.formatMode || !this.host.hostCapabilities.allowInteractions) return;
           e.preventDefault();
           const p = this._points.get(keys[idx])!;
           const r = this.svg.getBoundingClientRect();
@@ -1770,6 +1810,77 @@ export class Visual implements IVisual {
     const c3 = cf.cfRule3Color.value?.value ?? "";
     if (c3 && test(String(cf.cfRule3Operator.value), num(cf.cfRule3Value.value), value)) return { color: c3, rule: 3 };
     return null;
+  }
+
+  // ── Formato sobre el lienzo (1.3) ────────────────────────────────────────────
+
+  /** Pieza → [tarjeta, clave del nombre, nombre en inglés]. */
+  private static readonly SUB: Record<string, [string, string, string]> = {
+    tiles:  ["mapSettings", "Visual_MapSettings", "Map Settings"],
+    labels: ["mapSettings", "Visual_MapSettings", "Map Settings"],
+    legend: ["legend", "Visual_Legend", "Legend"],
+  };
+
+  /** Marca lo que se puede elegir en modo formato. Fuera de él, no deja rastro. */
+  private marcarSubseleccionables(): void {
+    this.svg.querySelectorAll("[data-o]").forEach(nodo => {
+      const el = nodo as SVGElement;
+      const o = el.getAttribute("data-o") ?? "";
+      const info = Visual.SUB[o];
+      if (o === "labels") el.style.pointerEvents = this.formatMode ? "auto" : "";
+      if (o === "labels") el.querySelectorAll("text").forEach(t => { (t as SVGElement).style.pointerEvents = this.formatMode ? "auto" : "none"; });
+      if (!this.formatMode || !info) { el.classList.remove(HtmlSubSelectableClass); return; }
+      el.classList.add(HtmlSubSelectableClass);
+      el.setAttribute(SubSelectableObjectNameAttribute, o);
+      el.setAttribute(SubSelectableDisplayNameAttribute, o === "labels" ? this.t("Visual_ShowLabels", "Show Cell Labels") : this.t(info[1], info[2]));
+      el.setAttribute(SubSelectableTypeAttribute, String(o === "tiles"
+        ? powerbi.visuals.SubSelectionStylesType.Shape : powerbi.visuals.SubSelectionStylesType.Text));
+    });
+  }
+
+  private getSubSelectionStyles(subs: powerbi.visuals.CustomVisualSubSelection[]): powerbi.visuals.SubSelectionStyles | undefined {
+    const o = subs[0]?.customVisualObjects[0]?.objectName;
+    const ref = (obj: string, prop: string, key: string, def: string) => ({ reference: { objectName: obj, propertyName: prop }, label: this.t(key, def) });
+    const Shape = powerbi.visuals.SubSelectionStylesType.Shape, Text = powerbi.visuals.SubSelectionStylesType.Text;
+    switch (o) {
+      case "tiles": return { type: Shape, fill: ref("colorScale", "noDataColor", "Visual_NoDataColor", "No Data Color"),
+        stroke: ref("accessibility", "borderColor", "Visual_BorderColor", "Border Color") } as powerbi.visuals.SubSelectionStyles;
+      case "labels": return { type: Text, fontSize: ref("mapSettings", "labelFontSize", "Visual_LabelFontSize", "Label Font Size") } as powerbi.visuals.SubSelectionStyles;
+      case "legend": return { type: Text, fontSize: ref("legend", "fontSize", "Visual_TextSize", "Text Size"),
+        fontFamily: ref("legend", "fontFamily", "Visual_Font", "Font"),
+        fontColor: ref("legend", "fontColor", "Visual_TextColor", "Text Color") } as powerbi.visuals.SubSelectionStyles;
+    }
+    return undefined;
+  }
+
+  private getSubSelectionShortcuts(subs: powerbi.visuals.CustomVisualSubSelection[]): powerbi.visuals.VisualSubSelectionShortcuts | undefined {
+    const o = subs[0]?.customVisualObjects[0]?.objectName;
+    const info = o ? Visual.SUB[o] : undefined;
+    if (!info) return undefined;
+    const id = (obj: string, prop: string) => ({ objectName: obj, propertyName: prop });
+    const toggle = (obj: string, prop: string, key: string, def: string) => ({ type: powerbi.visuals.VisualShortcutType.Toggle, ...id(obj, prop),
+      relatedToggledFormattingIds: [id(obj, prop)], disabledLabel: this.t(key, def), enabledLabel: this.t(key, def) });
+    const reset = (ids: [string, string][]) => ({ type: powerbi.visuals.VisualShortcutType.Reset, relatedResetFormattingIds: ids.map(([a, b]) => id(a, b)) });
+    const picker = (obj: string, prop: string, key: string, def: string) => ({ type: powerbi.visuals.VisualShortcutType.Picker, ...id(obj, prop), label: this.t(key, def) });
+    // FormattingSettingsService forma el uid "<objeto>-card" y Power BI lo publica como "Visual-<objeto>-card".
+    const nav = { type: powerbi.visuals.VisualShortcutType.Navigate, destinationInfo: { cardUid: "Visual-" + info[0] + "-card" }, label: this.t(info[1], info[2]) };
+    const div = { type: powerbi.visuals.VisualShortcutType.Divider };
+    switch (o) {
+      case "tiles":
+        return [picker("mapSettings", "tileShape", "Visual_TileShape", "Tile Shape"),
+          toggle("mapSettings", "showLabels", "Visual_ShowLabels", "Show Cell Labels"),
+          toggle("mapSettings", "showEmptyCells", "Visual_ShowEmptyCells", "Show Empty Cells"),
+          toggle("accessibility", "showBorders", "Visual_ShowBorders", "Show Cell Borders"), div,
+          reset([["colorScale", "noDataColor"], ["accessibility", "borderColor"]]), nav] as powerbi.visuals.VisualSubSelectionShortcuts;
+      case "labels":
+        return [toggle("mapSettings", "showLabels", "Visual_ShowLabels", "Show Cell Labels"), div,
+          reset([["mapSettings", "labelFontSize"]]), nav] as powerbi.visuals.VisualSubSelectionShortcuts;
+      case "legend":
+        return [picker("legend", "legendPosition", "Visual_Position", "Position"),
+          toggle("legend", "showLegend", "Visual_ShowLegend", "Show Legend"), div,
+          reset([["legend", "fontSize"], ["legend", "fontFamily"], ["legend", "fontColor"]]), nav] as powerbi.visuals.VisualSubSelectionShortcuts;
+    }
+    return undefined;
   }
 
   public getFormattingModel(): powerbi.visuals.FormattingModel {

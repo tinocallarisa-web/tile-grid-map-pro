@@ -617,5 +617,7 @@
   },
   "privileges": [],
   "supportsLandingPage": true,
-  "supportsEmptyDataView": true
+  "supportsEmptyDataView": true,
+  "supportsOnObjectFormatting": true,
+  "enablePointerEventsFormatMode": true
 }

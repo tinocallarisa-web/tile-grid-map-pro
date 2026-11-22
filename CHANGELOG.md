@@ -22,6 +22,11 @@ This project follows the Power BI custom visual four-part versioning scheme
 - **The Pro preview watermark is the one of the whole TCViz collection**: a centred notice with a light band that
   names the Pro features in use, instead of a large rotated outline over the map.
 
+- **On-object formatting.** With *On-object interaction* on in Power BI Desktop, select the tiles, the tile labels or
+  the legend on the canvas and format them there: tile shape, labels, empty tiles and borders, empty-tile and border
+  colour; label size; legend position, font, size and colour. Each one links to its card in the format pane. While
+  formatting, a click selects what to format and does not filter the report.
+
 - **Twelve languages.** The format pane, the start screen, the on-canvas messages (rows not shown, file errors), the
   tooltips, the Pro preview watermark and the licence notice follow the language of Power BI: English, Spanish,
   Portuguese (Brazil and Portugal), French, German, Italian, Dutch, Polish, Japanese, Chinese (Simplified) and Korean.

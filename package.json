@@ -11,7 +11,8 @@
   },
   "dependencies": {
     "powerbi-visuals-utils-formattingmodel": "^6.2.2",
-    "powerbi-visuals-utils-formattingutils": "^6.1.2"
+    "powerbi-visuals-utils-formattingutils": "^6.1.2",
+    "powerbi-visuals-utils-onobjectutils": "^6.0.3"
   },
   "overrides": {
     "qs": "^6.16.0",

@@ -26,7 +26,7 @@ window.powerbi = { visuals: { plugins: {} }, extensibility: {} };
  function mkId(k){ return { __k:k, getKey(){return k;}, getSelector(){return {k};}, equals(o){return !!o && o.__k===k;}, includes(o){ return !!o && o.__k===k; } }; }
  window.__host = {
   eventService: { renderingStarted(){ __ev.push('S'); }, renderingFinished(){ __ev.push('F'); }, renderingFailed(o,m){ __ev.push("X"); console.error("FAILED", m); } },
-  createSelectionManager(){ return { select(){ return Promise.resolve([]); }, clear(){ return Promise.resolve(); }, getSelectionIds(){ return []; },
+  createSelectionManager(){ return { select(){ window.__sel = (window.__sel||0)+1; return Promise.resolve([]); }, clear(){ return Promise.resolve(); }, getSelectionIds(){ return []; },
      hasSelection(){ return false; }, registerOnSelectCallback(cb){}, showContextMenu(){ return Promise.resolve(); } }; },
   createSelectionIdBuilder(){ const k=[]; return { withTable(t, i){ k.push(String(i)); return this; }, withCategory(){ return this; },
      withMeasure(m){ k.push(m); return this; }, withSeries(){ return this; }, createSelectionId(){ return mkId(k.join('|')); } }; },
@@ -38,6 +38,7 @@ window.powerbi = { visuals: { plugins: {} }, extensibility: {} };
   colorPalette: { isHighContrast: false, foreground:{value:'#252423'}, background:{value:'#FFFFFF'}, foregroundSelected:{value:'#1AEBFF'},
     getColor(){ return {value:'#118DFF'}; } },
   persistProperties(){}, launchUrl(){}, applyJsonFilter(){},
+  subSelectionService: { subSelect(a){ (window.__sub = window.__sub || []).push(a); }, updateRegionOutlines(){}, updateRegionOutlinesWithArgs(){} },
  };
 })();
 """
@@ -199,6 +200,22 @@ async def main():
             r = await pg.evaluate(TEXTOS)
             check(f"Inicio {W}×{H}: textos ≥ 8 px y dentro", r["n"] > 0 and r["min"] >= 8 and not r["fuera"], str({k: r[k] for k in ('n', 'min', 'max', 'fuera')}))
             await pg.close()
+
+        print("Formato sobre el lienzo: piezas elegibles solo en modo formato, y ahí el clic no filtra")
+        pg = await page(b, dv(), 760, 440)
+        FM = "(fm) => { __ev.length = 0; __v.update({ dataViews: [__v._lastOptions.dataViews[0]], viewport: {width: 760, height: 440}, type: 2, viewMode: 1, formatMode: fm }); return { ev: __ev.join(''), piezas: Array.from(document.querySelectorAll('[data-o]')).filter(e => e.classList.length && [...e.classList].some(c => /sub/i.test(c))).map(e => e.getAttribute('data-o')) }; }"
+        r = await pg.evaluate(FM, False)
+        check("Fuera de modo formato: nada marcado", r["piezas"] == [], str(r))
+        r = await pg.evaluate(FM, True)
+        check("En modo formato: teselas, etiquetas y leyenda elegibles; eventos 1:1", set(r["piezas"]) >= {"tiles", "legend"} and r["ev"] == "SF", str(r))
+        sel = await pg.evaluate("() => { window.__sel = 0; const t = document.querySelector('[data-key]'); t.dispatchEvent(new MouseEvent('click', { bubbles: true })); return window.__sel; }")
+        check("En modo formato el clic en una tesela no filtra", sel == 0, str(sel))
+        sc = await pg.evaluate("() => [ 'tiles', 'labels', 'legend' ].map(o => { const s = [{ customVisualObjects: [{ objectName: o }] }]; return [o, !!__v.visualOnObjectFormatting.getSubSelectionStyles(s), (__v.visualOnObjectFormatting.getSubSelectionShortcuts(s) || []).length]; })")
+        check("Estilos y atajos para cada pieza", all(x[1] and x[2] >= 3 for x in sc), str(sc))
+        r = await pg.evaluate(FM, False)
+        sel = await pg.evaluate("() => { window.__sel = 0; const t = document.querySelector('[data-key]'); t.dispatchEvent(new MouseEvent('click', { bubbles: true })); return window.__sel; }")
+        check("Al salir de modo formato el clic vuelve a filtrar", sel == 1 and r["piezas"] == [], f"{sel} {r}")
+        await pg.close()
 
         print("Idioma de Desktop: los textos propios salen del bundle (el gestor solo devuelve la clave)")
         for loc, esperado in (("es-ES", "Añade los campos Latitud y Longitud"), ("ja-JP", "緯度と経度"), ("en-US", "Add Latitude and Longitude")):
