@@ -22,6 +22,20 @@ This project follows the Power BI custom visual four-part versioning scheme
 - **The Pro preview watermark is the one of the whole TCViz collection**: a centred notice with a light band that
   names the Pro features in use, instead of a large rotated outline over the map.
 
+- **Pick a range in the legend.** Click a class, a colour rule or a category in the legend, or drag across the
+  colour gradient, and the map keeps only the tiles in that range at full colour and says how many they are and what
+  share of the total they add up to ("12 of 45 tiles in the range · 63% of the total"). Click it again, or click the
+  gradient without dragging, to clear it. It only affects the map: it does not filter the report and is not saved.
+
+- **Target (Pro).** A new *Target* field well: each tile is coloured by its variance against the target, on a
+  diverging scale centred on 0 % (below target / on target / above target) and symmetric, so +10 % and −10 % weigh the
+  same. The legend, tile labels and colour rules read in variance; the tooltip shows the actual value, the target and
+  the variance. Without a licence it is drawn under the Pro preview watermark.
+
+- **Label content.** *Map Settings → Label Content*: Auto (as before), Value, Name, or Name and value in two lines,
+  like the tile maps in newspapers. Names that do not fit are shortened with "…"; nothing is drawn below 8 px or
+  wider than its tile.
+
 - **Highlighting from other visuals.** Click a bar or a slice in another visual and the map keeps every tile in
   place, showing the matching ones in full colour and dimming the rest, like the built-in visuals, instead of
   filtering the map down. Needs a field in *Value*.

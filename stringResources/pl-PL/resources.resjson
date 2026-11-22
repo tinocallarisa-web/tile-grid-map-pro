@@ -150,5 +150,17 @@
   "UI_TtRuleNone": "Brak (kolor skali)",
   "UI_TtRows": "Wiersze",
   "UI_TtRowsWith": "{0} ({1} z wartością)",
-  "UI_TtCentre": "Środek komórki"
+  "UI_TtCentre": "Środek komórki",
+  "Visual_Target": "Cel (Pro)",
+  "Visual_Desc_Target": "Opcjonalny cel: każdy kafelek jest barwiony według odchylenia od niego",
+  "Visual_LabelContent": "Zawartość etykiety",
+  "Visual_LcAuto": "Automatycznie",
+  "Visual_LcValue": "Wartość",
+  "Visual_LcName": "Nazwa",
+  "Visual_LcBoth": "Nazwa i wartość",
+  "UI_WmTarget": "barwienie kafelków według odchylenia od celu",
+  "UI_RangeSummary": "{0} z {1} kafelków w zakresie · {2} sumy",
+  "UI_RangeSummaryN": "{0} z {1} kafelków w zakresie",
+  "UI_TtTarget": "Cel",
+  "UI_TtVariance": "Odchylenie od celu"
 }

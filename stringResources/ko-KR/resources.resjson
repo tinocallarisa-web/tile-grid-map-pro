@@ -150,5 +150,17 @@
   "UI_TtRuleNone": "없음(눈금 색)",
   "UI_TtRows": "행",
   "UI_TtRowsWith": "{0}(값 있음 {1})",
-  "UI_TtCentre": "셀 중심"
+  "UI_TtCentre": "셀 중심",
+  "Visual_Target": "목표(Pro)",
+  "Visual_Desc_Target": "선택적 목표: 각 타일을 목표 대비 차이로 색칠합니다",
+  "Visual_LabelContent": "레이블 내용",
+  "Visual_LcAuto": "자동",
+  "Visual_LcValue": "값",
+  "Visual_LcName": "이름",
+  "Visual_LcBoth": "이름 및 값",
+  "UI_WmTarget": "목표 대비 차이로 타일 색칠",
+  "UI_RangeSummary": "범위 내 타일 {0}/{1}개 · 합계의 {2}",
+  "UI_RangeSummaryN": "범위 내 타일 {0}/{1}개",
+  "UI_TtTarget": "목표",
+  "UI_TtVariance": "목표 대비 차이"
 }

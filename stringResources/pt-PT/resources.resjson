@@ -150,5 +150,17 @@
   "UI_TtRuleNone": "Nenhuma (cor da escala)",
   "UI_TtRows": "Linhas",
   "UI_TtRowsWith": "{0} ({1} com valor)",
-  "UI_TtCentre": "Centro da célula"
+  "UI_TtCentre": "Centro da célula",
+  "Visual_Target": "Meta (Pro)",
+  "Visual_Desc_Target": "Meta opcional: cada bloco é colorido pelo desvio em relação a ela",
+  "Visual_LabelContent": "Conteúdo do rótulo",
+  "Visual_LcAuto": "Automático",
+  "Visual_LcValue": "Valor",
+  "Visual_LcName": "Nome",
+  "Visual_LcBoth": "Nome e valor",
+  "UI_WmTarget": "colorir os blocos pelo desvio em relação a uma meta",
+  "UI_RangeSummary": "{0} de {1} blocos no intervalo · {2} do total",
+  "UI_RangeSummaryN": "{0} de {1} blocos no intervalo",
+  "UI_TtTarget": "Meta",
+  "UI_TtVariance": "Desvio da meta"
 }

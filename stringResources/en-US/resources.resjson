@@ -150,5 +150,17 @@
   "UI_TtRuleNone": "None (scale colour)",
   "UI_TtRows": "Rows",
   "UI_TtRowsWith": "{0} ({1} with a value)",
-  "UI_TtCentre": "Cell centre"
+  "UI_TtCentre": "Cell centre",
+  "Visual_Target": "Target (Pro)",
+  "Visual_Desc_Target": "Optional target: each tile is coloured by its variance against it",
+  "Visual_LabelContent": "Label Content",
+  "Visual_LcAuto": "Auto",
+  "Visual_LcValue": "Value",
+  "Visual_LcName": "Name",
+  "Visual_LcBoth": "Name and value",
+  "UI_WmTarget": "colouring tiles by variance against a target",
+  "UI_RangeSummary": "{0} of {1} tiles in the range · {2} of the total",
+  "UI_RangeSummaryN": "{0} of {1} tiles in the range",
+  "UI_TtTarget": "Target",
+  "UI_TtVariance": "Variance vs target"
 }

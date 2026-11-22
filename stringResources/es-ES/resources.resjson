@@ -150,5 +150,17 @@
   "UI_TtRuleNone": "Ninguna (color de la escala)",
   "UI_TtRows": "Filas",
   "UI_TtRowsWith": "{0} ({1} con valor)",
-  "UI_TtCentre": "Centro de la celda"
+  "UI_TtCentre": "Centro de la celda",
+  "Visual_Target": "Objetivo (Pro)",
+  "Visual_Desc_Target": "Objetivo opcional: cada tesela se colorea por su desviación respecto a él",
+  "Visual_LabelContent": "Contenido de la etiqueta",
+  "Visual_LcAuto": "Automático",
+  "Visual_LcValue": "Valor",
+  "Visual_LcName": "Nombre",
+  "Visual_LcBoth": "Nombre y valor",
+  "UI_WmTarget": "colorear las teselas por su desviación respecto a un objetivo",
+  "UI_RangeSummary": "{0} de {1} teselas en el tramo · {2} del total",
+  "UI_RangeSummaryN": "{0} de {1} teselas en el tramo",
+  "UI_TtTarget": "Objetivo",
+  "UI_TtVariance": "Desviación respecto al objetivo"
 }

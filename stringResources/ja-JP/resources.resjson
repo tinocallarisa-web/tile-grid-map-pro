@@ -150,5 +150,17 @@
   "UI_TtRuleNone": "なし (スケールの色)",
   "UI_TtRows": "行",
   "UI_TtRowsWith": "{0} (値あり {1})",
-  "UI_TtCentre": "セルの中心"
+  "UI_TtCentre": "セルの中心",
+  "Visual_Target": "目標 (Pro)",
+  "Visual_Desc_Target": "任意の目標: 各タイルを目標との差異で色分けします",
+  "Visual_LabelContent": "ラベルの内容",
+  "Visual_LcAuto": "自動",
+  "Visual_LcValue": "値",
+  "Visual_LcName": "名前",
+  "Visual_LcBoth": "名前と値",
+  "UI_WmTarget": "目標との差異によるタイルの色分け",
+  "UI_RangeSummary": "範囲内のタイル {0}/{1} · 合計の {2}",
+  "UI_RangeSummaryN": "範囲内のタイル {0}/{1}",
+  "UI_TtTarget": "目標",
+  "UI_TtVariance": "目標との差異"
 }

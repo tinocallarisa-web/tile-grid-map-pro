@@ -33,7 +33,7 @@ window.powerbi = { visuals: { plugins: {} }, extensibility: {} };
   createLocalizationManager(){ return { getDisplayName(k){ return k; } }; },
   licenseManager: { getAvailableServicePlans(){ return Promise.resolve({ plans: [], isLicenseUnsupportedEnv: false, isLicenseInfoAvailable: true }); },
      notifyLicenseRequired(){ return Promise.resolve(true); }, notifyFeatureBlocked(){ return Promise.resolve(true); }, clearLicenseNotification(){ return Promise.resolve(true); } },
-  tooltipService: { enabled(){ return true; }, show(){}, move(){}, hide(){} },
+  tooltipService: { enabled(){ return true; }, show(a){ window.__tt = a; }, move(){}, hide(){} },
   hostCapabilities: { allowInteractions: true }, locale: '__LOCALE__',
   colorPalette: { isHighContrast: false, foreground:{value:'#252423'}, background:{value:'#FFFFFF'}, foregroundSelected:{value:'#1AEBFF'},
     getColor(){ return {value:'#118DFF'}; } },
@@ -53,12 +53,16 @@ PUEBLOS = [("Barcelona", 41.39, 2.17, 1_420_000), ("Girona", 41.98, 2.82, 380_00
            ("Badajoz", 38.88, -6.97, 90_000), ("Santander", 43.46, -3.80, 150_000)]
 
 
-def dv(fmt="#,0", pct=False, objects=None):
+def dv(fmt="#,0", pct=False, objects=None, objetivo=False):
     cols = [{"displayName": "Lat", "queryName": "T.Lat", "roles": {"latitude": True}, "index": 0},
             {"displayName": "Lng", "queryName": "T.Lng", "roles": {"longitude": True}, "index": 1},
             {"displayName": "Sales", "queryName": "Sum(T.Sales)", "roles": {"value": True}, "isMeasure": True, "format": fmt, "index": 2},
             {"displayName": "Town", "queryName": "T.Town", "roles": {"label": True}, "index": 3}]
     rows = [[la, ln, (v / 10_000_000 if pct else v), n] for (n, la, ln, v) in PUEBLOS]
+    if objetivo:
+        # Objetivo: un 10 % por encima de la venta en la mitad de las poblaciones, un 10 % por debajo en la otra.
+        cols = cols + [{"displayName": "Target", "queryName": "Sum(T.Target)", "roles": {"target": True}, "isMeasure": True, "format": fmt, "index": 4}]
+        rows = [r + [r[2] * (1.1 if i % 2 else 0.9)] for i, r in enumerate(rows)]
     return {"metadata": {"columns": cols, "objects": objects or {}}, "table": {"columns": cols, "rows": rows, "identity": []}}
 
 
@@ -105,6 +109,8 @@ async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch()
 
+        guid0 = json.load(io.open(os.path.join(DROP, "pbiviz.json"), encoding="utf-8"))["visual"]["guid"]
+        OP2 = "() => { const o = Array.from(document.querySelectorAll('[data-key]')).map(e => e.style.opacity || '1'); return { plenas: o.filter(x => x === '1').length, tenues: o.filter(x => x !== '1').length, estado: Array.from(document.querySelectorAll('svg > text')).map(e => e.textContent) }; }"
         print("Tamaños de informe real: nada por debajo de 8 px, nada fuera, eventos 1:1 (también al resolver la licencia)")
         anterior = None
         for (W, H) in ((400, 250), (470, 380), (760, 440), (1100, 700)):
@@ -136,6 +142,32 @@ async def main():
         tip = await pg.evaluate("() => __v.formatValue(1234.5, '#,0.00')")
         check("Idioma del informe (es-ES): coma decimal", "," in tip and tip.strip().endswith(("K", "50", "5")) or "," in tip, tip)
         await pg.close()
+
+        if not guid0.endswith("_testfree"):
+            print("Objetivo (Pro): desviación divergente y simétrica, leyenda en %, tooltip con objetivo y desviación")
+            pg = await page(b, dv(objetivo=True), 760, 440, name="13_objetivo")
+            r = await pg.evaluate(TEXTOS)
+            check("Leyenda de la desviación con signo y %", any("%" in x and ("+" in x or "-" in x or "−" in x) for x in r["textos"]), str(r["textos"][:8]))
+            col = await pg.evaluate("() => [...new Set(Array.from(document.querySelectorAll('[data-key]')).map(e => e.getAttribute('fill')))].length")
+            check("Dos grupos de color (por encima y por debajo)", col >= 2, str(col))
+            tt = await pg.evaluate("() => { const k = [...__v._points.keys()][0]; return __v.tooltipItems(__v._points.get(k)).map(i => i.displayName + '=' + i.value); }")
+            check("Tooltip con valor real, objetivo y desviación", any(x.startswith("Target=") for x in tt) and any("Variance" in x and "%" in x for x in tt), str(tt))
+            await pg.close()
+            print("Tramo por clase (escala por cuantiles)")
+            pg = await page(b, dv(objects={"colorScale": {"scaleType": "quantile"}}), 760, 440)
+            await pg.evaluate("() => { const c = Array.from(document.querySelectorAll('[data-o=legend] rect')).filter(e => e.style.cursor === 'pointer'); c[c.length - 1].dispatchEvent(new MouseEvent('click', { bubbles: true })); }")
+            r = await pg.evaluate(OP2)
+            check("Clic en una clase: solo sus teselas a pleno color", r["plenas"] >= 1 and r["tenues"] >= 1, str(r))
+            await pg.evaluate("() => { const c = Array.from(document.querySelectorAll('[data-o=legend] rect')).filter(e => e.style.cursor === 'pointer'); c[c.length - 1].dispatchEvent(new MouseEvent('click', { bubbles: true })); }")
+            r = await pg.evaluate(OP2)
+            check("Otro clic en la misma clase: quita el tramo", r["tenues"] == 0, str(r))
+            await pg.close()
+        else:
+            pg = await page(b, dv(objetivo=True), 470, 380)
+            await pg.wait_for_timeout(200)
+            r = await pg.evaluate("() => { const w = document.querySelector('.tcviz-wm'); return w ? w.textContent : ''; }")
+            check("Free con objetivo: vista previa que lo nombra", "variance" in r, r)
+            await pg.close()
 
         print("Estilos de la colección (build Pro): fondo, leyenda y rampa; lo que fija el autor gana")
         for tpl in ("classic", "boardroom", "ledger", "editorial", "signal", "aurora", "terrace"):
@@ -244,6 +276,42 @@ async def main():
         pg = await page(b, dv(objects={"accessibility": {"showBorders": True, "borderWidth": 0.5}}), 1100, 700)
         sw2 = await pg.evaluate("() => Math.max(...Array.from(document.querySelectorAll('[data-key]')).map(e => +e.getAttribute('stroke-width')))")
         check("Teselas grandes: borde más grueso que en pequeñas, sin pasar del elegido (0,5)", sw < sw2 <= 0.5, f"{sw} → {sw2}")
+        await pg.close()
+
+        print("Tooltips de página de informe: el tooltip lleva las filas de la tesela para filtrar la página")
+        pg = await page(b, dv(), 760, 440)
+        n = await pg.evaluate("() => { const t = document.querySelector('[data-key]'); const r = t.getBoundingClientRect(); t.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: r.x + 2, clientY: r.y + 2 })); return window.__tt ? window.__tt.identities.length : -1; }")
+        check("Tooltip con identidades (la página de tooltip se filtra por la tesela)", n >= 1, str(n))
+        await pg.close()
+
+        print("Etiqueta de la tesela: nombre y valor en dos líneas")
+        pg = await page(b, dv(objects={"mapSettings": {"showLabels": True, "labelContent": "both", "labelFontSize": 9}}), 1800, 1200, name="11_etiqueta_doble")
+        r = await pg.evaluate("() => { const t = Array.from(document.querySelectorAll('[data-o=labels] text')); const ys = new Map(); t.forEach(e => { const k = e.getAttribute('x'); ys.set(k, (ys.get(k) || 0) + 1); }); return { n: t.length, dobles: [...ys.values()].filter(x => x >= 2).length, textos: t.map(e => e.textContent).slice(0, 6) }; }")
+        check("Alguna tesela con nombre encima y valor debajo", r["dobles"] >= 1, str(r))
+        await pg.close()
+        pg = await page(b, dv(objects={"mapSettings": {"showLabels": True, "labelContent": "name"}}), 1800, 1200)
+        r = await pg.evaluate("() => Array.from(document.querySelectorAll('[data-o=labels] text')).map(e => e.textContent)")
+        check("Solo nombre: ninguna etiqueta con cifras", len(r) > 0 and not any(any(c.isdigit() for c in x) for x in r), str(r[:6]))
+        await pg.close()
+
+        print("Tramo de la leyenda: clic o arrastre resalta las teselas de ese tramo y dice cuántas son")
+        OP2 = "() => { const o = Array.from(document.querySelectorAll('[data-key]')).map(e => e.style.opacity || '1'); return { plenas: o.filter(x => x === '1').length, tenues: o.filter(x => x !== '1').length, estado: Array.from(document.querySelectorAll('svg > text')).map(e => e.textContent) }; }"
+        pg = await page(b, dv(), 760, 440, name="12_tramo_antes")
+        await pg.evaluate("""() => { const bar = document.querySelector('[data-o=legend] rect[fill^="url"]'); const r = bar.getBoundingClientRect();
+            bar.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: r.x + r.width * 0.5, clientY: r.y + 2 }));
+            window.dispatchEvent(new MouseEvent('mousemove', { clientX: r.x + r.width * 0.98, clientY: r.y + 2 }));
+            window.dispatchEvent(new MouseEvent('mouseup', { clientX: r.x + r.width * 0.98, clientY: r.y + 2 })); }""")
+        await pg.wait_for_timeout(100)
+        await pg.screenshot(path=os.path.join(OUT, "12_tramo_arrastre.png"))
+        r = await pg.evaluate(OP2)
+        check("Arrastre en el degradado: unas teselas a pleno color, el resto atenuadas, y el resumen", r["plenas"] >= 1 and r["tenues"] >= 1 and any("range" in x for x in r["estado"]), str(r))
+        ev = await pg.evaluate("() => { __ev.length = 0; return 0; }")
+        await pg.evaluate("""() => { const bar = document.querySelector('[data-o=legend] rect[fill^="url"]'); const r = bar.getBoundingClientRect();
+            bar.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: r.x + 10, clientY: r.y + 2 }));
+            window.dispatchEvent(new MouseEvent('mouseup', { clientX: r.x + 10, clientY: r.y + 2 })); }""")
+        r = await pg.evaluate(OP2)
+        ev = await pg.evaluate("() => __ev.join('')")
+        check("Clic sin arrastrar: quita el tramo, sin eventos de render extra", r["tenues"] == 0 and ev == "", f"{r} ev={ev!r}")
         await pg.close()
 
         print("Idioma de Desktop: los textos propios salen del bundle (el gestor solo devuelve la clave)")

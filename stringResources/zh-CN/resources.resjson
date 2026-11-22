@@ -150,5 +150,17 @@
   "UI_TtRuleNone": "无 (色阶颜色)",
   "UI_TtRows": "行",
   "UI_TtRowsWith": "{0} ({1} 行有值)",
-  "UI_TtCentre": "单元格中心"
+  "UI_TtCentre": "单元格中心",
+  "Visual_Target": "目标 (Pro)",
+  "Visual_Desc_Target": "可选目标：按与目标的差异为每个图块着色",
+  "Visual_LabelContent": "标签内容",
+  "Visual_LcAuto": "自动",
+  "Visual_LcValue": "值",
+  "Visual_LcName": "名称",
+  "Visual_LcBoth": "名称和值",
+  "UI_WmTarget": "按与目标的差异为图块着色",
+  "UI_RangeSummary": "范围内 {0}/{1} 个图块 · 占总计 {2}",
+  "UI_RangeSummaryN": "范围内 {0}/{1} 个图块",
+  "UI_TtTarget": "目标",
+  "UI_TtVariance": "与目标的差异"
 }

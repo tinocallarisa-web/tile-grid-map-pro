@@ -150,5 +150,17 @@
   "UI_TtRuleNone": "Nessuna (colore della scala)",
   "UI_TtRows": "Righe",
   "UI_TtRowsWith": "{0} ({1} con un valore)",
-  "UI_TtCentre": "Centro della cella"
+  "UI_TtCentre": "Centro della cella",
+  "Visual_Target": "Obiettivo (Pro)",
+  "Visual_Desc_Target": "Obiettivo facoltativo: ogni tessera è colorata in base allo scostamento",
+  "Visual_LabelContent": "Contenuto etichetta",
+  "Visual_LcAuto": "Automatico",
+  "Visual_LcValue": "Valore",
+  "Visual_LcName": "Nome",
+  "Visual_LcBoth": "Nome e valore",
+  "UI_WmTarget": "la colorazione delle tessere per scostamento da un obiettivo",
+  "UI_RangeSummary": "{0} di {1} tessere nell'intervallo · {2} del totale",
+  "UI_RangeSummaryN": "{0} di {1} tessere nell'intervallo",
+  "UI_TtTarget": "Obiettivo",
+  "UI_TtVariance": "Scostamento dall'obiettivo"
 }

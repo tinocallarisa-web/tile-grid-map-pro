@@ -150,5 +150,17 @@
   "UI_TtRuleNone": "Aucune (couleur de l'échelle)",
   "UI_TtRows": "Lignes",
   "UI_TtRowsWith": "{0} ({1} avec une valeur)",
-  "UI_TtCentre": "Centre de la cellule"
+  "UI_TtCentre": "Centre de la cellule",
+  "Visual_Target": "Objectif (Pro)",
+  "Visual_Desc_Target": "Objectif facultatif : chaque tuile est colorée selon son écart par rapport à lui",
+  "Visual_LabelContent": "Contenu de l'étiquette",
+  "Visual_LcAuto": "Auto",
+  "Visual_LcValue": "Valeur",
+  "Visual_LcName": "Nom",
+  "Visual_LcBoth": "Nom et valeur",
+  "UI_WmTarget": "la coloration des tuiles selon l'écart à un objectif",
+  "UI_RangeSummary": "{0} tuiles sur {1} dans la plage · {2} du total",
+  "UI_RangeSummaryN": "{0} tuiles sur {1} dans la plage",
+  "UI_TtTarget": "Objectif",
+  "UI_TtVariance": "Écart à l'objectif"
 }

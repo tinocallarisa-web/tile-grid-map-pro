@@ -150,5 +150,17 @@
   "UI_TtRuleNone": "Keine (Skalenfarbe)",
   "UI_TtRows": "Zeilen",
   "UI_TtRowsWith": "{0} ({1} mit Wert)",
-  "UI_TtCentre": "Zellmitte"
+  "UI_TtCentre": "Zellmitte",
+  "Visual_Target": "Ziel (Pro)",
+  "Visual_Desc_Target": "Optionales Ziel: jede Kachel wird nach ihrer Abweichung davon eingefärbt",
+  "Visual_LabelContent": "Beschriftungsinhalt",
+  "Visual_LcAuto": "Automatisch",
+  "Visual_LcValue": "Wert",
+  "Visual_LcName": "Name",
+  "Visual_LcBoth": "Name und Wert",
+  "UI_WmTarget": "Einfärben der Kacheln nach Abweichung vom Ziel",
+  "UI_RangeSummary": "{0} von {1} Kacheln im Bereich · {2} der Summe",
+  "UI_RangeSummaryN": "{0} von {1} Kacheln im Bereich",
+  "UI_TtTarget": "Ziel",
+  "UI_TtVariance": "Abweichung vom Ziel"
 }

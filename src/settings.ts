@@ -69,6 +69,14 @@ export class MapSettingsCard extends formattingSettings.SimpleCard {
     value: false,
   });
 
+  /** Qué dice la etiqueta de la tesela (1.3): automático (como antes), el valor, el nombre o los dos en dos líneas. */
+  labelContent = new AutoDropdown({
+    name: "labelContent",
+    displayName: "Label Content",
+    displayNameKey: "Visual_LabelContent",
+    value: "auto",
+  });
+
   labelFontSize = new NumUpDown({
     name: "labelFontSize",
     displayName: "Label Font Size",
@@ -93,7 +101,7 @@ export class MapSettingsCard extends formattingSettings.SimpleCard {
     options: { minValue: { type: powerbi.visuals.ValidatorType.Min, value: 0 }, maxValue: { type: powerbi.visuals.ValidatorType.Max, value: 6 } }
   });
 
-  slices: SimpleSlice[] = [this.country, this.tileShape, this.latitudeCorrection, this.aggregationType, this.showEmptyCells, this.showLabels, this.labelFontSize, this.labelMinTileSize, this.tooltipDecimals];
+  slices: SimpleSlice[] = [this.country, this.tileShape, this.latitudeCorrection, this.aggregationType, this.showEmptyCells, this.showLabels, this.labelContent, this.labelFontSize, this.labelMinTileSize, this.tooltipDecimals];
 }
 
 // ─── Color Scale Card ─────────────────────────────────────────────────────────

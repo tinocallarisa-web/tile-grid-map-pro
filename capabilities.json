@@ -25,6 +25,12 @@
       "description": "Optional second measure that sizes each tile", "descriptionKey": "Visual_Desc_Size"
     },
     {
+      "name": "target",
+      "kind": "Measure",
+      "displayName": "Target (Pro)", "displayNameKey": "Visual_Target",
+      "description": "Optional target: each tile is coloured by its variance against it", "descriptionKey": "Visual_Desc_Target"
+    },
+    {
       "name": "tooltips",
       "kind": "Measure",
       "displayName": "Tooltips", "displayNameKey": "Visual_Tooltips",
@@ -63,6 +69,9 @@
             "max": 1
           },
           "size": {
+            "max": 1
+          },
+          "target": {
             "max": 1
           },
           "category": {
@@ -106,6 +115,11 @@
             {
               "bind": {
                 "to": "size"
+              }
+            },
+            {
+              "bind": {
+                "to": "target"
               }
             }
           ],
@@ -348,6 +362,16 @@
         "latitudeCorrection": {
           "type": {
             "bool": true
+          }
+        },
+        "labelContent": {
+          "type": {
+            "enumeration": [
+              { "value": "auto", "displayName": "Auto", "displayNameKey": "Visual_LcAuto" },
+              { "value": "value", "displayName": "Value", "displayNameKey": "Visual_LcValue" },
+              { "value": "name", "displayName": "Name", "displayNameKey": "Visual_LcName" },
+              { "value": "both", "displayName": "Name and value", "displayNameKey": "Visual_LcBoth" }
+            ]
           }
         }
       }

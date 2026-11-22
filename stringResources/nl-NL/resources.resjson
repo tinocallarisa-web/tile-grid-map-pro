@@ -150,5 +150,17 @@
   "UI_TtRuleNone": "Geen (schaalkleur)",
   "UI_TtRows": "Rijen",
   "UI_TtRowsWith": "{0} ({1} met een waarde)",
-  "UI_TtCentre": "Celmidden"
+  "UI_TtCentre": "Celmidden",
+  "Visual_Target": "Doel (Pro)",
+  "Visual_Desc_Target": "Optioneel doel: elke tegel krijgt een kleur op basis van de afwijking",
+  "Visual_LabelContent": "Labelinhoud",
+  "Visual_LcAuto": "Automatisch",
+  "Visual_LcValue": "Waarde",
+  "Visual_LcName": "Naam",
+  "Visual_LcBoth": "Naam en waarde",
+  "UI_WmTarget": "tegels kleuren op afwijking van een doel",
+  "UI_RangeSummary": "{0} van {1} tegels in het bereik · {2} van het totaal",
+  "UI_RangeSummaryN": "{0} van {1} tegels in het bereik",
+  "UI_TtTarget": "Doel",
+  "UI_TtVariance": "Afwijking van doel"
 }

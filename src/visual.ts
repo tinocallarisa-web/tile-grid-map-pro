@@ -79,6 +79,7 @@ interface Bucket {
   tooltips: Map<string, TooltipColData>;
   selIds: ISelectionId[];
   rowCount: number;
+  targets: number[];                 // objetivo (Pro, 1.3)
   hl: boolean;                       // alguna fila resaltada desde otro visual
 }
 
@@ -106,6 +107,8 @@ interface ColorModel {
 }
 
 const MAX_CATEGORIES = 12;
+/** Formato de la desviación contra el objetivo: con signo, un decimal. */
+const FMT_DESVIACION = "+0.0%;-0.0%;0.0%";
 const OTHER_CATEGORY_COLOR = "#b0b0b0";
 
 // ─── Visual ───────────────────────────────────────────────────────────────────
@@ -206,6 +209,14 @@ export class Visual implements IVisual {
   private _topoSource = "";   // file name + length, part of the scan key
   private _topoError = "";
   private _hayResaltado = false;
+  // Objetivo (Pro, 1.3): con un campo en Target, cada tesela se colorea por su desviación contra él.
+  private _hasTarget = false;
+  private _targetAggType = "sum";
+  private _targetFmt: string | undefined = undefined;
+  // Tramo elegido en la leyenda (1.3): por valor (degradado) o por color (clases, reglas, categorías). Solo en el visual.
+  private _rango: { lo: number; hi: number } | { color: string } | null = null;
+  private _rangoKind = "";
+  private _enRango: Set<string> | null = null;
   private localizationManager: powerbi.extensibility.ILocalizationManager | null = null;
   // Formato sobre el lienzo (1.3, receta de Waterfall): en modo formato el clic elige qué formatear, no filtra.
   private subSelectionHelper!: HtmlSubSelectionHelper;
@@ -341,6 +352,7 @@ export class Visual implements IVisual {
     const ms = this.settings.mapSettings;
     if (!custom && String(ms.tileShape.value) !== "square") { labels.push(this.t(String(ms.tileShape.value) === "circle" ? "UI_WmCircle" : "UI_WmHex", String(ms.tileShape.value) === "circle" ? "circle tiles" : "hexagon tiles")); parts.push(`shape=${String(ms.tileShape.value)}`); keys.add("shape"); }
     if (scale === "quantile") { labels.push(this.t("UI_WmQuantile", "the quantile colour scale")); parts.push("quantile"); keys.add("scale"); }
+    if (this._hasTarget) { labels.push(this.t("UI_WmTarget", "colouring tiles by variance against a target")); parts.push("target"); keys.add("target"); }
     if (this._hasSize && !custom) { labels.push(this.t("UI_WmSize", "sizing tiles by a second measure")); parts.push("size"); keys.add("size"); }
     if (this._stats.total > FREE_ROW_LIMIT) {
       labels.push(this.tf("UI_WmRows", "more than {0} rows (this report has {1})", String(FREE_ROW_LIMIT), this._stats.total.toLocaleString(this.locale)));
@@ -663,6 +675,10 @@ export class Visual implements IVisual {
     this._sizePercent = esPorcentaje(this._sizeFmt);
     const catIdx   = columns.findIndex(c => c.roles?.["category"]);
     this._hasCategory = catIdx >= 0;
+    const tgtIdx   = columns.findIndex(c => c.roles?.["target"]);
+    this._hasTarget = tgtIdx >= 0;
+    this._targetAggType = tgtIdx >= 0 ? this.detectAggType(columns[tgtIdx]) : "sum";
+    this._targetFmt = tgtIdx >= 0 ? (columns[tgtIdx].format || undefined) : undefined;
     const maxSnap = grid?.snapCells ?? MAX_SNAP_CELLS;
     this._valueAggType = valIdx >= 0 ? this.detectAggType(columns[valIdx]) : "count";
     this._valueFmt = valIdx >= 0 ? (columns[valIdx].format || undefined) : undefined;
@@ -700,7 +716,7 @@ export class Visual implements IVisual {
 
         let b = buckets.get(key);
         if (!b) {
-          b = { key, col, row: r, values: [], sizes: [], labels: [], cats: new Map(), tooltips: new Map(), selIds: [], rowCount: 0, hl: false };
+          b = { key, col, row: r, values: [], sizes: [], labels: [], cats: new Map(), tooltips: new Map(), selIds: [], rowCount: 0, targets: [], hl: false };
           buckets.set(key, b);
         }
         b.rowCount++;
@@ -713,6 +729,10 @@ export class Visual implements IVisual {
         if (sizeIdx >= 0) {
           const sz = toNumber(row[sizeIdx]);
           if (!isNaN(sz)) b.sizes.push(sz);
+        }
+        if (tgtIdx >= 0) {
+          const tg = toNumber(row[tgtIdx]);
+          if (!isNaN(tg)) b.targets.push(tg);
         }
         if (catIdx >= 0) {
           const cv = row[catIdx];
@@ -804,6 +824,63 @@ export class Visual implements IVisual {
     }
   }
 
+  /**
+   * ETIQUETA DE LA TESELA (1.3). "auto" es lo de siempre: el valor si la tesela es grande, si no las 4 primeras letras
+   * del nombre. "value" y "name" fijan una cosa; "both" pone el nombre encima y el valor debajo, como los mapas de
+   * mosaico de prensa, y si no caben las dos líneas deja el valor. Nunca por debajo de 8 px y nunca más ancha que la
+   * tesela: lo que no cabe no se dibuja (un nombre se recorta a lo que quepa, con «…»).
+   */
+  private lineasEtiqueta(value: number, nombre: string, inner: number, minLabel: number, fontSize: number, modo: string):
+      { texto: string; fs: number; dy: number; peso: string }[] {
+    const cabe = (t: string, fs: number) => t.length * fs * 0.6 <= inner - 2;
+    const recorta = (t: string, fs: number) => {
+      const n = Math.floor((inner - 2) / (fs * 0.6));
+      return n >= t.length ? t : n >= 3 ? t.slice(0, n - 1).trimEnd() + "…" : "";
+    };
+    const valor = this.formatValue(value, this.fmtValor());
+    const grande = inner >= minLabel;
+    if (modo === "auto") {
+      const fs = Math.max(8, grande ? fontSize : fontSize * 0.8);
+      const t = grande ? valor : nombre.slice(0, 4);
+      return t && cabe(t, fs) ? [{ texto: t, fs, dy: 0, peso: "600" }] : [];
+    }
+    const fs = Math.max(8, fontSize);
+    const soloNombre = () => { const t = recorta(nombre, fs); return t ? [{ texto: t, fs, dy: 0, peso: "600" }] : []; };
+    if (modo === "name") return soloNombre();
+    if (modo === "both" && nombre) {
+      const fsN = Math.max(8, fs * 0.85);
+      const n = recorta(nombre, fsN);
+      if (n && cabe(valor, fs) && inner >= (fs + fsN) * 1.15) {
+        const alto = fs + fsN + 1;
+        return [{ texto: n, fs: fsN, dy: -alto / 2 + fsN / 2, peso: "400" }, { texto: valor, fs, dy: alto / 2 - fs / 2, peso: "600" }];
+      }
+    }
+    if (cabe(valor, fs)) return [{ texto: valor, fs, dy: 0, peso: "600" }];
+    return modo === "both" ? soloNombre() : [];
+  }
+
+  /** ¿Se colorea por desviación contra el objetivo? Pro (o su vista previa) y con un campo en Target. */
+  private modoObjetivo(): boolean {
+    return this._hasTarget && this.allow("target");
+  }
+
+  /** Objetivo agregado de una tesela, o NaN. */
+  private objetivoTesela(b: Bucket): number {
+    return this.aggregate(b.targets, this._targetAggType);
+  }
+
+  /**
+   * Lo que pinta la tesela: su valor o, en modo objetivo, la desviación (valor − objetivo) / |objetivo|. Sin objetivo,
+   * o con objetivo 0, no hay desviación que calcular y la tesela queda sin dato.
+   */
+  private valorTesela(b: Bucket, type: string): number | null {
+    const v = this.bucketValue(b, type);
+    if (!this.modoObjetivo()) return v;
+    const t = this.objetivoTesela(b);
+    if (v === null || !Number.isFinite(t) || t === 0) return null;
+    return (v - t) / Math.abs(t);
+  }
+
   /** Aggregated value of a bucket, or null when it has none. Count counts rows. */
   private bucketValue(b: Bucket, type: string): number | null {
     if (type === "count") return b.rowCount;
@@ -825,6 +902,14 @@ export class Visual implements IVisual {
         opacityFor: v => 0.25 + 0.75 * normalise(v, min, max),
         legendStops: [{ value: 0, color: this.mixHex(this.hcBg, this.hcFg, 0.25) }, { value: 1, color: this.hcFg }],
       };
+    }
+    if (this.modoObjetivo()) {
+      // Desviación contra el objetivo: divergente y SIMÉTRICA alrededor de 0, para que un +10 % y un −10 % pesen igual;
+      // rojo/verde del estilo (en Report theme, los colores de sentimiento del tema).
+      const m = Math.max(Math.abs(min), Math.abs(max)) || 1;
+      const stops = [{ value: 0, color: this.tk.down }, { value: 0.5, color: this.tk.mid }, { value: 1, color: this.tk.up }];
+      const fn = buildStopScale(stops);
+      return { kind: "diverging", min: -m, max: m, colorFor: v => fn(normaliseDiverging(v, -m, m)), opacityFor: () => 1, legendStops: stops };
     }
     if (!this.allow("scale") && !this.allow("colours")) {
       // La rampa gratuita es la del estilo en vigor (Report theme por defecto); antes, un azul fijo.
@@ -926,7 +1011,7 @@ export class Visual implements IVisual {
     const values: number[] = [];
     const bucketVals = new Map<string, number | null>();
     this._buckets.forEach((b, k) => {
-      const v = this.bucketValue(b, type);
+      const v = this.valorTesela(b, type);
       bucketVals.set(k, v);
       if (v !== null) values.push(v);
     });
@@ -934,8 +1019,9 @@ export class Visual implements IVisual {
     const showLegend = this.legendVisible(model) && values.length > 0;
     const status = this.statusLines();
 
+    this.calcularRango(model, bucketVals, noData, status);
     const legendH = showLegend ? this.legendHeight(model, vp.width) : 0;
-    const statusH = status.length * 14;
+    const statusH = Math.min(2, status.length) * 14;
     const legendTop = String(this.settings.legend.legendPosition.value) === "top";
     const drawTop = 4 + (legendTop ? legendH : 0);
     const drawH = vp.height - legendH - statusH - 8;
@@ -969,6 +1055,7 @@ export class Visual implements IVisual {
     const showEmpty = ms.showEmptyCells.value;
     const fontSize = Math.min(Number(ms.labelFontSize.value) || 8, base * 0.4);
     const minLabel = Number(ms.labelMinTileSize.value) || 20;
+    const labelContent = String(ms.labelContent.value || "auto");
 
     // Size (Pro): area proportional to the second measure, never below 30% of the tile.
     const useSize = this.allow("size") && this._hasSize;
@@ -1062,21 +1149,17 @@ export class Visual implements IVisual {
         const inner = Math.min(w, h) * (shape === "square" ? 1 : 0.8);
         if (showLabels && value !== null && inner >= minLabel * 0.5) {
           const textColor = this.isHC ? this.hcBg : this.contrastColor(color);
-          const full = this.formatValue(value, this.fmtValor());
-          const text = inner >= minLabel ? full : (b.labels[0] ?? "").slice(0, 4);
-          // Nunca por debajo de 8 px (1.3): antes bajaba hasta 5, ilegible. Lo que no cabe a 8 no se dibuja.
-          const fs = Math.max(8, inner >= minLabel ? fontSize : fontSize * 0.8);
-          // Only when it fits: a label wider than its tile covers the neighbours.
-          if (text && text.length * fs * 0.6 <= inner - 2) {
+          const lineas = this.lineasEtiqueta(value, b.labels[0] ?? "", inner, minLabel, fontSize, labelContent);
+          lineas.forEach(l => {
             const t = document.createElementNS(ns, "text");
-            t.setAttribute("x", cx.toFixed(1)); t.setAttribute("y", cy.toFixed(1));
+            t.setAttribute("x", cx.toFixed(1)); t.setAttribute("y", (cy + l.dy).toFixed(1));
             t.setAttribute("text-anchor", "middle"); t.setAttribute("dominant-baseline", "middle");
-            t.setAttribute("font-size", fs.toFixed(1)); t.setAttribute("fill", textColor);
-            t.setAttribute("font-weight", "600");
+            t.setAttribute("font-size", l.fs.toFixed(1)); t.setAttribute("fill", textColor);
+            t.setAttribute("font-weight", l.peso);
             t.style.pointerEvents = "none"; t.style.userSelect = "none";
-            t.textContent = text;
+            t.textContent = l.texto;
             labels.appendChild(t);
-          }
+          });
         }
       }
     }
@@ -1112,7 +1195,7 @@ export class Visual implements IVisual {
     const values: number[] = [];
     const vals = features.map((_, fi) => {
       const b = this._buckets.get(`t${fi}`);
-      const v = b ? this.bucketValue(b, type) : null;
+      const v = b ? this.valorTesela(b, type) : null;
       if (v !== null) values.push(v);
       return v;
     });
@@ -1131,6 +1214,9 @@ export class Visual implements IVisual {
       status.unshift(this.t("UI_Projected", "The TopoJSON uses projected coordinates; rows cannot be matched to its regions. Export it in longitude/latitude (WGS84)."));
     }
 
+    const valsTopo = new Map<string, number | null>();
+    features.forEach((_, fi) => { if (this._buckets.has(`t${fi}`)) valsTopo.set(`t${fi}`, vals[fi]); });
+    this.calcularRango(model, valsTopo, noData, status);
     const legendH = showLegend ? this.legendHeight(model, vp.width) : 0;
     const statusH = Math.min(2, status.length) * 14;
     const legendTop = String(this.settings.legend.legendPosition.value) === "top";
@@ -1315,7 +1401,7 @@ export class Visual implements IVisual {
     // Rules on, or categories: a gradient would not describe the tiles, so use swatches.
     const swatches = this.swatchItems(model);
     if (swatches) {
-      this.renderSwatches(vp, swatches, y);
+      this.renderSwatches(vp, swatches, y, model);
       return;
     }
     const ns = "http://www.w3.org/2000/svg";
@@ -1334,6 +1420,7 @@ export class Visual implements IVisual {
         r.setAttribute("x", String(x + i * sw)); r.setAttribute("y", String(y + 6));
         r.setAttribute("width", String(Math.max(1, sw - 1))); r.setAttribute("height", String(barH));
         r.setAttribute("fill", c.color);
+        this.hacerPulsable(r, c.color, model);
         this.svg.appendChild(r);
         // Break values under each boundary, when there is room for them.
         if (sw >= fs * 3.4 || i === 0) this.addText(this.formatValue(c.from, p), x + i * sw, ty, i === 0 ? "start" : "middle", lc, fs, ff);
@@ -1361,9 +1448,112 @@ export class Visual implements IVisual {
     bar.setAttribute("rx", "4"); bar.setAttribute("fill", "url(#tgmLegendGrad)");
     if (this.isHC) { bar.setAttribute("stroke", this.hcFg); bar.setAttribute("stroke-width", "1"); }
     this.svg.appendChild(bar);
+    this.hacerArrastrable(bar, model, x, y + 6, gradW, barH);
     this.addText(this.formatValue(model.min, p), x, ty, "start", lc, fs, ff);
     this.addText(this.formatValue(model.max, p), x + gradW, ty, "end", lc, fs, ff);
     if (model.kind === "diverging" && model.min < 0 && model.max > 0) this.addText(this.formatValue(0, p), x + gradW / 2, ty, "middle", lc, fs, ff);
+  }
+
+  /**
+   * TRAMO DE LA LEYENDA (1.3, la mejora propia del mapa; la barra de rango del Histogram llevada al mapa). Clic en una
+   * clase, regla o categoría de la leyenda, o arrastre sobre el degradado: el mapa deja a pleno color solo las teselas
+   * de ese tramo y dice cuántas son y qué parte del total suman. Otro clic en lo mismo, o un clic sin arrastrar en el
+   * degradado, lo quita. Es solo del visual: no filtra el informe ni se guarda.
+   */
+  private calcularRango(model: ColorModel, valores: Map<string, number | null>, noData: string, status: string[]): void {
+    this._enRango = null;
+    if (!this._rango) return;
+    const clave = `${model.kind}|${this.settings.conditionalFormatting.cfEnabled.value}`;
+    if (this._rangoKind !== clave) { this._rango = null; return; }   // cambió la escala: el tramo ya no significa nada
+    const r = this._rango;
+    const dentro = new Set<string>();
+    let total = 0, suma = 0, n = 0;
+    valores.forEach((v, k) => {
+      if (v === null) return;
+      n++;
+      const b = this._buckets.get(k);
+      const real = b ? this.bucketValue(b, this.aggType()) : null;
+      if (real !== null) total += real;
+      const ok = "color" in r
+        ? (b ? this.pointColor(v, b, model, noData).color.toLowerCase() === r.color.toLowerCase() : false)
+        : v >= r.lo && v <= r.hi;
+      if (ok) { dentro.add(k); if (real !== null) suma += real; }
+    });
+    this._enRango = dentro;
+    const nf = (x: number) => x.toLocaleString(this.locale);
+    const aditivo = this.aggType() === "sum" || this.aggType() === "count";
+    status.unshift(aditivo && total > 0 && suma >= 0
+      ? this.tf("UI_RangeSummary", "{0} of {1} tiles in the range · {2} of the total", nf(dentro.size), nf(n), (suma / total).toLocaleString(this.locale, { style: "percent", maximumFractionDigits: 0 }))
+      : this.tf("UI_RangeSummaryN", "{0} of {1} tiles in the range", nf(dentro.size), nf(n)));
+  }
+
+  /** ¿Se puede tocar la leyenda? Ni en modo formato ni donde Power BI prohíbe interactuar. */
+  private leyendaInteractiva(): boolean {
+    return !this.formatMode && !!this.host.hostCapabilities.allowInteractions;
+  }
+
+  /** Clase, regla o categoría de la leyenda que se puede pulsar para quedarse con su tramo. */
+  private hacerPulsable(el: SVGElement, color: string, model: ColorModel): void {
+    if (!this.leyendaInteractiva()) return;
+    const elegido = !!this._rango && "color" in this._rango && this._rango.color.toLowerCase() === color.toLowerCase();
+    if (this._rango && !elegido) el.style.opacity = "0.35";
+    el.style.cursor = "pointer";
+    el.addEventListener("click", (e: MouseEvent) => {
+      e.stopPropagation();
+      this._rango = elegido ? null : { color };
+      this._rangoKind = `${model.kind}|${this.settings.conditionalFormatting.cfEnabled.value}`;
+      this.repaint();
+    });
+  }
+
+  /** Arrastre sobre el degradado: tramo de valores. Un clic sin arrastrar quita el tramo. */
+  private hacerArrastrable(bar: SVGRectElement, model: ColorModel, x: number, y: number, w: number, h: number): void {
+    const ns = "http://www.w3.org/2000/svg";
+    const lc = this.legendFont().color;
+    const aValor = (t: number) => {
+      t = Math.max(0, Math.min(1, t));
+      if (model.kind === "diverging" && model.min < 0 && model.max > 0) return t < 0.5 ? model.min + (t / 0.5) * (0 - model.min) : ((t - 0.5) / 0.5) * model.max;
+      return model.min + t * (model.max - model.min);
+    };
+    const aT = (v: number) => {
+      if (model.kind === "diverging" && model.min < 0 && model.max > 0) return normaliseDiverging(v, model.min, model.max);
+      return model.max === model.min ? 0 : (v - model.min) / (model.max - model.min);
+    };
+    const banda = document.createElementNS(ns, "rect");
+    banda.setAttribute("y", String(y - 2)); banda.setAttribute("height", String(h + 4)); banda.setAttribute("rx", "3");
+    banda.setAttribute("fill", "none"); banda.setAttribute("stroke", lc); banda.setAttribute("stroke-width", "1.5");
+    banda.style.pointerEvents = "none";
+    const ponBanda = (t0: number, t1: number) => {
+      const a = Math.min(t0, t1), b = Math.max(t0, t1);
+      banda.setAttribute("x", String(x + a * w)); banda.setAttribute("width", String(Math.max(2, (b - a) * w)));
+    };
+    if (this._rango && "lo" in this._rango) {
+      ponBanda(aT(this._rango.lo), aT(this._rango.hi));
+      this.svg.appendChild(banda);
+    }
+    if (!this.leyendaInteractiva()) return;
+    bar.style.cursor = "ew-resize";
+    bar.addEventListener("click", (e: MouseEvent) => e.stopPropagation());
+    bar.addEventListener("mousedown", (e: MouseEvent) => {
+      e.preventDefault(); e.stopPropagation();
+      const caja = bar.getBoundingClientRect();
+      const tDe = (cx: number) => caja.width > 0 ? Math.max(0, Math.min(1, (cx - caja.left) / caja.width)) : 0;
+      const t0 = tDe(e.clientX);
+      let t1 = t0;
+      if (!banda.parentNode) bar.parentNode?.appendChild(banda);
+      ponBanda(t0, t1);
+      const mover = (ev: MouseEvent) => { t1 = tDe(ev.clientX); ponBanda(t0, t1); };
+      const soltar = () => {
+        window.removeEventListener("mousemove", mover);
+        window.removeEventListener("mouseup", soltar);
+        if (Math.abs(t1 - t0) * caja.width < 3) this._rango = null;
+        else this._rango = { lo: aValor(Math.min(t0, t1)), hi: aValor(Math.max(t0, t1)) };
+        this._rangoKind = `${model.kind}|${this.settings.conditionalFormatting.cfEnabled.value}`;
+        this.repaint();
+      };
+      window.addEventListener("mousemove", mover);
+      window.addEventListener("mouseup", soltar);
+    });
   }
 
   /** Swatch legend entries — colour rules when on, else categories — or null for a gradient. */
@@ -1399,7 +1589,7 @@ export class Visual implements IVisual {
     return 10 + this.layoutSwatches(swatches, width).length * (Math.max(8, fs) + 8);
   }
 
-  private renderSwatches(vp: powerbi.IViewport, items: { color: string; text: string }[], y: number): void {
+  private renderSwatches(vp: powerbi.IViewport, items: { color: string; text: string }[], y: number, model: ColorModel): void {
     if (items.length === 0) return;
     const { color: lc, size: fs, family: ff } = this.legendFont();
     const ns = "http://www.w3.org/2000/svg";
@@ -1413,6 +1603,7 @@ export class Visual implements IVisual {
         r.setAttribute("x", String(x)); r.setAttribute("y", String(cy - sw / 2));
         r.setAttribute("width", String(sw)); r.setAttribute("height", String(sw));
         r.setAttribute("rx", "2"); r.setAttribute("fill", it.color);
+        this.hacerPulsable(r, it.color, model);
         this.svg.appendChild(r);
         this.addText(it.text, x + sw + 4, cy + fs * 0.35, "start", lc, fs, ff);
         x += it.w;
@@ -1722,7 +1913,9 @@ export class Visual implements IVisual {
       const key = el.getAttribute("data-key") ?? "";
       const selected = this._selectedKeys.has(key);
       const focused = key === this._focusKey && document.activeElement === this.container;
-      const atenuada = has ? !selected : (this._hayResaltado && !this._points.get(key)?.bucket.hl);
+      const atenuada = has ? !selected
+        : this._enRango ? !this._enRango.has(key)
+        : (this._hayResaltado && !this._points.get(key)?.bucket.hl);
       el.style.opacity = atenuada ? "0.3" : "1";
       if (selected || focused) {
         el.setAttribute("stroke", this.isHC ? this.hcFg : ring);
@@ -1748,7 +1941,16 @@ export class Visual implements IVisual {
       const extra = b.labels.length > 3 ? " " + this.tf("UI_TtMore", "(+{0} more)", String(b.labels.length - 3)) : "";
       items.push({ displayName: this.t("UI_TtLocation", "Location"), value: b.labels.slice(0, 3).join(", ") + extra });
     }
-    items.push({ displayName: aggLabels[type] ?? this.t("UI_TtValue", "Value"), value: p.value === null ? this.t("UI_TtNoValue", "No value") : this.formatValue(p.value, this.fmtValor()) });
+    if (this.modoObjetivo()) {
+      const real = this.bucketValue(b, type);
+      const obj = this.objetivoTesela(b);
+      const fReal = type === "count" ? null : this._valueFmt;
+      items.push({ displayName: aggLabels[type] ?? this.t("UI_TtValue", "Value"), value: real === null ? this.t("UI_TtNoValue", "No value") : this.formatValue(real, fReal) });
+      items.push({ displayName: this.t("UI_TtTarget", "Target"), value: Number.isFinite(obj) ? this.formatValue(obj, this._targetFmt) : this.t("UI_TtNoValue", "No value") });
+      items.push({ displayName: this.t("UI_TtVariance", "Variance vs target"), value: p.value === null ? "—" : this.formatValue(p.value, FMT_DESVIACION) });
+    } else {
+      items.push({ displayName: aggLabels[type] ?? this.t("UI_TtValue", "Value"), value: p.value === null ? this.t("UI_TtNoValue", "No value") : this.formatValue(p.value, this.fmtValor()) });
+    }
     if (this._hasSize && b.sizes.length > 0) {
       items.push({ displayName: this.t("UI_TtSize", "Size"), value: this.formatValue(this.aggregate(b.sizes, this._sizeAggType), this._sizeFmt) });
     }
@@ -1780,6 +1982,7 @@ export class Visual implements IVisual {
   // ── Formatting helpers ────────────────────────────────────────────────────
   /** Formato del valor de las teselas: el de la medida, salvo si la tesela cuenta filas (un recuento no es dinero). */
   private fmtValor(): string | null | undefined {
+    if (this.modoObjetivo()) return FMT_DESVIACION;
     return this.aggType() === "count" ? null : this._valueFmt;
   }
 
