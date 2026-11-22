@@ -217,6 +217,35 @@ async def main():
         check("Al salir de modo formato el clic vuelve a filtrar", sel == 1 and r["piezas"] == [], f"{sel} {r}")
         await pg.close()
 
+        print("Resaltado desde otro visual: lo resaltado a pleno color, el resto atenuado; sin resaltado, nada atenuado")
+        d = dv()
+        cols = d["table"]["columns"]
+        d["categorical"] = {
+            "categories": [{"source": cols[0], "values": [r[0] for r in d["table"]["rows"]]},
+                           {"source": cols[1], "values": [r[1] for r in d["table"]["rows"]]},
+                           {"source": cols[3], "values": [r[3] for r in d["table"]["rows"]]}],
+            "values": [{"source": cols[2], "values": [r[2] for r in d["table"]["rows"]],
+                        "highlights": [r[2] if r[3] in ("Madrid", "Sevilla") else None for r in d["table"]["rows"]]}]}
+        OP = "() => { const o = Array.from(document.querySelectorAll('[data-key]')).map(e => e.style.opacity || '1'); return { plenas: o.filter(x => x === '1').length, tenues: o.filter(x => x !== '1').length }; }"
+        pg = await page(b, d, 760, 440, name="10_resaltado")
+        r = await pg.evaluate(OP)
+        check("Con resaltado: 2 teselas a pleno color y el resto atenuadas", r["plenas"] == 2 and r["tenues"] > 10, str(r))
+        await pg.close()
+        pg = await page(b, dv(), 760, 440)
+        r = await pg.evaluate(OP)
+        check("Sin resaltado: ninguna atenuada", r["tenues"] == 0, str(r))
+        await pg.close()
+
+        print("Bordes: el grosor elegido es un máximo; en teselas pequeñas adelgaza")
+        pg = await page(b, dv(objects={"mapSettings": {"tileShape": "hexagon"}, "accessibility": {"showBorders": True, "borderWidth": 0.5}}), 220, 160)
+        sw = await pg.evaluate("() => Math.max(...Array.from(document.querySelectorAll('[data-key]')).map(e => +e.getAttribute('stroke-width')))")
+        check("Hexágonos pequeños: borde por debajo de 0,5", 0 < sw < 0.5, str(sw))
+        await pg.close()
+        pg = await page(b, dv(objects={"accessibility": {"showBorders": True, "borderWidth": 0.5}}), 1100, 700)
+        sw2 = await pg.evaluate("() => Math.max(...Array.from(document.querySelectorAll('[data-key]')).map(e => +e.getAttribute('stroke-width')))")
+        check("Teselas grandes: borde más grueso que en pequeñas, sin pasar del elegido (0,5)", sw < sw2 <= 0.5, f"{sw} → {sw2}")
+        await pg.close()
+
         print("Idioma de Desktop: los textos propios salen del bundle (el gestor solo devuelve la clave)")
         for loc, esperado in (("es-ES", "Añade los campos Latitud y Longitud"), ("ja-JP", "緯度と経度"), ("en-US", "Add Latitude and Longitude")):
             pg = await page(b, {"metadata": {"columns": []}}, 600, 400, name=f"09_inicio_{loc}", locale=loc)

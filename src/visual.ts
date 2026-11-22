@@ -79,6 +79,7 @@ interface Bucket {
   tooltips: Map<string, TooltipColData>;
   selIds: ISelectionId[];
   rowCount: number;
+  hl: boolean;                       // alguna fila resaltada desde otro visual
 }
 
 /** What is drawn and interacted with. */
@@ -204,6 +205,7 @@ export class Visual implements IVisual {
   private tplVisto: string | null = null;  // última plantilla vista: al cambiarla se borran los colores que define
   private _topoSource = "";   // file name + length, part of the scan key
   private _topoError = "";
+  private _hayResaltado = false;
   private localizationManager: powerbi.extensibility.ILocalizationManager | null = null;
   // Formato sobre el lienzo (1.3, receta de Waterfall): en modo formato el clic elige qué formatear, no filtra.
   private subSelectionHelper!: HtmlSubSelectionHelper;
@@ -666,6 +668,13 @@ export class Visual implements IVisual {
     this._valueFmt = valIdx >= 0 ? (columns[valIdx].format || undefined) : undefined;
     this._valuePercent = esPorcentaje(this._valueFmt);
 
+    // RESALTADO (1.3): al hacer clic en otro visual, Power BI no filtra el mapa sino que manda qué filas resaltar, y solo
+    // en la vista categórica. Se cruzan con las filas de la tabla por sus valores (latitud|longitud|etiqueta|categoría),
+    // no por posición: las dos vistas no garantizan el mismo orden.
+    const resaltadas = this.filasResaltadas(dataView);
+    this._hayResaltado = resaltadas !== null;
+    const claveFila = (row: powerbi.DataViewTableRow) => [latIdx, lngIdx, labelIdx, catIdx].map(i => i >= 0 ? String(row[i] ?? "") : "").join("|");
+
     const stats: ScanStats = { total: allRows.length, used: 0, blankCoords: 0, outside: 0, snapped: 0, capped: allRows.length >= ROW_CAP };
     const buckets = new Map<string, Bucket>();
     const features = grid ? null : this._topoFeatures;
@@ -691,11 +700,12 @@ export class Visual implements IVisual {
 
         let b = buckets.get(key);
         if (!b) {
-          b = { key, col, row: r, values: [], sizes: [], labels: [], cats: new Map(), tooltips: new Map(), selIds: [], rowCount: 0 };
+          b = { key, col, row: r, values: [], sizes: [], labels: [], cats: new Map(), tooltips: new Map(), selIds: [], rowCount: 0, hl: false };
           buckets.set(key, b);
         }
         b.rowCount++;
         stats.used++;
+        if (resaltadas && resaltadas.has(claveFila(row))) b.hl = true;
         b.selIds.push(this.host.createSelectionIdBuilder().withTable(table, rowIdx).createSelectionId());
 
         const val = valIdx >= 0 ? toNumber(row[valIdx]) : NaN;
@@ -733,6 +743,28 @@ export class Visual implements IVisual {
 
     this._buckets = buckets;
     this._stats = stats;
+  }
+
+  /**
+   * Claves (latitud|longitud|etiqueta|categoría) de las filas que otro visual resalta, o null si no hay resaltado.
+   * Las categorías llegan en el orden del select de capabilities; se colocan por rol para que la clave case con la tabla.
+   */
+  private filasResaltadas(dataView: DataView): Set<string> | null {
+    const cat = dataView.categorical;
+    const vals = cat?.values?.[0];
+    const hl = vals?.highlights;
+    if (!cat?.categories?.length || !hl) return null;
+    const porRol = (rol: string) => cat.categories!.find(c => c.source.roles?.[rol]);
+    const cols = ["latitude", "longitude", "label", "category"].map(porRol);
+    const n = cat.categories[0].values.length;
+    const out = new Set<string>();
+    let alguna = false;
+    for (let i = 0; i < n; i++) {
+      if (hl[i] === null || hl[i] === undefined) continue;
+      alguna = true;
+      out.add(cols.map(c => c ? String(c.values[i] ?? "") : "").join("|"));
+    }
+    return alguna ? out : null;
   }
 
   /** Aggregation implied by the field well ("Sum of", "Average of", …). */
@@ -957,7 +989,10 @@ export class Visual implements IVisual {
     };
 
     const baseStroke = this.isHC ? this.hcFg : (acc.showBorders.value ? (acc.borderColor.value?.value ?? "#cccccc") : "none");
-    const baseSw = this.isHC ? "0.5" : (acc.showBorders.value ? String(Number(acc.borderWidth.value) || 0.5) : "0");
+    // El grosor elegido es un MÁXIMO (1.3): en teselas pequeñas el borde adelgaza con ellas (2 % del lado, nunca bajo
+    // 0,15 px), para que no se coma el color. Tino, 22-11-2026: los hexágonos pequeños pesaban demasiado a 0,5.
+    const swElegido = Math.max(0.1, Number(acc.borderWidth.value) || 0.5);
+    const baseSw = this.isHC ? "0.5" : (acc.showBorders.value ? String(+Math.min(swElegido, Math.max(0.15, base * 0.02)).toFixed(2)) : "0");
 
     const ns = "http://www.w3.org/2000/svg";
     const rects = document.createElementNS(ns, "g");
@@ -1687,7 +1722,8 @@ export class Visual implements IVisual {
       const key = el.getAttribute("data-key") ?? "";
       const selected = this._selectedKeys.has(key);
       const focused = key === this._focusKey && document.activeElement === this.container;
-      el.style.opacity = has && !selected ? "0.3" : "1";
+      const atenuada = has ? !selected : (this._hayResaltado && !this._points.get(key)?.bucket.hl);
+      el.style.opacity = atenuada ? "0.3" : "1";
       if (selected || focused) {
         el.setAttribute("stroke", this.isHC ? this.hcFg : ring);
         el.setAttribute("stroke-width", focused && !selected ? String(Math.max(1.5, Number(ringW) - 0.5)) : ringW);

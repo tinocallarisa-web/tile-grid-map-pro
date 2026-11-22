@@ -115,6 +115,22 @@
             }
           }
         }
+      },
+      "categorical": {
+        "categories": {
+          "select": [
+            { "bind": { "to": "latitude" } },
+            { "bind": { "to": "longitude" } },
+            { "bind": { "to": "label" } },
+            { "bind": { "to": "category" } }
+          ],
+          "dataReductionAlgorithm": { "top": { "count": 30000 } }
+        },
+        "values": {
+          "select": [
+            { "bind": { "to": "value" } }
+          ]
+        }
       }
     }
   ],
@@ -618,6 +634,7 @@
   "privileges": [],
   "supportsLandingPage": true,
   "supportsEmptyDataView": true,
+  "supportsHighlight": true,
   "supportsOnObjectFormatting": true,
   "enablePointerEventsFormatMode": true
 }

@@ -214,7 +214,7 @@ export class AccessibilityCard extends formattingSettings.SimpleCard {
     displayNameKey: "Visual_BorderWidth",
     value: 0.5,
     options: {
-      minValue: { type: powerbi.visuals.ValidatorType.Min, value: 0.5 },
+      minValue: { type: powerbi.visuals.ValidatorType.Min, value: 0.1 },
       maxValue: { type: powerbi.visuals.ValidatorType.Max, value: 3 },
     },
   });
